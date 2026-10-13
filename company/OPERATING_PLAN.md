@@ -10,7 +10,7 @@
 
 ## Hourly growth loop
 - GitHub Actions runs the public opportunity scout once each hour.
-- The scout reads configured public RSS/Atom feeds, ranks listings against our service capabilities, and uploads a report artifact.
+- The scout reads configured public RSS/Atom feeds from We Work Remotely and Remotive, ranks listings against our service capabilities, and uploads a report artifact. These are mostly remote job feeds, not a guarantee of freelance contracts.
 - The Business Intelligence & Revenue Scout maps evidence-backed business needs to possible services and drafts a personalized, non-binding outreach message.
 - An operator verifies listing legitimacy, platform rules, budget/payment terms, and fit before any bid or contact.
 - After an accepted contract, agents work from an explicit project brief; engineering output passes QA, security, accessibility, and client review.
