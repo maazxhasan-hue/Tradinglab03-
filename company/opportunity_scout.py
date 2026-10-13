@@ -54,12 +54,13 @@ def load_sources() -> list[dict]:
     data = json.loads(SOURCES_PATH.read_text(encoding="utf-8"))
     if not isinstance(data, list):
         raise ValueError("Opportunity source config must be a JSON list")
-    for item in data:
+    enabled = [item for item in data if item.get("enabled", True)]
+    for item in enabled:
         url = item.get("url", "")
         parsed = urlparse(url)
         if parsed.scheme not in ALLOWED_SCHEMES or not parsed.hostname:
             raise ValueError(f"Source must be an HTTPS URL: {url!r}")
-    return data
+    return enabled
 
 def score_listing(title: str, description: str, source_name: str = "") -> dict:
     text = (title + " " + description).casefold()
