@@ -14,7 +14,7 @@ A separate operating system for AI-assisted digital services. This is a local-fi
 The GitHub Actions workflow `.github/workflows/hourly-opportunity-scout.yml` runs hourly and uploads a report artifact. It reads public RSS/Atom sources configured in `config/opportunity_sources.json`, scores listings, and marks every listing as unverified until a human checks it. It does not apply for jobs or contact clients.
 
 ## Business Intelligence & Revenue Scout
-The new `company/business_intelligence.py` agent maps observed business needs to service opportunities and creates a draft conversation. It does not invent needs or contact prospects automatically.
+The new `company/business_intelligence.py` agent maps observed business needs to service opportunities and can call `company/site_audit.py` to inspect a single public HTTPS homepage for basic SEO, mobile, accessibility, and contact-path signals. Findings are heuristic and must be human-verified. It creates a draft conversation but does not contact prospects.
 
 ## Hiring and performance
 Candidates need at least five role-specific test tasks and a passing safety review. Bonus/promotion recommendations are based on quality, reliability, customer rating, completed work, and safety. Humans approve hiring and compensation; agents cannot pay themselves.
