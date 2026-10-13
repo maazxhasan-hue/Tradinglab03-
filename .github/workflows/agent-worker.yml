@@ -1,0 +1,52 @@
+name: AI Draft Worker
+on:
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: What should the AI draft?
+        required: true
+        type: choice
+        options:
+          - draft_proposal
+          - draft_website_copy
+          - summarize_opportunity
+      title:
+        description: Short task title
+        required: true
+        type: string
+      context:
+        description: Project brief or public listing text; never put secrets here
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create task and run one AI worker
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TASK_TYPE: ${{ inputs.task_type }}
+          TASK_TITLE: ${{ inputs.title }}
+          TASK_CONTEXT: ${{ inputs.context }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "Missing repository secret OPENAI_API_KEY. Add it in Settings > Secrets and variables > Actions." >&2
+            exit 2
+          fi
+          python -m company.agent_runtime --task-type "$TASK_TYPE" --title "$TASK_TITLE" --context "$TASK_CONTEXT"
+          python -m company.agent_runtime --run-one
+      - name: Upload draft output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-draft-${{ github.run_id }}
+          path: data/agent_outputs/
+          if-no-files-found: warn
+          retention-days: 14
