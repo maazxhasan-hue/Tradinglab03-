@@ -1,0 +1,57 @@
+[
+  {
+    "department": "Executive & Operations",
+    "roles": [
+      "CEO/Operations Orchestrator",
+      "Project Manager",
+      "Client Success Lead",
+      "Release Manager"
+    ]
+  },
+  {
+    "department": "Engineering",
+    "roles": [
+      "Solution Architect",
+      "Frontend Engineer",
+      "Backend Engineer",
+      "Full-Stack Website Builder",
+      "Automation Engineer",
+      "AI Agent Engineer",
+      "QA Engineer",
+      "Accessibility Specialist",
+      "Security Reviewer"
+    ]
+  },
+  {
+    "department": "Creative Studio",
+    "roles": [
+      "Brand Designer",
+      "UX/UI Designer",
+      "Video Editor",
+      "Scriptwriter",
+      "Voice Producer",
+      "Copywriter"
+    ]
+  },
+  {
+    "department": "Sales & Growth",
+    "roles": [
+      "Lead Researcher",
+      "Qualification Agent",
+      "Client Conversation Agent",
+      "Proposal Writer",
+      "SEO Specialist",
+      "Content Marketer"
+    ]
+  },
+  {
+    "department": "Finance & Support",
+    "roles": [
+      "Finance Analyst",
+      "Customer Support Agent",
+      "Knowledge Base Curator",
+      "Performance Evaluator",
+      "Red-Team Reviewer"
+    ]
+  }
+]
