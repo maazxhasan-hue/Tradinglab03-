@@ -49,3 +49,11 @@ Default policy is a 30-day launch grace period plus 30-day evaluation period, wi
 
 ## Limits and honest status
 The hourly workflow discovers only configured feeds; it cannot guarantee finding every job or winning contracts. It does not auto-apply, send cold messages, receive money, or prove a listing pays. RSS availability and platform terms may change. The owner must configure reliable feeds, approved AI model credentials, payment processing, and a permitted contact workflow before this becomes a fully autonomous operating company.
+
+
+## Full company operating structure
+TradingLab03 now defines teams for marketing, sales, customer success/CA, product/service design, research and analysis, builders/developers, creative/presenting, QA/audit/testing, delivery/project management, finance/legal/procurement, people/agent operations, IT/security/data, partnerships, and continuous improvement.
+
+Use `company/departments.json` for each department's mission and team map, `company/roles.json` for role definitions, and `company/scorecards.json` for review cadence and KPIs. The checklist in `company/RELEASE_GATES.md` is the required operational readiness review.
+
+These structures help run a top-tier company, but they do not mean all positions are staffed, integrations are connected, or production operations have been verified.
