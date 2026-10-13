@@ -1,0 +1,27 @@
+name: Hourly Opportunity Scout
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out company repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Discover public project listings
+        run: python -m company.opportunity_scout
+      - name: Upload opportunity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-opportunities-${{ github.run_id }}
+          path: data/opportunities/
+          if-no-files-found: error
+          retention-days: 14
