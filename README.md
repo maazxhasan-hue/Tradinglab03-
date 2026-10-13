@@ -15,7 +15,7 @@ Standalone business automation starter for AI-assisted digital services. This re
 GitHub Actions runs `.github/workflows/hourly-opportunity-scout.yml` hourly and saves a downloadable report artifact. Configure approved public RSS/Atom feeds in `config/opportunity_sources.json`. The initial configured sources are public Upwork search RSS endpoints; if they block access or change format, the run will report source errors. Listings are leads, not guaranteed paid contracts. The system does not auto-apply or message clients.
 
 ## Additional revenue agent
-Business Intelligence & Revenue Scout analyzes evidence-backed business needs, maps them to services, and drafts a relevant proposal/conversation. It does not send it. Payment verification, invoicing/payment processor integration, connected LLM agents, and telephony remain future integrations.
+Business Intelligence & Revenue Scout can analyze a single public HTTPS homepage for visible SEO, mobile, heading, image-accessibility, and contact-path signals, map observed signals to services, and draft a proposal/conversation. It does not send it. Payment verification, invoicing/payment processor integration, connected LLM agents, and telephony remain future integrations.
 
 ## Course marketing facts
 Course: Build Your Own AI Trading Bot; ₹999; 12 modules, practical project, workbook/materials. Course page: https://trading-agent-35.indiasouthcentral.cloudapp.azure.com/course/. Educational scope: AI trading concepts, Python, backtesting, paper trading. Never promise profit/returns, fabricate testimonials or performance metrics, or imply access to a private trading bot.
