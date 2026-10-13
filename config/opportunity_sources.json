@@ -1,20 +1,26 @@
 [
   {
-    "name": "Upwork website design projects",
-    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=website%20design",
+    "name": "We Work Remotely - Programming",
+    "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss",
     "enabled": true,
-    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms. Many listings are employment roles rather than freelance contracts."
   },
   {
-    "name": "Upwork WordPress projects",
-    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=WordPress",
+    "name": "We Work Remotely - Design",
+    "url": "https://weworkremotely.com/categories/remote-design-jobs.rss",
     "enabled": true,
-    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms. Many listings are employment roles rather than freelance contracts."
   },
   {
-    "name": "Upwork SEO and content projects",
-    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=SEO%20content",
+    "name": "We Work Remotely - Sales and Marketing",
+    "url": "https://weworkremotely.com/categories/remote-sales-and-marketing-jobs.rss",
     "enabled": true,
-    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms."
+  },
+  {
+    "name": "Remotive - All remote jobs",
+    "url": "https://remotive.com/feed",
+    "enabled": true,
+    "notes": "Public feed. Preserve attribution and link users to the original Remotive listing. Many listings are employment roles rather than freelance contracts."
   }
 ]
