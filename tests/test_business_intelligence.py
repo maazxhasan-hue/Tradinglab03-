@@ -1,5 +1,6 @@
 import unittest
-from company.business_intelligence import BusinessObservation, analyze_business, can_contact
+from unittest.mock import patch
+from company.business_intelligence import BusinessObservation, analyze_business, can_contact, analyze_public_website
 
 class BusinessIntelligenceTests(unittest.TestCase):
     def test_observed_need_maps_to_services(self):
@@ -12,6 +13,13 @@ class BusinessIntelligenceTests(unittest.TestCase):
         result=analyze_business(BusinessObservation("Example","https://example.com",(),()))
         self.assertEqual(result.services,())
         self.assertEqual(result.confidence,"low")
+    @patch("company.site_audit.audit_public_homepage")
+    def test_website_analysis_uses_observed_findings(self, audit):
+        audit.return_value = {"findings":[{"service":"SEO metadata setup","evidence":"No page title"}]}
+        result = analyze_public_website("Example","https://example.com")
+        self.assertIn("SEO metadata setup",result.services)
+        self.assertIn("No page title",result.rationale)
+
     def test_contact_requires_all_approvals(self):
         o=BusinessObservation("Example","https://example.com",("no website",),())
         result=analyze_business(o)
