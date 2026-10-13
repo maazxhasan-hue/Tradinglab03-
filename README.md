@@ -1,22 +1,24 @@
 # BotLab Business Universe
 
-Standalone business automation starter for course marketing and AI-assisted digital services. This repository is separate from any trading-engine repository and must not connect to private trading infrastructure.
+Standalone business automation starter for AI-assisted digital services. This repository is separate from any trading-engine repository and must not connect to private trading infrastructure.
 
 ## Start here
-- **Company dashboard:** open [dashboard/index.html](dashboard/index.html) in a browser.
+- **Company dashboard:** [dashboard/index.html](dashboard/index.html)
 - **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
-- **Agent role registry:** [company/roles.json](company/roles.json)
-- **Local tests:** run `python -m unittest discover -s tests -v`
-- **Draft generator:** run `python -m botlab`
+- **Agent roles:** [company/roles.json](company/roles.json)
+- **Hourly opportunity scout:** [company/opportunity_scout.py](company/opportunity_scout.py)
+- **Business Intelligence & Revenue Scout:** [company/business_intelligence.py](company/business_intelligence.py)
+- **Run tests:** `python -m unittest discover -s tests -v`
+- **Run local content draft:** `python -m botlab`
+
+## Hourly work discovery
+GitHub Actions runs `.github/workflows/hourly-opportunity-scout.yml` hourly and saves a downloadable report artifact. Configure approved public RSS/Atom feeds in `config/opportunity_sources.json`. The initial configured sources are public Upwork search RSS endpoints; if they block access or change format, the run will report source errors. Listings are leads, not guaranteed paid contracts. The system does not auto-apply or message clients.
+
+## Additional revenue agent
+Business Intelligence & Revenue Scout analyzes evidence-backed business needs, maps them to services, and drafts a relevant proposal/conversation. It does not send it. Payment verification, invoicing/payment processor integration, connected LLM agents, and telephony remain future integrations.
 
 ## Course marketing facts
 Course: Build Your Own AI Trading Bot; ₹999; 12 modules, practical project, workbook/materials. Course page: https://trading-agent-35.indiasouthcentral.cloudapp.azure.com/course/. Educational scope: AI trading concepts, Python, backtesting, paper trading. Never promise profit/returns, fabricate testimonials or performance metrics, or imply access to a private trading bot.
-
-## Company services
-Professional websites, landing pages, redesigns, SEO/content, short-form video scripts/editing plans, FAQ/support workflows, lead research, proposal drafts, and website QA.
-
-## Important status
-The dashboard and local code are starter foundations. External AI model providers, real lead discovery, voice telephony, payment verification, publishing accounts, and production hosting are not connected. The dashboard does not contact customers or deploy sites. Human approval is required for quotes, contracts, calls, customer-domain deployment, spending, and other external side effects.
 
 ## Safety
 No brokerage credentials or private trading infrastructure access. No autonomous spending, purchases, refunds, price changes, unsolicited bulk calling, fake claims, or deletion of user data/infrastructure.
