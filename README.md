@@ -1,33 +1,22 @@
 # BotLab Business Universe
 
-Standalone business automation starter for course marketing and a bounded AI-assisted development team. This repository is separate from any trading-engine repository and must not connect to private trading infrastructure.
+Standalone business automation starter for course marketing and AI-assisted digital services. This repository is separate from any trading-engine repository and must not connect to private trading infrastructure.
 
-## Product facts for drafts
-- Course: Build Your Own AI Trading Bot
-- Price: ₹999
-- Includes: 12 modules, practical project, workbook/materials
-- Course page: https://trading-agent-35.indiasouthcentral.cloudapp.azure.com/course/
-- Educational scope: AI trading concepts, Python, backtesting, paper trading
-- Never promise profit/returns, fabricate testimonials or performance metrics, or imply access to a private trading bot.
+## Start here
+- **Company dashboard:** open [dashboard/index.html](dashboard/index.html) in a browser.
+- **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
+- **Agent role registry:** [company/roles.json](company/roles.json)
+- **Local tests:** run `python -m unittest discover -s tests -v`
+- **Draft generator:** run `python -m botlab`
 
-## Run locally
-Python 3.11+, standard library only:
-```bash
-python -m unittest discover -s tests -v
-python -m botlab
-```
+## Course marketing facts
+Course: Build Your Own AI Trading Bot; ₹999; 12 modules, practical project, workbook/materials. Course page: https://trading-agent-35.indiasouthcentral.cloudapp.azure.com/course/. Educational scope: AI trading concepts, Python, backtesting, paper trading. Never promise profit/returns, fabricate testimonials or performance metrics, or imply access to a private trading bot.
 
-## Current MVP
-- Draft content generation, claim screening, grounded FAQ answers and human approval states.
-- Local job coordinator with idempotent IDs and explicit state transitions.
-- 14-role development-team registry and release gate.
-- Configurable earn-or-shutdown decision based only on verified, non-refunded receipts.
-- No publishing, outbound messages, purchases, payments, website edits, brokerage access, or cloud shutdown is wired.
+## Company services
+Professional websites, landing pages, redesigns, SEO/content, short-form video scripts/editing plans, FAQ/support workflows, lead research, proposal drafts, and website QA.
 
-## Earn-or-shutdown defaults
-30-day grace period + 30-day evaluation period; target ₹999 verified net revenue by day 60. If the target is missed, the decision engine returns SHUTDOWN and disables new jobs/external actions in its decision output. This is not a live kill switch or payment verifier. Connect a trusted payment ledger and process supervisor only after explicit approval.
+## Important status
+The dashboard and local code are starter foundations. External AI model providers, real lead discovery, voice telephony, payment verification, publishing accounts, and production hosting are not connected. The dashboard does not contact customers or deploy sites. Human approval is required for quotes, contracts, calls, customer-domain deployment, spending, and other external side effects.
 
-## Team roles
-Product Lead, Architect, Research Engineer, Backend Engineer, Frontend Engineer, AI/Agent Engineer, QA Engineer, Security Engineer, Content & Media Producer, SEO & Growth Analyst, Customer Support Analyst, Finance & Revenue Analyst, Release Manager, Independent Red-Team Reviewer.
-
-All external integrations must be opt-in, allowlisted, tested, and disabled by default. Marketing agents must never receive brokerage credentials. No autonomous spending, price changes, refunds, self-replication, or deletion of user data/infrastructure.
+## Safety
+No brokerage credentials or private trading infrastructure access. No autonomous spending, purchases, refunds, price changes, unsolicited bulk calling, fake claims, or deletion of user data/infrastructure.
