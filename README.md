@@ -29,3 +29,15 @@ No brokerage credentials or private trading infrastructure access. No autonomous
 - **Website draft builder:** [Run manually in GitHub Actions](https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/website-draft.yml). It builds a static site and quality report for download; it does not deploy to a client's domain.
 - **Local website build:** `python -m company.website_pipeline --brief config/website_brief.example.json --output data/website_drafts/example`
 - **Local AI task queue:** `python -m company.agent_runtime --task-type summarize_opportunity --title "Review listing" --context "Paste a public listing here"`, then `python -m company.agent_runtime --run-one` (requires `OPENAI_API_KEY`).
+
+
+## Full company operating structure
+The repository now includes departments for Marketing & Brand, Sales & Partnerships, Customer Success & CA, Product Design, Research & Analysis, Builders & Engineering, Creative & Presenting, Quality/Audit/Testing, Delivery, Finance/Legal/Procurement, People & Agent Operations, IT/Security/Data, Partnerships, and Continuous Improvement.
+
+- [Department registry](company/departments.json)
+- [Expanded agent roles](company/roles.json)
+- [KPI scorecards](company/scorecards.json)
+- [Launch and operating gates](company/RELEASE_GATES.md)
+- [Approval helpers](company/operating_controls.py)
+
+These define the operating structure, not a claim that every role is already staffed or autonomous.
