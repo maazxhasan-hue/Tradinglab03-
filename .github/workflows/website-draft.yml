@@ -1,0 +1,65 @@
+name: Website Draft Builder
+on:
+  workflow_dispatch:
+    inputs:
+      business_name:
+        description: Client business name
+        required: true
+        type: string
+      tagline:
+        description: Approved business tagline
+        required: true
+        type: string
+      services:
+        description: Comma-separated services (only approved claims)
+        required: true
+        type: string
+      contact_email:
+        description: Approved public contact email
+        required: true
+        type: string
+      primary_color:
+        description: Brand hex color
+        required: true
+        default: "#0b7a75"
+        type: string
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Write approved brief and build draft
+        env:
+          BUSINESS_NAME: ${{ inputs.business_name }}
+          TAGLINE: ${{ inputs.tagline }}
+          SERVICES: ${{ inputs.services }}
+          CONTACT_EMAIL: ${{ inputs.contact_email }}
+          PRIMARY_COLOR: ${{ inputs.primary_color }}
+        run: |
+          python - <<'PY'
+          import json, os
+          brief = {
+              "business_name": os.environ["BUSINESS_NAME"],
+              "tagline": os.environ["TAGLINE"],
+              "services": [s.strip() for s in os.environ["SERVICES"].split(",") if s.strip()],
+              "contact_email": os.environ["CONTACT_EMAIL"],
+              "primary_color": os.environ["PRIMARY_COLOR"],
+          }
+          with open("data/website_brief.json", "w", encoding="utf-8") as f:
+              json.dump(brief, f, ensure_ascii=False)
+          PY
+          python -m company.website_pipeline --brief data/website_brief.json --output data/website_drafts/client
+      - name: Upload website draft and QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-draft-${{ github.run_id }}
+          path: data/website_drafts/client/
+          if-no-files-found: warn
+          retention-days: 14
