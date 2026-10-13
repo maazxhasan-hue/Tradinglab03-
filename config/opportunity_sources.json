@@ -1,8 +1,20 @@
 [
   {
-    "name": "Add an approved public freelance or RFP RSS/Atom feed",
-    "url": "https://example.com/replace-with-real-feed.xml",
-    "enabled": false,
-    "notes": "Replace with a real HTTPS feed URL that permits automated reading. Do not add private feeds or authenticated URLs."
+    "name": "Upwork website design projects",
+    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=website%20design",
+    "enabled": true,
+    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
+  },
+  {
+    "name": "Upwork WordPress projects",
+    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=WordPress",
+    "enabled": true,
+    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
+  },
+  {
+    "name": "Upwork SEO and content projects",
+    "url": "https://www.upwork.com/ab/feed/jobs/rss?sort=recency&q=SEO%20content",
+    "enabled": true,
+    "notes": "Public RSS endpoint; check platform terms and listing eligibility before applying."
   }
 ]
