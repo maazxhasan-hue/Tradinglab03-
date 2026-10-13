@@ -12,7 +12,7 @@ Standalone business automation starter for AI-assisted digital services. This re
 - **Run local content draft:** `python -m botlab`
 
 ## Hourly work discovery
-GitHub Actions runs `.github/workflows/hourly-opportunity-scout.yml` hourly and saves a downloadable report artifact. Configure approved public RSS/Atom feeds in `config/opportunity_sources.json`. The initial configured sources are public Upwork search RSS endpoints; if they block access or change format, the run will report source errors. Listings are leads, not guaranteed paid contracts. The system does not auto-apply or message clients.
+GitHub Actions runs `.github/workflows/hourly-opportunity-scout.yml` hourly and saves a downloadable report artifact. Configure approved public RSS/Atom feeds in `config/opportunity_sources.json`. Current sources are We Work Remotely programming/design/sales-marketing feeds and Remotive's public feed. These often list employment roles, not freelance projects; the scout labels results as unverified leads and does not auto-apply. Listings are leads, not guaranteed paid contracts. The system does not auto-apply or message clients.
 
 ## Additional revenue agent
 Business Intelligence & Revenue Scout can analyze a single public HTTPS homepage for visible SEO, mobile, heading, image-accessibility, and contact-path signals, map observed signals to services, and draft a proposal/conversation. It does not send it. Payment verification, invoicing/payment processor integration, connected LLM agents, and telephony remain future integrations.
