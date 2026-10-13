@@ -18,7 +18,7 @@
 <section class="card"><h2>Departments & hiring standards</h2>
 <div class="row"><div><strong>Engineering & QA</strong><div class="muted">Websites, automation, testing, security</div></div><span class="status">EVALUATION GATE</span></div>
 <div class="row"><div><strong>Creative Studio</strong><div class="muted">Brand, video, voice, copywriting</div></div><span class="status">EVALUATION GATE</span></div>
-<div class="row"><div><strong>Sales & Client Success</strong><div class="muted">Lead qualification, proposal drafts, support</div></div><span class="status">HUMAN APPROVAL</span></div>\n<div class="row"><div><strong>Business Intelligence & Revenue Scout</strong><div class="muted">Analyze business needs and rank potential service offers</div></div><span class="status">NEW AGENT</span></div>
+<div class="row"><div><strong>Sales & Client Success</strong><div class="muted">Lead qualification, proposal drafts, support</div></div><span class="status">HUMAN APPROVAL</span></div><div class="row"><div><strong>Business Intelligence & Revenue Scout</strong><div class="muted">Analyze business needs and rank potential service offers</div></div><span class="status">NEW AGENT</span></div>
 <div class="row"><div><strong>Finance & Operations</strong><div class="muted">Verified receipts, project health, release gates</div></div><span class="status">READ-ONLY DEMO</span></div>
 <p class="muted">Candidates need at least five role-specific tasks, quality and reliability scores, and a passing safety review. Promotions and bonuses are recommendations—not automatic payouts.</p></section>
 <section class="card"><h2>New project intake</h2><form id="projectForm">
@@ -27,7 +27,37 @@
 <label for="goal">Goal and requirements</label><textarea id="goal" required rows="3" placeholder="Pages, features, target audience, deadline..."></textarea>
 <button class="button" type="submit">Create local project brief</button></form><div id="feedback" class="muted" aria-live="polite"></div></section>
 </div>
-<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
+
+<section class="card" style="margin-top:1rem">
+<h2>Company department directory</h2>
+<p class="muted">A full operating structure. Role names are defined in the repository; staffing is not automatic and each agent must pass capability and safety evaluation.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+<div class="card"><strong>Marketing & Brand</strong><div class="muted">SEO · content · social · campaigns · brand analytics</div></div>
+<div class="card"><strong>Sales & Partnerships</strong><div class="muted">Lead research · qualification · proposals · referrals</div></div>
+<div class="card"><strong>Customer Success & CA</strong><div class="muted">Client accounts · onboarding · support · retention</div></div>
+<div class="card"><strong>Product & Service Design</strong><div class="muted">Discovery · roadmaps · service packages · pricing research</div></div>
+<div class="card"><strong>Research & Analysis</strong><div class="muted">Market · competitor · business intelligence · data analysis</div></div>
+<div class="card"><strong>Builders & Engineering</strong><div class="muted">Website builders · developers · AI · automation · integrations</div></div>
+<div class="card"><strong>Creative & Presenting</strong><div class="muted">Design · video · copy · presentations · demos</div></div>
+<div class="card"><strong>Quality, Audit & Testing</strong><div class="muted">QA · code review · accessibility · security · release acceptance</div></div>
+<div class="card"><strong>Delivery & Project Management</strong><div class="muted">Scheduling · resource planning · delivery · documentation</div></div>
+<div class="card"><strong>Finance, Legal & Procurement</strong><div class="muted">Cash flow · invoices · budgets · vendors · contract review</div></div>
+<div class="card"><strong>People & Agent Operations</strong><div class="muted">Recruitment · capability tests · training · performance reviews</div></div>
+<div class="card"><strong>IT, Security & Data</strong><div class="muted">Access · secrets · monitoring · incident response · backups</div></div>
+<div class="card"><strong>Partnerships & Ecosystem</strong><div class="muted">Referrals · subcontractors · vendors · platform relationships</div></div>
+<div class="card"><strong>Continuous Improvement</strong><div class="muted">KPI reviews · retrospectives · automation · process improvement</div></div>
+</div>
+</section>
+<section class="card" style="margin-top:1rem">
+<h2>Operator shortcuts</h2>
+<p class="muted">These actions run on GitHub Actions and produce downloadable artifacts. They do not publish client work or contact customers.</p>
+<div class="row"><div><strong>Hourly opportunity reports</strong><div class="muted">Inspect run health and download lead reports.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml" target="_blank" rel="noopener">Open scout</a></div>
+<div class="row"><div><strong>AI draft worker</strong><div class="muted">Requires repository secret OPENAI_API_KEY.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/agent-worker.yml" target="_blank" rel="noopener">Run draft worker</a></div>
+<div class="row"><div><strong>Website draft builder</strong><div class="muted">Build a client website starter and QA report.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/website-draft.yml" target="_blank" rel="noopener">Build website draft</a></div>
+<div class="row"><div><strong>Department registry</strong><div class="muted">Full team missions and functions.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/departments.json" target="_blank" rel="noopener">View registry</a></div>
+<div class="row"><div><strong>KPI scorecards</strong><div class="muted">Revenue, delivery, quality, customer outcomes, risk.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/scorecards.json" target="_blank" rel="noopener">View scorecards</a></div>
+</section>
+\n<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
 <div class="foot">TradingLab03 AI Services · Demo dashboard · Connect APIs only after reviewing permissions, privacy, platform rules, and approval gates.</div></main>
 <script>
 const form=document.querySelector('#projectForm'),queue=document.querySelector('#queue'),count=document.querySelector('#projectCount'),feedback=document.querySelector('#feedback');let projects=[];
