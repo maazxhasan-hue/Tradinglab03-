@@ -34,3 +34,13 @@ No autonomous spending, paid subscriptions, refunds, price changes, bulk outreac
 
 ## Website build pipeline
 `.github/workflows/website-draft.yml` builds a static website draft from the provided brief and runs simple quality checks. It uploads HTML and a QA report as an artifact. It does not deploy the site. Browser testing, security review, accessibility review, client approval, and deployment configuration remain required.
+
+
+## Full company operating system
+- `departments.json` defines 15 functional departments, missions, and teams.
+- `roles.json` lists specialist roles across the departments.
+- `scorecards.json` defines hourly, daily, weekly, and monthly operating metrics.
+- `RELEASE_GATES.md` contains launch gates for governance, security, marketing, sales, delivery, QA, finance, people, and operations.
+- `operating_controls.py` blocks sensitive actions without separate approval and defines evidence thresholds for promotion/bonus review.
+
+The department structure is a blueprint. It does not mean human employees have been hired, every AI worker is connected, or the company is production-ready.
