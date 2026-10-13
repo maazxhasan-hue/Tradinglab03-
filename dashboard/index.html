@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TradingLab03 | AI Company HQ</title>
+<style>
+:root{color-scheme:dark;--bg:#080d16;--panel:#101a29;--line:#24344a;--cyan:#54e7d2;--blue:#79aaff;--text:#edf4ff;--muted:#9aabc1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#122b3b 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 2rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:#080d16ef;backdrop-filter:blur(12px)}.logo{font-weight:850;letter-spacing:.06em}.logo span{color:var(--cyan)}.pill{border:1px solid #275f5b;color:var(--cyan);padding:.35rem .7rem;border-radius:99px;font-size:.78rem}.wrap{max-width:1440px;margin:auto;padding:2rem}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.15em;font-size:.75rem;font-weight:800}h1{font-size:clamp(2rem,4vw,3.3rem);line-height:1.05;letter-spacing:-.04em;margin:.5rem 0}p{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.5rem 0}.card{background:linear-gradient(160deg,#142134,#0d1522);border:1px solid var(--line);border-radius:1rem;padding:1.2rem}.metric{font-size:2rem;font-weight:800;margin:.3rem 0}.muted{color:var(--muted);font-size:.86rem}.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:1rem}.row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.status{color:var(--cyan);font-size:.78rem}.button{border:1px solid #27665e;background:#12352f;color:#dffef8;padding:.7rem .9rem;border-radius:.65rem;font-weight:750;cursor:pointer}.button.secondary{background:#121f30;border-color:var(--line);color:var(--text)}input,select,textarea{width:100%;background:#09111e;color:var(--text);border:1px solid var(--line);padding:.7rem;border-radius:.6rem;margin:.3rem 0 .8rem}label{display:block;color:var(--muted);font-size:.85rem}h2{font-size:1.15rem}.notice{border-left:3px solid var(--cyan);padding:.6rem .9rem;background:#102522;color:#cceee9;border-radius:.25rem}.foot{padding:2rem 0;color:var(--muted);font-size:.8rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.wrap{padding:1rem}header{padding:1rem}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr}.metric{font-size:1.5rem}}
+</style></head><body>
+<header><div class="logo">TRADINGLAB<span>03</span> / COMPANY HQ</div><span class="pill">LOCAL DEMO · NO LIVE CONNECTIONS</span></header>
+<main class="wrap"><div class="eyebrow">AI services operations</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
+<div class="notice">Safety mode is on. No calls, messages, payments, deployments, or external publishing occur from this dashboard.</div>
+<div class="grid">
+<div class="card"><div class="muted">Agent roles defined</div><div class="metric">14+</div><div class="muted">Role registry in the repository</div></div>
+<div class="card"><div class="muted">Active projects</div><div class="metric" id="projectCount">0</div><div class="muted">Local demo entries only</div></div>
+<div class="card"><div class="muted">Verified revenue</div><div class="metric">₹0</div><div class="muted">No payment integration connected</div></div>
+<div class="card"><div class="muted">External actions</div><div class="metric">OFF</div><div class="muted">Approval required</div></div>
+</div>
+<div class="layout">
+<section class="card"><h2>Departments & hiring standards</h2>
+<div class="row"><div><strong>Engineering & QA</strong><div class="muted">Websites, automation, testing, security</div></div><span class="status">EVALUATION GATE</span></div>
+<div class="row"><div><strong>Creative Studio</strong><div class="muted">Brand, video, voice, copywriting</div></div><span class="status">EVALUATION GATE</span></div>
+<div class="row"><div><strong>Sales & Client Success</strong><div class="muted">Lead qualification, proposal drafts, support</div></div><span class="status">HUMAN APPROVAL</span></div>
+<div class="row"><div><strong>Finance & Operations</strong><div class="muted">Verified receipts, project health, release gates</div></div><span class="status">READ-ONLY DEMO</span></div>
+<p class="muted">Candidates need at least five role-specific tasks, quality and reliability scores, and a passing safety review. Promotions and bonuses are recommendations—not automatic payouts.</p></section>
+<section class="card"><h2>New project intake</h2><form id="projectForm">
+<label for="client">Client or business name</label><input id="client" required placeholder="e.g. Local dental clinic">
+<label for="type">Service</label><select id="type"><option>Business website</option><option>Landing page</option><option>E-commerce website</option><option>Website redesign</option><option>SEO & content</option><option>Video editing</option></select>
+<label for="goal">Goal and requirements</label><textarea id="goal" required rows="3" placeholder="Pages, features, target audience, deadline..."></textarea>
+<button class="button" type="submit">Create local project brief</button></form><div id="feedback" class="muted" aria-live="polite"></div></section>
+</div>
+<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
+<div class="foot">TradingLab03 AI Services · Demo dashboard · Connect APIs only after reviewing permissions, privacy, platform rules, and approval gates.</div></main>
+<script>
+const form=document.querySelector('#projectForm'),queue=document.querySelector('#queue'),count=document.querySelector('#projectCount'),feedback=document.querySelector('#feedback');let projects=[];
+form.addEventListener('submit',function(e){e.preventDefault();const p={client:document.querySelector('#client').value.trim(),type:document.querySelector('#type').value,goal:document.querySelector('#goal').value.trim(),state:'Needs human scoping'};projects.unshift(p);count.textContent=String(projects.length);queue.replaceChildren();projects.forEach(function(x){const row=document.createElement('div');row.className='row';const left=document.createElement('div');const strong=document.createElement('strong');strong.textContent=x.client+' · '+x.type;const small=document.createElement('div');small.className='muted';small.textContent=x.goal;left.append(strong,small);const status=document.createElement('span');status.className='status';status.textContent=x.state;row.append(left,status);queue.append(row)});feedback.textContent='Local brief created. No client has been contacted and no quote has been sent.';form.reset()});
+</script></body></html>
