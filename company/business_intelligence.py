@@ -65,3 +65,21 @@ def can_contact(opportunity: BusinessOpportunity, *, consent_or_lawful_basis_che
 
 def to_dict(opportunity: BusinessOpportunity) -> dict:
     return asdict(opportunity)
+
+
+def analyze_public_website(business_name: str, website_url: str) -> BusinessOpportunity:
+    """Audit one public homepage and turn observed technical signals into service ideas."""
+    from .site_audit import audit_public_homepage
+    audit = audit_public_homepage(website_url)
+    services = tuple(dict.fromkeys(f["service"] for f in audit["findings"]))
+    rationale = tuple(f["evidence"] for f in audit["findings"])
+    confidence = "low" if not services else "medium"
+    if not services:
+        draft = (f"Hello {business_name}, I am an AI assistant for TradingLab03. "
+                 "We help with websites, SEO, and business automation. Would you like a short discussion?")
+    else:
+        draft = (f"Hello {business_name}, I am an AI assistant for TradingLab03. "
+                 f"A limited homepage review suggests possible areas to check: {', '.join(services)}. "
+                 "This is an automated heuristic, not a definitive assessment. If useful, we can verify the findings "
+                 "and prepare a no-obligation scope for your review.")
+    return BusinessOpportunity(business_name, website_url, services, rationale, confidence, draft)
