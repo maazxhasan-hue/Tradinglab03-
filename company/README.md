@@ -1,31 +1,29 @@
 # TradingLab03 AI Services Company
 
-A separate company operating system for AI-assisted digital services. This is a local-first MVP, not a claim that live autonomous agents, telephony, payments, or production hosting are already connected.
+A separate operating system for AI-assisted digital services. This is a local-first MVP; live AI workers, telephony, payment processing, and production hosting are not automatically connected.
 
 ## Services
 - Professional business websites and landing pages
-- Website redesign and content refresh
-- SEO foundations and content strategy
+- Website redesign, performance, and accessibility
+- SEO and content strategy
 - Short-form video scripts, captions, and editing plans
 - Customer FAQ/support drafts
-- Lead research and proposal preparation
-- Website QA, accessibility, and performance checks
+- Lead discovery, project qualification, and proposal drafts
 
-## Operating pipeline
-Lead intake -> qualification -> scope -> estimate -> human-approved proposal -> project brief -> agent task assignment -> build -> QA/security/accessibility review -> client approval -> delivery -> verified payment reconciliation -> performance review.
+## Hourly opportunity discovery
+The GitHub Actions workflow `.github/workflows/hourly-opportunity-scout.yml` runs hourly and uploads a report artifact. It reads public RSS/Atom sources configured in `config/opportunity_sources.json`, scores listings, and marks every listing as unverified until a human checks it. It does not apply for jobs or contact clients.
+
+## Business Intelligence & Revenue Scout
+The new `company/business_intelligence.py` agent maps observed business needs to service opportunities and creates a draft conversation. It does not invent needs or contact prospects automatically.
 
 ## Hiring and performance
-Candidates must pass a role-specific test and safety review before being marked HIRED. Production access requires separate authorization. Scores use verified completed tasks, quality, client feedback, deadline reliability, rework, and safety. Bonuses and promotions are recommendations until a human approves them; agents cannot pay themselves, alter pricing, or promote themselves.
+Candidates need at least five role-specific test tasks and a passing safety review. Bonus/promotion recommendations are based on quality, reliability, customer rating, completed work, and safety. Humans approve hiring and compensation; agents cannot pay themselves.
 
-## Client voice agent
-A professional, friendly feminine voice can be configured. The agent must identify itself as an AI assistant, use approved facts, never invent prices or delivery dates, and route negotiation/contract exceptions to a human. Calling a person requires an approved contact, lawful basis/consent where required, approved purpose, time window, and explicit operator authorization. This repository does not make phone calls.
+## Client voice
+A professional feminine voice can be configured in a future voice provider. The agent must disclose it is AI, answer from approved facts, and escalate quote/contract decisions. Calling requires approved contacts, lawful basis/consent checks where applicable, approved purpose/time window, and operator authorization. No telephony is connected now.
 
-## Website generation
-The local generator writes a starter website into an output directory. Review factual accuracy, accessibility, responsiveness, security, and licensing before delivery. Never insert fake reviews, false client logos, fabricated case studies, or made-up metrics.
+## Earn-or-shutdown
+The current decision engine uses a default 30-day grace + 30-day evaluation window and ₹999 verified, non-refunded revenue target. It is not a live process or cloud kill switch and cannot receive/verify money on its own.
 
 ## Safety
-- No autonomous purchases, ads, subscriptions, refunds, or payment capture.
-- No unsolicited bulk calling or spam.
-- No credentials or client secrets in prompts or repository files.
-- No deployment to customer domains without explicit approval and access authorization.
-- No touching the user's private trading projects or trading infrastructure.
+No autonomous spending, paid subscriptions, refunds, price changes, bulk outreach, fake claims, or customer-domain deployment. No brokerage credentials or private trading infrastructure access.
