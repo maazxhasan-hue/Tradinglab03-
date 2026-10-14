@@ -157,16 +157,60 @@ def parse_feed(xml_bytes: bytes, source: dict) -> list[dict]:
         })
     return out
 
+def parse_remotive_api(body: bytes, source: dict) -> list[dict]:
+    """Parse Remotive's documented JSON API as a fallback when its RSS feed fails."""
+    payload = json.loads(body.decode("utf-8"))
+    jobs = payload.get("jobs", []) if isinstance(payload, dict) else []
+    out = []
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        title = str(job.get("title") or "").strip()
+        link = str(job.get("url") or "").strip()
+        if not title or urlparse(link).scheme != "https":
+            continue
+        description = _clean_html(str(job.get("description") or ""))[:3000]
+        metadata = " ".join(str(job.get(k) or "") for k in (
+            "job_type", "candidate_required_location", "company_name"
+        ))
+        scored = score_listing(title, description + " " + metadata, source.get("name", "Remotive"))
+        ident = hashlib.sha256((link + title).encode("utf-8")).hexdigest()[:16]
+        out.append({
+            "id": ident, "title": _clean_html(title), "url": link,
+            "description": description, "published": str(job.get("publication_date") or ""),
+            "discovered_at": datetime.now(timezone.utc).isoformat(),
+            **scored, "status": "new_lead", "paid_contract_verified": False,
+            "next_step": "Human verifies legitimacy, payment, scope, location eligibility, and platform rules before bidding.",
+        })
+    return out
+
+
 def fetch_feed(source: dict, timeout: int = 12) -> list[dict]:
     url = source["url"]
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml"})
-    with urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise RuntimeError(f"Feed returned HTTP {response.status}")
-        body = response.read(MAX_BYTES + 1)
-    if len(body) > MAX_BYTES:
-        raise ValueError("Feed exceeded 2 MB limit")
-    return parse_feed(body, source)
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            if response.status != 200:
+                raise RuntimeError(f"Feed returned HTTP {response.status}")
+            body = response.read(MAX_BYTES + 1)
+        if len(body) > MAX_BYTES:
+            raise ValueError("Feed exceeded 2 MB limit")
+        return parse_feed(body, source)
+    except Exception:
+        # Only the explicitly named Remotive source may use this fixed HTTPS fallback.
+        if "remotive" not in str(source.get("name", "")).casefold():
+            raise
+        api_request = Request(
+            "https://remotive.com/api/remote-jobs",
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+        )
+        with urlopen(api_request, timeout=timeout) as response:
+            if response.status != 200:
+                raise RuntimeError(f"Remotive API returned HTTP {response.status}")
+            body = response.read(MAX_BYTES + 1)
+        if len(body) > MAX_BYTES:
+            raise ValueError("Remotive API response exceeded 2 MB limit")
+        return parse_remotive_api(body, source)
 
 def discover(sources: list[dict] | None = None) -> dict:
     sources = load_sources() if sources is None else sources
