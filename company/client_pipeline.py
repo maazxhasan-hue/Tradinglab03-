@@ -135,8 +135,47 @@ def build_client_pack(*, business_name: str, website_url: str, service: str,
         "sent": False,
     }
 
+def build_pack_from_lead(lead_id: str, *, store_path: str | Path = ROOT / "data" / "leads.json",
+                         price_quote: str = "", sender_name: str = "TradingLab03") -> dict:
+    """Build a draft from a saved lead only when it is explicitly a client project."""
+    store = json.loads(Path(store_path).read_text(encoding="utf-8"))
+    leads = store.get("leads") if isinstance(store, dict) else None
+    if not isinstance(leads, list):
+        raise ValueError("Lead store must contain a leads list")
+    lead = next((x for x in leads if isinstance(x, dict) and str(x.get("id", "")) == lead_id), None)
+    if lead is None:
+        raise ValueError(f"Lead ID not found: {lead_id}")
+    if lead.get("opportunity_type") != "client_project" and lead.get("client_fit") is not True:
+        raise ValueError("This listing is not classified as a potential client project; no pack generated.")
+    service_map = {
+        "business_website": "business_website", "landing_page": "landing_page",
+        "website_audit": "website_audit", "seo_content": "seo_content",
+        "short_video": "short_video", "business_automation": "business_automation",
+        "design_or_website": "business_website", "website_or_digital_service": "business_website",
+    }
+    source_service = str(lead.get("service", ""))
+    service = service_map.get(source_service)
+    if not service:
+        raise ValueError(f"Lead service needs human mapping before proposal: {source_service}")
+    website = str(lead.get("website_url", "")).strip()
+    if not website.startswith("https://"):
+        website = ""
+    evidence = str(lead.get("evidence", "")).strip()
+    evidence = (evidence + " " if evidence else "") + "Original listing: " + str(lead.get("source_url", "not supplied"))
+    return build_client_pack(
+        business_name=str(lead.get("business_name", "")),
+        website_url=website,
+        service=service,
+        observed_need=str(lead.get("need", "")),
+        evidence=evidence,
+        price_quote=price_quote,
+        sender_name=sender_name,
+    )
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a free client outreach and proposal draft.")
+    parser.add_argument("--lead-id", default=os.getenv("CLIENT_LEAD_ID", ""), help="Optional saved lead ID; must be a potential client project")
+    parser.add_argument("--lead-store", default=str(ROOT / "data" / "leads.json"))
     parser.add_argument("--business", default=os.getenv("CLIENT_BUSINESS", ""))
     parser.add_argument("--website", default=os.getenv("CLIENT_WEBSITE", ""))
     parser.add_argument("--service", default=os.getenv("CLIENT_SERVICE", "business_website"))
@@ -146,10 +185,14 @@ def main() -> None:
     parser.add_argument("--sender", default=os.getenv("CLIENT_SENDER", "TradingLab03"))
     parser.add_argument("--output", default=str(OUT_DIR))
     args = parser.parse_args()
-    pack = build_client_pack(business_name=args.business, website_url=args.website,
-                             service=args.service, observed_need=args.need,
-                             evidence=args.evidence, price_quote=args.price,
-                             sender_name=args.sender)
+    if args.lead_id:
+        pack = build_pack_from_lead(args.lead_id, store_path=args.lead_store,
+                                    price_quote=args.price, sender_name=args.sender)
+    else:
+        pack = build_client_pack(business_name=args.business, website_url=args.website,
+                                 service=args.service, observed_need=args.need,
+                                 evidence=args.evidence, price_quote=args.price,
+                                 sender_name=args.sender)
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
