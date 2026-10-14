@@ -56,8 +56,8 @@ jobs:
       - name: Validate proposal inputs
         env:
           CLIENT_LEAD_ID: ${{ inputs.lead_id }}
-          CLIENT_BUSINESS: ${{ inputs.business_name }}
-          CLIENT_NEED: ${{ inputs.observed_need }}
+          CLIENT_BUSINESS: ${{ inputs.business_name || 'TradingLab03 Demo Business (sample only)' }}
+          CLIENT_NEED: ${{ inputs.observed_need || 'DEMO ONLY: sample website brief for workflow verification; not a real prospect or verified opportunity.' }}
         run: |
           if [ -n "$CLIENT_LEAD_ID" ]; then
             echo "Using saved lead ID: $CLIENT_LEAD_ID"
@@ -77,7 +77,7 @@ jobs:
           CLIENT_WEBSITE: ${{ inputs.website_url }}
           CLIENT_SERVICE: ${{ inputs.service }}
           CLIENT_NEED: ${{ inputs.observed_need }}
-          CLIENT_EVIDENCE: ${{ inputs.evidence }}
+          CLIENT_EVIDENCE: ${{ inputs.evidence || 'Workflow test sample; not a real lead. Do not contact anyone based on this draft.' }}
           CLIENT_PRICE: ${{ inputs.price_quote }}
         run: python -m company.client_pipeline
       - name: Upload drafts for human review
