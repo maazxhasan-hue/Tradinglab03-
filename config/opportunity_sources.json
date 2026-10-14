@@ -72,11 +72,11 @@
     "notes": "Public RSS feed documented by XPlace for freelance sales/marketing projects. Listings are requests to bid, not verified contracts; preserve attribution and follow platform rules. Disabled after live scout returned HTTP 404; do not reactivate without verifying a valid public feed."
   },
   {
-    "name": "Freelancer.com - official API project search",
+    "name": "Freelancer.com - free public active-project API",
     "type": "freelancer_api",
     "enabled": true,
     "limit": 50,
     "query": "website wordpress ecommerce web design video editing SEO automation",
-    "notes": "Read-only official API project discovery. Requires FREELANCER_API_TOKEN in GitHub Actions secrets. Without token this source is safely skipped. Listings remain unverified; no bids, messages, applications, or purchases are sent."
+    "notes": "Free read-only public active-project endpoint is attempted when no token is configured; an authorized token enables the official SDK path. One bounded GET per hourly run, no retries on rate limits, no bids/messages/applications. Listings remain unverified and anonymous endpoint availability may change."
   }
 ]
