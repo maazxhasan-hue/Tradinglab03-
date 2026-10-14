@@ -157,4 +157,15 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertEqual(stats["source error"]["status"], "error")
         self.assertEqual(len(report["errors"]), 1)
 
+
+    def test_freelancer_api_source_skips_cleanly_without_token(self):
+        with patch.dict("os.environ", {}, clear=True):
+            report = discover([{
+                "name": "Freelancer API test", "type": "freelancer_api",
+                "enabled": True, "limit": 10
+            }])
+        self.assertEqual(report["source_stats"][0]["status"], "skipped_missing_token")
+        self.assertEqual(report["items_found"], 0)
+        self.assertEqual(report["errors"], [])
+
 if __name__ == "__main__": unittest.main()
