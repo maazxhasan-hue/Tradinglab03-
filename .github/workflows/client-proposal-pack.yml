@@ -1,0 +1,67 @@
+name: Free Client Proposal Pack
+
+on:
+  workflow_dispatch:
+    inputs:
+      business_name:
+        description: Business or client name
+        required: true
+        type: string
+      website_url:
+        description: Public website URL, if available
+        required: false
+        type: string
+      service:
+        description: Service to prepare a draft for
+        required: true
+        type: choice
+        options:
+          - business_website
+          - landing_page
+          - website_audit
+          - seo_content
+          - short_video
+          - business_automation
+      observed_need:
+        description: Specific need or project brief (do not guess)
+        required: true
+        type: string
+      evidence:
+        description: Human-verified evidence or leave blank
+        required: false
+        type: string
+      price_quote:
+        description: Optional operator-entered draft quote; leave blank to avoid pricing
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-client-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out TradingLab03 company project
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate proposal and outreach drafts without paid APIs
+        env:
+          CLIENT_BUSINESS: ${{ inputs.business_name }}
+          CLIENT_WEBSITE: ${{ inputs.website_url }}
+          CLIENT_SERVICE: ${{ inputs.service }}
+          CLIENT_NEED: ${{ inputs.observed_need }}
+          CLIENT_EVIDENCE: ${{ inputs.evidence }}
+          CLIENT_PRICE: ${{ inputs.price_quote }}
+        run: python -m company.client_pipeline
+      - name: Upload drafts for human review
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-client-pack-${{ github.run_id }}
+          path: data/client_packs/
+          if-no-files-found: error
+          retention-days: 14
