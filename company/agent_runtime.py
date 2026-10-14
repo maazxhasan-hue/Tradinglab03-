@@ -93,17 +93,79 @@ class TaskQueue:
         with self._connect() as con:
             return [dict(row) for row in con.execute("SELECT * FROM tasks ORDER BY id DESC LIMIT ?", (limit,)).fetchall()]
 
+def free_template(task_type: str, title: str, context: str) -> str:
+    """Create a transparent, rule-based draft without a paid model/API."""
+    brief = context.strip()
+    if task_type == "draft_proposal":
+        return (
+            "## Proposal draft (free template mode)\n\n"
+            f"**Project:** {title}\n\n"
+            "### Understanding\n"
+            f"Based on the supplied brief, the requested work appears to be: {brief}\n\n"
+            "### Proposed approach\n"
+            "1. Confirm the scope, target audience, deliverables, and acceptance criteria.\n"
+            "2. Prepare an initial solution and share a review draft.\n"
+            "3. Incorporate agreed feedback and complete the approved deliverables.\n"
+            "4. Hand over files and a concise usage note after client acceptance.\n\n"
+            "### Items to confirm before sending\n"
+            "- Exact scope and exclusions\n- Price, payment milestones, and taxes\n"
+            "- Timeline and client dependencies\n- Revision limit and acceptance criteria\n\n"
+            "This is a structured template, not a generated quote. Confirm all terms with a human."
+        )
+    if task_type == "draft_website_copy":
+        return (
+            "## Website copy starter (free template mode)\n\n"
+            f"**Project brief:** {brief}\n\n"
+            "### Hero\n"
+            f"# A clearer way to present {title}\n\n"
+            "Explain the service in one direct sentence, name the intended audience, and state the real benefit. "
+            "Replace this guidance with client-approved facts before publishing.\n\n"
+            "### What we offer\n"
+            "- **Plan:** agree on goals, audience, and scope.\n"
+            "- **Build:** create a focused, accessible first version.\n"
+            "- **Refine:** review feedback and check the agreed requirements.\n\n"
+            "### Call to action\n"
+            "Contact us to discuss your requirements. Replace this placeholder with an approved contact method.\n\n"
+            "### Publish checklist\n"
+            "- Verify every claim and service description.\n"
+            "- Add real contact details, privacy information, and consent notices as applicable.\n"
+            "- Check mobile layout, accessibility, links, and spelling."
+        )
+    if task_type == "summarize_opportunity":
+        return (
+            "## Opportunity review (free template mode)\n\n"
+            f"**Listing:** {title}\n\n"
+            "### Supplied information\n"
+            f"{brief}\n\n"
+            "### Preliminary fit\n"
+            "A human should compare the requested deliverables with the company's verified capabilities and available time.\n\n"
+            "### Verify before acting\n"
+            "- Confirm the client and listing on an official source.\n"
+            "- Check scope, deadline, budget, payment terms, and ownership rights.\n"
+            "- Watch for upfront-fee requests, credential requests, suspicious links, or guaranteed-income claims.\n"
+            "- Do not send money, documents, or a proposal until the opportunity is verified.\n\n"
+            "**Status:** Unverified. This is a rule-based checklist, not an AI assessment; no application or contact was made."
+        )
+    raise ValueError(f"Unsupported task type: {task_type}")
+
+
 def call_model(task_type: str, title: str, context: str, *, api_key: str | None = None,
-               base_url: str | None = None, model: str | None = None, timeout: int = 45) -> str:
+               base_url: str | None = None, model: str | None = None, timeout: int = 45,
+               provider: str | None = None) -> str:
+    provider = (provider or os.environ.get("AI_PROVIDER", "template")).strip().lower()
+    if task_type not in ALLOWED_TASKS:
+        raise ValueError(f"Unsupported task type: {task_type}")
+    if len(context) > MAX_CONTEXT_CHARS:
+        raise ValueError("Context exceeds configured size limit")
+    if provider in {"template", "free", "offline"}:
+        return free_template(task_type, title, context)
+    if provider != "openai":
+        raise ValueError("AI_PROVIDER must be template or openai")
     api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
     base_url = (base_url or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     model = model or os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured; add it as a repository Actions secret")
-    if task_type not in ALLOWED_TASKS:
-        raise ValueError(f"Unsupported task type: {task_type}")
-    if len(context) > MAX_CONTEXT_CHARS:
-        raise ValueError("Context exceeds configured size limit")
     payload = {
         "model": model,
         "messages": [
@@ -144,7 +206,7 @@ def run_one(queue: TaskQueue | None = None) -> dict[str, Any]:
         output_path = OUTPUT_DIR / f"task-{task['id']}.md"
         output_path.write_text(
             "# " + task["title"] + "\n\n"
-            + f"> Task type: {task['task_type']} | Draft only; human review required.\n\n"
+            + f"> Task type: {task['task_type']} | Provider: {os.environ.get('AI_PROVIDER', 'template')} | Draft only; human review required.\n\n"
             + output + "\n", encoding="utf-8"
         )
         queue.finish(task["id"], str(output_path.relative_to(ROOT)))
