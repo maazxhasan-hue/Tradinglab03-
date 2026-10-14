@@ -112,6 +112,7 @@ def load_sources() -> list[dict]:
     return enabled
 
 def score_listing(title: str, description: str, source_name: str = "") -> dict:
+    title_text = title.casefold()
     text = (title + " " + description).casefold()
     reasons = []
     score = 0
