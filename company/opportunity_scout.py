@@ -35,6 +35,19 @@ CONTRACT_SIGNALS = (
     "contract role", "contract position", "fixed-price", "fixed price", "project-based",
     "project based", "paid project", "client project", "freelance project",
 )
+# Signals that indicate a purchasable project/service request rather than a job vacancy.
+PROJECT_SIGNALS = (
+    "looking for a freelancer", "hire a freelancer", "seeking a freelancer",
+    "need a website", "need a landing page", "website redesign project",
+    "client project", "freelance project", "paid project", "project brief",
+    "request for proposal", "fixed-price project", "fixed price project",
+    "seeking a contractor for a project", "small business needs",
+)
+JOB_VACANCY_SIGNALS = (
+    "we are hiring", "we're hiring", "join our team", "join our team as",
+    "apply for this role", "job opening", "full-time position", "full time position",
+    "salary and benefits", "benefits package", "your responsibilities will",
+)
 EMPLOYMENT_SIGNALS = (
     "full-time", "full time", "permanent employee", "employee position", "salary and benefits",
     "head of ", "director of ", "vice president", "vp of ", "chief ", "internship",
@@ -85,6 +98,8 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
             reasons.append(f"service match: {term}")
     risk_flags = [term for term in NEGATIVE_TERMS if term in text]
     contract_signals = [term for term in CONTRACT_SIGNALS if term in text]
+    project_signals = [term for term in PROJECT_SIGNALS if term in text]
+    job_vacancy_signals = [term for term in JOB_VACANCY_SIGNALS if term in text]
     employment_signals = [term for term in EMPLOYMENT_SIGNALS if term in text]
     location_restrictions = [term for term in LOCATION_RESTRICTIONS if term in text]
     if risk_flags:
@@ -97,11 +112,19 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
         disqualifiers.extend(employment_signals)
     if location_restrictions:
         disqualifiers.extend(location_restrictions)
-    client_fit = bool(contract_signals) and not disqualifiers
+    # Contract language alone often appears in job vacancies. Require evidence of
+    # an actual service/project request, and reject job-vacancy wording by default.
+    if not project_signals:
+        disqualifiers.append("no explicit service-project request")
+    if job_vacancy_signals and not project_signals:
+        disqualifiers.extend(job_vacancy_signals)
+    client_fit = bool(contract_signals) and bool(project_signals) and not disqualifiers
     if client_fit:
-        reasons.append("explicit contract/freelance signal")
+        reasons.append("contract signal plus explicit service-project request")
     elif not contract_signals:
         reasons.append("no explicit freelance/contract signal")
+    elif not project_signals:
+        reasons.append("contract wording found but no explicit service-project request")
     if location_restrictions:
         reasons.append("location or on-site restriction detected")
 
@@ -111,6 +134,8 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
         "reasons": reasons[:10],
         "risk_flags": risk_flags,
         "contract_signals": contract_signals,
+        "project_signals": project_signals,
+        "job_vacancy_signals": job_vacancy_signals,
         "employment_signals": employment_signals,
         "location_restrictions": location_restrictions,
         "disqualifiers": sorted(set(disqualifiers)),
