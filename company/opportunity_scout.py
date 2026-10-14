@@ -147,7 +147,8 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
     # "contractor" wording alone is insufficient. Exclude risky/location-restricted
     # and clearly permanent/full-time employee roles.
     freelance_work_fit = (
-        bool(freelance_work_signals)
+        not client_fit
+        and bool(freelance_work_signals)
         and not risk_flags
         and not location_restrictions
         and not permanent_role_signals
