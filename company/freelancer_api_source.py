@@ -47,7 +47,6 @@ def fetch_projects(source: dict, token: str, score_listing) -> list[dict]:
         project_id = str(project.get("id") or project.get("project_id") or "").strip()
         url = str(project.get("seo_url") or project.get("url") or project.get("project_url") or "").strip()
         if url and not url.startswith("https://"): url = ""
-        if not url and project_id.isdigit(): url = "https://www.freelancer.com/projects/" + project_id
         if not title or not url: continue
         scored = score_listing(title, description, source.get("name", "Freelancer.com API"))
         ident = hashlib.sha256((url + title).encode("utf-8")).hexdigest()[:16]
