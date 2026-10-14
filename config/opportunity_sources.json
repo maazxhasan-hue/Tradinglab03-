@@ -32,7 +32,13 @@
   {
     "name": "Reddit r/DesignJobs - public design requests",
     "url": "https://www.reddit.com/r/DesignJobs/new/.rss?limit=25",
-    "enabled": true,
+    "enabled": false,
     "notes": "Public design community feed. Some posts are jobs or self-promotion rather than buyers; qualification is heuristic and requires human review."
+  },
+  {
+    "name": "Reddit r/hiring - public hiring requests",
+    "url": "https://www.reddit.com/r/hiring/new/.rss?limit=25",
+    "enabled": true,
+    "notes": "Public community feed to discover explicit hiring requests. Unauthenticated Reddit RSS can be rate-limited; a listing is not a verified client or payment."
   }
 ]
