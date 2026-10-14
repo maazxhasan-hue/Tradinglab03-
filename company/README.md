@@ -34,6 +34,9 @@ No autonomous spending, paid subscriptions, refunds, price changes, bulk outreac
 
 For optional model-generated text, set `AI_PROVIDER=openai` and configure `OPENAI_API_KEY` locally. OpenAI API billing is separate from ChatGPT plans and is not required for free template mode. The worker supports only proposal drafts, website copy drafts, and opportunity summaries; it cannot execute shell commands, publish, contact clients, or spend money. The workflow is manual dispatch only.
 
+## Free client proposal pack
+`.github/workflows/client-proposal-pack.yml` creates a client-specific proposal and outreach draft without paid APIs. Run it manually, enter a business name, choose a service, and provide a specific need; add evidence only when checked by a human. It produces Markdown and JSON artifacts. Any quote is optional and must be entered by the operator. Nothing is sent, no prospect is contacted, and no work is accepted automatically. Review the scope, pricing, and message before using them.
+
 ## Website build pipeline
 `.github/workflows/website-draft.yml` builds a static website draft from the provided brief and runs simple quality checks. It uploads HTML and a QA report as an artifact. It does not deploy the site. Browser testing, security review, accessibility review, client approval, and deployment configuration remain required.
 
