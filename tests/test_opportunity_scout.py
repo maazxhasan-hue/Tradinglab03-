@@ -1,5 +1,6 @@
 import unittest
-from company.opportunity_scout import score_listing, parse_feed, parse_remotive_api
+from unittest.mock import patch
+from company.opportunity_scout import score_listing, parse_feed, parse_remotive_api, discover
 
 class OpportunityScoutTests(unittest.TestCase):
     def test_website_request_scores_high(self):
@@ -111,5 +112,32 @@ class OpportunityScoutTests(unittest.TestCase):
     def test_non_https_listing_link_ignored(self):
         xml = b"""<rss version="2.0"><channel><item><title>Web design</title><link>http://bad.example/</link></item></channel></rss>"""
         self.assertEqual(parse_feed(xml, {"name":"test"}),[])
+
+    def test_discover_reports_per_source_quality_counts(self):
+        buyer = {
+            "id": "buyer1", "title": "Need a website", "url": "https://example.com/buyer",
+            "description": "I need a new website for my business and can pay for the project.",
+            **score_listing("Need a website", "I need a new website for my business and can pay for the project.", "source A"),
+        }
+        role = {
+            "id": "role1", "title": "Freelance designer", "url": "https://example.com/role",
+            "description": "Freelance, project-based design work paid per article.",
+            **score_listing("Freelance designer", "Freelance, project-based design work paid per article.", "source B"),
+        }
+        def fake_fetch(source):
+            if source["name"] == "source error":
+                raise RuntimeError("feed unavailable")
+            return [buyer] if source["name"] == "source A" else [role]
+        with patch("company.opportunity_scout.fetch_feed", side_effect=fake_fetch):
+            report = discover([
+                {"name": "source A", "url": "https://example.com/a"},
+                {"name": "source B", "url": "https://example.com/b"},
+                {"name": "source error", "url": "https://example.com/error"},
+            ])
+        stats = {row["source"]: row for row in report["source_stats"]}
+        self.assertEqual(stats["source A"]["client_projects"], 1)
+        self.assertEqual(stats["source B"]["freelance_work"], 1)
+        self.assertEqual(stats["source error"]["status"], "error")
+        self.assertEqual(len(report["errors"]), 1)
 
 if __name__ == "__main__": unittest.main()
