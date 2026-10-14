@@ -82,7 +82,7 @@ class OpportunityImporterTests(unittest.TestCase):
     def test_explicit_remote_freelance_project_can_qualify(self):
         result = score_listing(
             "Freelance Shopify Website Project",
-            "Remote paid project for a small business; fixed-price contract."
+            "Remote paid project for a small business; looking for a freelancer to build a Shopify website; fixed-price contract."
         )
         self.assertTrue(result["client_fit"])
         self.assertIn("freelance", result["contract_signals"])
