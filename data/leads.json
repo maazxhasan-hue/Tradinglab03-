@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14T11:10:22.713823+00:00",
+  "updated_at": "2026-10-14T11:59:12.104799+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -1581,6 +1581,47 @@
         "contractor"
       ],
       "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014115912-051",
+      "business_name": "Création Site internet",
+      "service": "design_or_website",
+      "need": "Budget : Moins de 500 € - Catégories : Création de site internet, Site clé en main, CMS, Experience utilisateur, Web design Bonjour, Je suis freelance et je cherche quelqu’un pour créer le site internet de mon activité. Je travaille seul et j’aimerais trouver quelqu’un qui puisse bien m’accompagner dans ce projet. quelques … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491251-creation-site-internet",
+      "evidence": "Public listing title: Création Site internet. Source: Codeur - public freelance project requests. Match score: 8. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=8; listing_id=2111e87ce4292cdf.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T11:59:12.099433+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T11:59:12.099440+00:00",
+      "updated_at": "2026-10-14T11:59:12.099443+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 8,
+      "opportunity_priority": "review",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
     }
   ]
 }
