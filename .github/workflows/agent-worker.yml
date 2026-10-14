@@ -29,17 +29,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Create task and run one AI worker
+      - name: Create task and run one worker (free template mode)
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_PROVIDER: template
           TASK_TYPE: ${{ inputs.task_type }}
           TASK_TITLE: ${{ inputs.title }}
           TASK_CONTEXT: ${{ inputs.context }}
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "Missing repository secret OPENAI_API_KEY. Add it in Settings > Secrets and variables > Actions." >&2
-            exit 2
-          fi
           python -m company.agent_runtime --task-type "$TASK_TYPE" --title "$TASK_TITLE" --context "$TASK_CONTEXT"
           python -m company.agent_runtime --run-one
       - name: Upload draft output
