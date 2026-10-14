@@ -344,13 +344,14 @@ def discover(sources: list[dict] | None = None) -> dict:
     items, errors, source_stats = {}, [], []
     for source in sources:
         source_name = source.get("name", source.get("url", "unknown"))
-        if source.get("type") == "freelancer_api" and not os.environ.get("FREELANCER_API_TOKEN", "").strip():
-            source_stats.append({"source": source_name, "items_found": 0, "client_projects": 0, "freelance_work": 0, "employment_roles": 0, "unqualified": 0, "status": "skipped_missing_token", "note": "Set FREELANCER_API_TOKEN in GitHub Actions secrets to enable official API access."})
-            continue
         try:
             if source.get("type") == "freelancer_api":
-                from .freelancer_api_source import fetch_projects
-                source_items = fetch_projects(source, os.environ["FREELANCER_API_TOKEN"].strip(), score_listing)
+                from .freelancer_api_source import fetch_projects, fetch_public_projects
+                token = os.environ.get("FREELANCER_API_TOKEN", "").strip()
+                if token:
+                    source_items = fetch_projects(source, token, score_listing)
+                else:
+                    source_items = fetch_public_projects(source, score_listing)
             else:
                 source_items = fetch_feed(source)
             source_counts = {
