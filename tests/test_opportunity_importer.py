@@ -25,6 +25,27 @@ class OpportunityImporterTests(unittest.TestCase):
         self.assertEqual(import_report(report,store)["duplicates_skipped"],1)
         self.assertEqual(len(store["leads"]),1)
 
+    def test_imports_freelance_work_without_claiming_it_is_a_client_lead(self):
+        store={"schema_version":1,"leads":[]}
+        report={"opportunities":[{
+            "id":"gig1","title":"Freelance Copywriter",
+            "url":"https://example.org/work/freelance-copywriter",
+            "description":"Freelance, project-based writing role; paid per article.",
+            "source_name":"Example Jobs","score":12,"priority":"high",
+            "risk_flags":[],"location_restrictions":[],
+            "client_fit":False,"freelance_work_fit":True,
+            "opportunity_type":"freelance_work",
+            "contract_signals":["freelance"],"project_signals":[],
+            "disqualifiers":["no explicit service-project request"]
+        }]}
+        result=import_report(report,store)
+        self.assertEqual(result["imported_count"],1)
+        lead=store["leads"][0]
+        self.assertFalse(lead["client_fit"])
+        self.assertTrue(lead["freelance_work_fit"])
+        self.assertEqual(lead["opportunity_type"],"freelance_work")
+        self.assertIn("not a direct client lead",lead["next_action"].lower())
+
     def test_skips_contract_job_without_project_intent(self):
         store={"schema_version":1,"leads":[]}
         report={"opportunities":[{
