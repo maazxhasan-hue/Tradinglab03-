@@ -38,7 +38,19 @@
   {
     "name": "Reddit r/hiring - public hiring requests",
     "url": "https://www.reddit.com/r/hiring/new/.rss?limit=25",
+    "enabled": false,
+    "notes": "Disabled after repeated HTTP 429 responses; do not poll until a stable access method is available."
+  },
+  {
+    "name": "Jobicy - freelance marketing listings",
+    "url": "https://jobicy.com/jobs/feed?type=freelance&industry=marketing",
     "enabled": true,
-    "notes": "Public community feed to discover explicit hiring requests. Unauthenticated Reddit RSS can be rate-limited; a listing is not a verified client or payment."
+    "notes": "Public Jobicy RSS feed filtered for freelance marketing roles. These are work opportunities, not presumed direct buyers; preserve Jobicy attribution and original listing links."
+  },
+  {
+    "name": "Himalayas - public remote jobs",
+    "url": "https://himalayas.app/jobs/rss",
+    "enabled": true,
+    "notes": "Public RSS feed for remote jobs. Use as a supplementary source for potential contract/freelance work only; most entries are roles rather than direct service buyers. Preserve source attribution and original links."
   }
 ]
