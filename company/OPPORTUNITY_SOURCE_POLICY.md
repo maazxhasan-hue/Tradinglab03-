@@ -26,3 +26,6 @@ References:
 - Official developer portal: https://developers.freelancer.com/
 - Official Python SDK: https://github.com/freelancer/freelancer-sdk-python
 - API terms: https://www.freelancer.com/about/apiterms
+
+
+Freelancer.com integration update: an optional read-only adapter is committed. It skips cleanly when `FREELANCER_API_TOKEN` is absent and does not bid, message, apply, or spend money. Live API behavior remains unverified until an authorized secret is configured.
