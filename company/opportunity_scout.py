@@ -414,6 +414,20 @@ def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, P
             f"- Unqualified / ambiguous: {summary.get('unqualified', 0)}",
             f"- High / review / low priority: {summary.get('high_priority', 0)} / {summary.get('review_priority', 0)} / {summary.get('low_priority', 0)}", ""
         ])
+    if report.get("source_stats"):
+        lines.extend(["## Source health and qualification", "",
+                      "| Source | Status | Listings | Client projects | Freelance work | Jobs | Unqualified |",
+                      "|---|---:|---:|---:|---:|---:|---:|"])
+        for stat in report["source_stats"]:
+            lines.append(
+                f"| {stat.get('source', 'unknown')} | {stat.get('status', 'unknown')} | "
+                f"{stat.get('items_found', 0)} | {stat.get('client_projects', 0)} | "
+                f"{stat.get('freelance_work', 0)} | {stat.get('employment_roles', 0)} | "
+                f"{stat.get('unqualified', 0)} |"
+            )
+            if stat.get("error"):
+                lines.append(f"\nSource error for **{stat.get('source', 'unknown')}**: {stat['error']}\n")
+        lines.append("")
     lines.extend(["> Listings are unverified. No applications or messages were sent.", ""])
     for item in report["opportunities"]:
         lines.extend([f"## [{item['title']}]({item['url']})",
