@@ -30,6 +30,19 @@ SERVICE_TERMS = {
     "freelance": 2, "contract": 2, "budget": 1, "paid": 2,
 }
 NEGATIVE_TERMS = {"unpaid test", "exposure only", "commission only", "crypto deposit", "pay to apply"}
+CONTRACT_SIGNALS = (
+    "freelance", "freelancer", "independent contractor", "contractor", "contract-based",
+    "contract role", "contract position", "fixed-price", "fixed price", "project-based",
+    "project based", "paid project", "client project", "freelance project",
+)
+EMPLOYMENT_SIGNALS = (
+    "full-time", "full time", "permanent employee", "employee position", "salary and benefits",
+    "head of ", "director of ", "vice president", "vp of ", "chief ", "internship",
+)
+LOCATION_RESTRICTIONS = (
+    "onsite", "on-site", "in-office", "in office", "u.s. based", "us-based", "usa only",
+    "united states only", "must be based in the united states", "must be based in the us",
+)
 
 class TextExtractor(HTMLParser):
     def __init__(self):
@@ -71,13 +84,38 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
             score += points
             reasons.append(f"service match: {term}")
     risk_flags = [term for term in NEGATIVE_TERMS if term in text]
+    contract_signals = [term for term in CONTRACT_SIGNALS if term in text]
+    employment_signals = [term for term in EMPLOYMENT_SIGNALS if term in text]
+    location_restrictions = [term for term in LOCATION_RESTRICTIONS if term in text]
     if risk_flags:
         score -= 8 * len(risk_flags)
+
+    # Keep ordinary employment ads out unless they clearly advertise contract work.
+    # On-site and explicitly location-restricted roles do not fit this remote-first queue.
+    disqualifiers = list(risk_flags)
+    if not contract_signals and employment_signals:
+        disqualifiers.extend(employment_signals)
+    if location_restrictions:
+        disqualifiers.extend(location_restrictions)
+    client_fit = bool(contract_signals) and not disqualifiers
+    if client_fit:
+        reasons.append("explicit contract/freelance signal")
+    elif not contract_signals:
+        reasons.append("no explicit freelance/contract signal")
+    if location_restrictions:
+        reasons.append("location or on-site restriction detected")
+
+    priority = "high" if client_fit and score >= 9 else ("review" if client_fit and score >= 4 else "low")
     return {
         "score": max(0, min(100, score)),
-        "reasons": reasons[:8],
+        "reasons": reasons[:10],
         "risk_flags": risk_flags,
-        "priority": "high" if score >= 9 and not risk_flags else ("review" if score >= 4 else "low"),
+        "contract_signals": contract_signals,
+        "employment_signals": employment_signals,
+        "location_restrictions": location_restrictions,
+        "disqualifiers": sorted(set(disqualifiers)),
+        "client_fit": client_fit,
+        "priority": priority,
         "source_name": source_name,
     }
 
@@ -162,7 +200,10 @@ def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, P
              "> Leads are unverified. No applications or messages were sent.", ""]
     for item in report["opportunities"]:
         lines.extend([f"## [{item['title']}]({item['url']})",
-                      f"- Priority: {item['priority']} (score {item['score']})",
+                      f"- Priority: {item['priority']} (service score {item['score']})",
+                      f"- Client fit: {'potential contract' if item.get('client_fit') else 'excluded from lead import'}",
+                      f"- Contract signals: {', '.join(item.get('contract_signals', [])) or 'none detected'}",
+                      f"- Disqualifiers: {', '.join(item.get('disqualifiers', [])) or 'none detected'}",
                       f"- Source: {item['source_name']}",
                       f"- Payment verified: no",
                       f"- Description: {item['description'][:500]}", ""])
