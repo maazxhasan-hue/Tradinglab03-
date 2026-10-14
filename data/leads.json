@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14T17:18:55.967404+00:00",
+  "updated_at": "2026-10-14T21:46:59.229284+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -1931,6 +1931,129 @@
       "opportunity_type": "freelance_work",
       "contract_signals": [
         "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
+    },
+    {
+      "id": "TL-20261014214659-060",
+      "business_name": "Création d'un site vitrine professionnel pour une entreprise de réno",
+      "service": "seo_content",
+      "need": "Budget : 1 000 € à 10 000 € - Catégories : Création de site internet, Site clé en main, CMS, SEO / GEO, Web design Bonjour, Nous souhaitons créer un site vitrine moderne et professionnel pour une entreprise spécialisée dans les travaux de rénovation intérieure, notamment la peinture, la plomberie, l'électricité et l'aménagement. L'objectif est de … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491295-creation-d-un-site-vitrine-professionnel-pour-une-entreprise-de-reno",
+      "evidence": "Public listing title: Création d'un site vitrine professionnel pour une entreprise de réno. Source: Codeur - public freelance project requests. Match score: 18. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=18; listing_id=1ba9ed4637ce58af.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T21:46:59.228765+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T21:46:59.228773+00:00",
+      "updated_at": "2026-10-14T21:46:59.228775+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 18,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014214659-061",
+      "business_name": "Alyura.com Homepage Redesign",
+      "service": "design_or_website",
+      "need": "Title: WordPress Homepage Design – ₹1,000 Fixed Budget I need a freelancer to redesign the homepage",
+      "website_url": "",
+      "source_url": "https://www.freelancer.com/projects/woocommerce/Alyura-com-Homepage-Redesign/40768308",
+      "evidence": "Public listing title: Alyura.com Homepage Redesign. Source: Freelancer.com - free public active-project API. Match score: 11. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=11; listing_id=5730e3227b8b4692.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T21:46:59.228854+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T21:46:59.228856+00:00",
+      "updated_at": "2026-10-14T21:46:59.228858+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Freelancer.com - free public active-project API",
+      "opportunity_score": 11,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance",
+        "freelancer"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
+    },
+    {
+      "id": "TL-20261014214659-062",
+      "business_name": "Freelancer Wage Payment Automation",
+      "service": "business_automation",
+      "need": "All freelancer wages need to go out automatically, on time, and without manual intervention. Right n",
+      "website_url": "",
+      "source_url": "https://www.freelancer.com/projects/automation/Freelancer-Wage-Payment-Automation/40768252",
+      "evidence": "Public listing title: Freelancer Wage Payment Automation. Source: Freelancer.com - free public active-project API. Match score: 5. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=5; listing_id=2974ffb2546d702e.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T21:46:59.228882+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T21:46:59.228884+00:00",
+      "updated_at": "2026-10-14T21:46:59.228886+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Freelancer.com - free public active-project API",
+      "opportunity_score": 5,
+      "opportunity_priority": "review",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance",
+        "freelancer"
       ],
       "project_signals": [],
       "disqualifiers": [
