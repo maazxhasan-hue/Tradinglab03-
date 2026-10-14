@@ -29,6 +29,33 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertFalse(s["client_fit"])
         self.assertTrue(s["disqualifiers"])
 
+    def test_freelance_copywriter_is_work_opportunity_not_client_lead(self):
+        s = score_listing(
+            "Freelance Copywriter",
+            "CT Marketing Agency is seeking skilled Freelance Copywriters. This is a freelance, project-based writing role. Rates are paid per article."
+        )
+        self.assertFalse(s["client_fit"])
+        self.assertTrue(s["freelance_work_fit"])
+        self.assertEqual(s["opportunity_type"], "freelance_work")
+        self.assertIn(s["priority"], {"high", "review"})
+
+    def test_location_restricted_freelance_listing_is_excluded(self):
+        s = score_listing(
+            "Content Reviewer - United States",
+            "Freelance project with pay per completed task."
+        )
+        self.assertFalse(s["freelance_work_fit"])
+        self.assertTrue(s["location_restrictions"])
+
+    def test_direct_buyer_request_classified_as_client_project(self):
+        s = score_listing(
+            "Shopify website project",
+            "Our small business needs a website. Looking for a freelancer to build our Shopify store as a fixed-price project."
+        )
+        self.assertTrue(s["client_fit"])
+        self.assertFalse(s["freelance_work_fit"] or s["opportunity_type"] == "freelance_work")
+        self.assertEqual(s["opportunity_type"], "client_project")
+
     def test_suspicious_listing_gets_risk_flag(self):
         s = score_listing("Website project", "Pay to apply for unpaid test")
         self.assertTrue(s["risk_flags"])
