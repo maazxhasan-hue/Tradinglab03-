@@ -158,14 +158,23 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertEqual(len(report["errors"]), 1)
 
 
-    def test_freelancer_api_source_skips_cleanly_without_token(self):
-        with patch.dict("os.environ", {}, clear=True):
+    def test_freelancer_api_uses_free_public_fallback_without_token(self):
+        sample = [{
+            "id": "abc123", "title": "Need a business website",
+            "url": "https://www.freelancer.com/projects/website-design/123",
+            "description": "I need a new website for my business and can pay for the project.",
+            **score_listing("Need a business website", "I need a new website for my business and can pay for the project."),
+        }]
+        with patch.dict("os.environ", {}, clear=True), patch(
+            "company.freelancer_api_source.fetch_public_projects", return_value=sample
+        ) as public_fetch:
             report = discover([{
                 "name": "Freelancer API test", "type": "freelancer_api",
                 "enabled": True, "limit": 10
             }])
-        self.assertEqual(report["source_stats"][0]["status"], "skipped_missing_token")
-        self.assertEqual(report["items_found"], 0)
+        self.assertEqual(report["source_stats"][0]["status"], "ok")
+        self.assertEqual(report["items_found"], 1)
+        public_fetch.assert_called_once()
         self.assertEqual(report["errors"], [])
 
 if __name__ == "__main__": unittest.main()
