@@ -37,11 +37,13 @@ CONTRACT_SIGNALS = (
 )
 # Signals that indicate a purchasable project/service request rather than a job vacancy.
 PROJECT_SIGNALS = (
-    "looking for a freelancer", "hire a freelancer", "seeking a freelancer",
-    "need a website", "need a landing page", "website redesign project",
-    "client project", "freelance project", "paid project", "project brief",
-    "request for proposal", "fixed-price project", "fixed price project",
-    "seeking a contractor for a project", "small business needs",
+    "looking for a freelancer to", "hire a freelancer to", "seeking a freelancer to",
+    "need a website", "need a landing page", "need someone to build",
+    "need someone to design", "looking for someone to build", "looking for someone to design",
+    "seeking a developer to build", "seeking a designer to create",
+    "request for proposal", "rfp for website", "website redesign project for our business",
+    "our business needs a website", "business needs a landing page",
+    "project brief: build", "project brief: design",
 )
 JOB_VACANCY_SIGNALS = (
     "we are hiring", "we're hiring", "join our team", "join our team as",
@@ -116,7 +118,9 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
     # an actual service/project request, and reject job-vacancy wording by default.
     if not project_signals:
         disqualifiers.append("no explicit service-project request")
-    if job_vacancy_signals and not project_signals:
+    # A job-vacancy phrase disqualifies the listing even if boilerplate mentions
+    # a client project elsewhere. Keep this queue for buyers, not employers.
+    if job_vacancy_signals:
         disqualifiers.extend(job_vacancy_signals)
     client_fit = bool(contract_signals) and bool(project_signals) and not disqualifiers
     if client_fit:
