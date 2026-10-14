@@ -11,6 +11,22 @@ from .lead_tracker import load_store, save_store, add_lead, summary
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_DIR = ROOT / "data" / "opportunities"
 DEFAULT_STORE = ROOT / "data" / "leads.json"
+SOURCE_CONFIG = ROOT / "config" / "opportunity_sources.json"
+
+def enabled_source_names(config_path: str | Path = SOURCE_CONFIG) -> set[str]:
+    """Fail closed: only import listings from sources currently enabled in config."""
+    try:
+        sources = json.loads(Path(config_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    if not isinstance(sources, list):
+        return set()
+    return {
+        str(source.get("name", "")).strip()
+        for source in sources
+        if isinstance(source, dict) and source.get("enabled", True)
+        and str(source.get("name", "")).strip()
+    }
 
 def infer_service(title: str, description: str) -> str:
     text = f"{title} {description}".casefold()
@@ -30,14 +46,22 @@ def infer_service(title: str, description: str) -> str:
         return "website_or_digital_service"
     return "website_or_digital_service"
 
-def import_report(report: dict, store: dict) -> dict:
+def import_report(report: dict, store: dict, allowed_sources: set[str] | None = None) -> dict:
+    if allowed_sources is None:
+        allowed_sources = enabled_source_names()
     existing_urls = {str(x.get("source_url", "")).strip() for x in store["leads"] if x.get("source_url")}
     imported, duplicates, skipped = [], 0, 0
     for item in report.get("opportunities", []):
         url = str(item.get("url", "")).strip()
         title = " ".join(str(item.get("title", "")).split())[:160]
         description = " ".join(str(item.get("description", "")).split())[:1000]
+        source_name = str(item.get("source_name", "")).strip()
         if not url or not title or not url.startswith("https://"):
+            skipped += 1
+            continue
+        # Reports can outlive config changes. Never import a listing from a feed
+        # that has since been disabled (e.g. rate-limited or irrelevant job boards).
+        if not source_name or source_name not in allowed_sources:
             skipped += 1
             continue
         if url in existing_urls:
@@ -50,7 +74,7 @@ def import_report(report: dict, store: dict) -> dict:
                 or not eligible or item.get("priority") not in {"high", "review"}):
             skipped += 1
             continue
-        source_name = str(item.get("source_name", "Public listing"))[:160]
+        source_name = source_name[:160]
         score = item.get("score", 0)
         service = infer_service(title, description)
         evidence = f"Public listing title: {title}. Source: {source_name}. Match score: {score}. Payment/contract status is unverified."
