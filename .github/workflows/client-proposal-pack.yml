@@ -3,9 +3,13 @@ name: Free Client Proposal Pack
 on:
   workflow_dispatch:
     inputs:
+      lead_id:
+        description: Optional saved lead ID (only client-project leads qualify)
+        required: false
+        type: string
       business_name:
-        description: Business or client name
-        required: true
+        description: Business or client name (leave blank when using lead_id)
+        required: false
         type: string
       website_url:
         description: Public website URL, if available
@@ -23,8 +27,8 @@ on:
           - short_video
           - business_automation
       observed_need:
-        description: Specific need or project brief (do not guess)
-        required: true
+        description: Specific need or project brief (leave blank when using lead_id)
+        required: false
         type: string
       evidence:
         description: Human-verified evidence or leave blank
@@ -51,6 +55,7 @@ jobs:
           python-version: "3.11"
       - name: Generate proposal and outreach drafts without paid APIs
         env:
+          CLIENT_LEAD_ID: ${{ inputs.lead_id }}
           CLIENT_BUSINESS: ${{ inputs.business_name }}
           CLIENT_WEBSITE: ${{ inputs.website_url }}
           CLIENT_SERVICE: ${{ inputs.service }}
