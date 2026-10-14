@@ -21,8 +21,8 @@ class OpportunityImporterTests(unittest.TestCase):
         item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid freelance website design; looking for a freelancer to build a website for our small business",
               "source_name":"Example","score":8,"priority":"review","risk_flags":[],"client_fit":True,"contract_signals":["contractor"],"disqualifiers":[]}
         report={"opportunities":[item]}
-        self.assertEqual(import_report(report,store,allowed_sources={"Example Jobs"})["imported_count"],1)
-        self.assertEqual(import_report(report,store,allowed_sources={"Example Jobs"})["duplicates_skipped"],1)
+        self.assertEqual(import_report(report,store,allowed_sources={"Example"})["imported_count"],1)
+        self.assertEqual(import_report(report,store,allowed_sources={"Example"})["duplicates_skipped"],1)
         self.assertEqual(len(store["leads"]),1)
 
     def test_imports_freelance_work_without_claiming_it_is_a_client_lead(self):
