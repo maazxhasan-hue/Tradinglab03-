@@ -56,6 +56,15 @@ PROJECT_SIGNALS = (
     "need help with our shopify store", "looking for help with our shopify store",
     "budget is", "budget:", "paid gig", "paid freelance project",
 )
+# Broader first-person buyer language. These are deliberately phrased as requests
+# for a deliverable/service, not generic hiring or role-filling language.
+BUYER_REQUEST_PATTERNS = (
+    r"\\bi need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\\b",
+    r"\\bwe need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\\b",
+    r"\\b(?:looking|seeking) for (?:someone to|help with|a freelancer to|an agency to) (?:build|design|redesign|create|edit|improve|manage|set up|optimize)\\b",
+    r"\\bneed help (?:building|designing|redesigning|creating|editing|improving|managing|setting up|optimizing) (?:our|my|the)\\b",
+    r"\\b(?:my|our) (?:business|company|store|website|channel) (?:needs|need) (?:help|a|an|someone)\\b",
+)
 # Role-filling wording is disqualifying for client buyer intent, but a listing can
 # still qualify as a separate freelance-work opportunity.
 JOB_VACANCY_SIGNALS = (
@@ -131,6 +140,9 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
     risk_flags = [term for term in NEGATIVE_TERMS if term in text]
     contract_signals = [term for term in CONTRACT_SIGNALS if term in text]
     project_signals = [term for term in PROJECT_SIGNALS if term in text]
+    matched_buyer_patterns = [pattern for pattern in BUYER_REQUEST_PATTERNS if re.search(pattern, text)]
+    if matched_buyer_patterns and not project_signals:
+        project_signals = ["pattern: explicit buyer request"]
     job_vacancy_signals = [term for term in JOB_VACANCY_SIGNALS if term in text]
     employment_signals = [term for term in EMPLOYMENT_SIGNALS if term in text]
     location_restrictions = [term for term in LOCATION_RESTRICTIONS if term in text]
