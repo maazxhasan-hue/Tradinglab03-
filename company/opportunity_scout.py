@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import json
 import re
 import hashlib
+import time
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -268,10 +269,20 @@ def fetch_feed(source: dict, timeout: int = 12) -> list[dict]:
     url = source["url"]
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml"})
     try:
-        with urlopen(request, timeout=timeout) as response:
-            if response.status != 200:
-                raise RuntimeError(f"Feed returned HTTP {response.status}")
-            body = response.read(MAX_BYTES + 1)
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Feed returned HTTP {response.status}")
+                body = response.read(MAX_BYTES + 1)
+        except Exception as exc:
+            # A single short retry helps transient throttling without hammering public feeds.
+            if "429" not in str(exc) and "Too Many Requests" not in str(exc):
+                raise
+            time.sleep(3)
+            with urlopen(request, timeout=timeout) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Feed returned HTTP {response.status}")
+                body = response.read(MAX_BYTES + 1)
         if len(body) > MAX_BYTES:
             raise ValueError("Feed exceeded 2 MB limit")
         return parse_feed(body, source)
