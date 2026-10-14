@@ -316,15 +316,32 @@ def fetch_feed(source: dict, timeout: int = 12) -> list[dict]:
 
 def discover(sources: list[dict] | None = None) -> dict:
     sources = load_sources() if sources is None else sources
-    items, errors = {}, []
+    items, errors, source_stats = {}, [], []
     for source in sources:
+        source_name = source.get("name", source.get("url", "unknown"))
         try:
-            for item in fetch_feed(source):
+            source_items = fetch_feed(source)
+            source_counts = {
+                "source": source_name,
+                "items_found": len(source_items),
+                "client_projects": sum(x.get("opportunity_type") == "client_project" for x in source_items),
+                "freelance_work": sum(x.get("opportunity_type") == "freelance_work" for x in source_items),
+                "employment_roles": sum(x.get("opportunity_type") == "employment_role" for x in source_items),
+                "unqualified": sum(x.get("opportunity_type") == "unqualified" for x in source_items),
+                "status": "ok" if source_items else "empty",
+            }
+            source_stats.append(source_counts)
+            for item in source_items:
                 previous = items.get(item["id"])
                 if previous is None or item["score"] > previous["score"]:
                     items[item["id"]] = item
         except Exception as exc:
-            errors.append({"source": source.get("name", source.get("url", "unknown")), "error": str(exc)[:300]})
+            errors.append({"source": source_name, "error": str(exc)[:300]})
+            source_stats.append({
+                "source": source_name, "items_found": 0, "client_projects": 0,
+                "freelance_work": 0, "employment_roles": 0, "unqualified": 0,
+                "status": "error", "error": str(exc)[:300],
+            })
     leads = sorted(
         items.values(),
         key=lambda x: (
@@ -352,7 +369,7 @@ def discover(sources: list[dict] | None = None) -> dict:
             "low_priority": sum(x.get("priority") == "low" for x in leads),
         },
         "note": "Listings are unverified. Client projects are buyer-intent requests; freelance work listings are not direct client leads. Payment and eligibility are unverified. No messages, bids, or applications are sent.",
-        "errors": errors, "opportunities": leads,
+        "errors": errors, "source_stats": source_stats, "opportunities": leads,
     }
 
 def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, Path]:
@@ -403,6 +420,7 @@ def main():
         "found": report["items_found"],
         "summary": report.get("summary", {}),
         "source_errors": report["errors"],
+        "source_stats": report.get("source_stats", []),
         "json_report": str(json_path),
         "markdown_report": str(md_path),
         "error_count": len(report["errors"]),
