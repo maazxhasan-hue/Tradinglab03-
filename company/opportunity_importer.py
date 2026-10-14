@@ -41,8 +41,11 @@ def import_report(report: dict, store: dict) -> dict:
         if url in existing_urls:
             duplicates += 1
             continue
-        # Exclude suspicious listings and weak matches from the persistent queue.
-        if item.get("risk_flags") or item.get("priority") not in {"high", "review"}:
+        # Import only explicit contract/freelance opportunities. A high keyword
+        # score alone is not proof that a listing is a client project.
+        if (item.get("risk_flags") or item.get("disqualifiers")
+                or item.get("client_fit") is not True
+                or item.get("priority") not in {"high", "review"}):
             skipped += 1
             continue
         source_name = str(item.get("source_name", "Public listing"))[:160]
@@ -66,7 +69,10 @@ def import_report(report: dict, store: dict) -> dict:
         lead["opportunity_score"] = score
         lead["opportunity_priority"] = item.get("priority", "review")
         lead["paid_contract_verified"] = False
-        lead["next_action"] = "Open original listing and verify eligibility, payment, scope, legitimacy, and application rules."
+        lead["client_fit"] = True
+        lead["contract_signals"] = item.get("contract_signals", [])
+        lead["disqualifiers"] = item.get("disqualifiers", [])
+        lead["next_action"] = "Verify client/project status, country eligibility, payment terms, scope, legitimacy, and platform rules before any proposal."
         existing_urls.add(url)
         imported.append(lead["id"])
     return {"imported_count": len(imported), "imported_ids": imported,
