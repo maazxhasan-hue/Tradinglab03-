@@ -375,9 +375,15 @@ def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, P
 def main():
     report = discover()
     json_path, md_path = save_report(report)
-    print(json.dumps({"sources": report["sources_configured"], "found": report["items_found"],
-                      "json_report": str(json_path), "markdown_report": str(md_path),
-                      "errors": len(report["errors"])}, ensure_ascii=False))
+    print(json.dumps({
+        "sources": report["sources_configured"],
+        "found": report["items_found"],
+        "summary": report.get("summary", {}),
+        "source_errors": report["errors"],
+        "json_report": str(json_path),
+        "markdown_report": str(md_path),
+        "error_count": len(report["errors"]),
+    }, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()
