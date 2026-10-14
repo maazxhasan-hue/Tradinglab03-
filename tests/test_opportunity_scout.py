@@ -3,9 +3,17 @@ from company.opportunity_scout import score_listing, parse_feed, parse_remotive_
 
 class OpportunityScoutTests(unittest.TestCase):
     def test_website_request_scores_high(self):
-        s = score_listing("Need a business website redesign", "Paid freelance contract for small business")
+        s = score_listing("Need a business website redesign", "Paid freelance contract project for a small business; looking for a freelancer")
         self.assertGreaterEqual(s["score"], 9)
         self.assertEqual(s["priority"], "high")
+    def test_contract_job_vacancy_without_project_request_is_not_client_fit(self):
+        s = score_listing(
+            "Senior Shopify Developer",
+            "We are hiring a contract-based developer to join our team. Full-time position with salary and benefits."
+        )
+        self.assertFalse(s["client_fit"])
+        self.assertIn("no explicit service-project request", s["disqualifiers"])
+
     def test_suspicious_listing_gets_risk_flag(self):
         s = score_listing("Website project", "Pay to apply for unpaid test")
         self.assertTrue(s["risk_flags"])
@@ -16,7 +24,7 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertFalse(rows[0]["paid_contract_verified"])
         self.assertEqual(rows[0]["status"],"new_lead")
     def test_remotive_json_api_parsing_returns_unverified_https_lead(self):
-        payload = b'{"jobs":[{"id":123,"title":"Freelance website redesign","url":"https://remotive.com/remote-jobs/example","description":"Paid freelance contract for a Shopify website redesign","publication_date":"2026-10-14","job_type":"contract","candidate_required_location":"Worldwide","company_name":"Example Co"}]}'
+        payload = b'{"jobs":[{"id":123,"title":"Freelance website redesign","url":"https://remotive.com/remote-jobs/example","description":"Paid freelance contract project for a Shopify website redesign; looking for a freelancer","publication_date":"2026-10-14","job_type":"contract","candidate_required_location":"Worldwide","company_name":"Example Co"}]}'
         rows = parse_remotive_api(payload, {"name": "Remotive - All remote jobs"})
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["url"], "https://remotive.com/remote-jobs/example")
