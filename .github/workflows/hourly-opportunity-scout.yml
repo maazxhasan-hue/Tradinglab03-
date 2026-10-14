@@ -24,6 +24,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Run opportunity qualification tests
+        run: python -m unittest tests.test_opportunity_scout tests.test_opportunity_importer -v
       - name: Discover public project listings
         run: python -m company.opportunity_scout
       - name: Import suitable listings into persistent lead tracker
