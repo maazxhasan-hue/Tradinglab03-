@@ -29,6 +29,12 @@ SERVICE_TERMS = {
     "frontend": 3, "full stack": 3, "seo": 3, "automation": 3,
     "video editing": 3, "short-form video": 3, "content": 2, "small business": 2,
     "freelance": 2, "contract": 2, "budget": 1, "paid": 2,
+    # French-language project vocabulary used by Codeur and similar marketplaces.
+    "site internet": 4, "site web": 4, "création de site": 5, "création site": 5,
+    "refonte de site": 5, "boutique en ligne": 5, "développement web": 4,
+    "réseaux sociaux": 3, "gestion réseaux sociaux": 4, "montage vidéo": 3,
+    "identité visuelle": 4, "graphisme": 3, "référencement": 3,
+    "devis": 1, "mission freelance": 2,
 }
 NEGATIVE_TERMS = {"unpaid test", "exposure only", "commission only", "crypto deposit", "pay to apply"}
 CONTRACT_SIGNALS = (
@@ -55,6 +61,15 @@ PROJECT_SIGNALS = (
     "looking for someone to edit our videos", "seeking a wordpress developer for our site",
     "need help with our shopify store", "looking for help with our shopify store",
     "budget is", "budget:", "paid gig", "paid freelance project",
+    # French buyer-intent phrases: requesting a deliverable, not hiring an employee.
+    "recherche un freelance pour", "recherchons un freelance pour",
+    "je recherche un développeur pour", "je recherche un designer pour",
+    "besoin d'un site web", "besoin d'un site internet",
+    "création de site internet", "création d'un site web",
+    "refonte de site internet", "refonte de site web",
+    "recherche prestataire pour", "recherchons un prestataire pour",
+    "cherche un freelance pour", "recherche un graphiste pour",
+    "gestion des réseaux sociaux", "gestion réseaux sociaux", "montage vidéo pour",
 )
 # Broader first-person buyer language. These are deliberately phrased as requests
 # for a deliverable/service, not generic hiring or role-filling language.
@@ -64,6 +79,10 @@ BUYER_REQUEST_PATTERNS = (
     r"\b(?:looking|seeking) for (?:someone to|help with|a freelancer to|an agency to) (?:build|design|redesign|create|edit|improve|manage|set up|optimize)\b",
     r"\bneed help (?:building|designing|redesigning|creating|editing|improving|managing|setting up|optimizing) (?:our|my|the)\b",
     r"\b(?:my|our) (?:business|company|store|website|channel) (?:needs|need) (?:help|a|an|someone)\b",
+    r"\b(?:je recherche|je cherche|nous recherchons) (?:un|une) (?:freelance|prestataire|développeur|développeuse|designer|graphiste|agence) (?:pour|afin de)\b",
+    r"\b(?:besoin d'un|besoin d'une) (?:site web|site internet|boutique en ligne|logo|graphiste|développeur|designer)\b",
+    r"\b(?:création|refonte) (?:de|d') (?:site web|site internet|boutique en ligne)\b",
+    r"\b(?:gestion|animation) (?:des )?réseaux sociaux\b",
 )
 # Role-filling wording is disqualifying for client buyer intent, but a listing can
 # still qualify as a separate freelance-work opportunity.
@@ -73,6 +92,9 @@ JOB_VACANCY_SIGNALS = (
     "salary and benefits", "benefits package", "your responsibilities will",
     "submit your resume", "submit a resume", "employment type", "about the role",
     "we are looking to fill", "we're looking to fill",
+    "nous recrutons", "nous recherchons un salarié", "poste à pourvoir",
+    "cdi", "cdd", "temps plein", "temps partiel", "rejoignez notre équipe",
+    "offre d'emploi", "salaire", "candidature", "envoyez votre cv",
 )
 FREELANCE_WORK_SIGNALS = (
     "freelance", "freelancer", "independent contractor", "project-based",
