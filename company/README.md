@@ -11,7 +11,7 @@ A separate operating system for AI-assisted digital services. This is a local-fi
 - Lead discovery, project qualification, and proposal drafts
 
 ## Hourly opportunity discovery
-The GitHub Actions workflow `.github/workflows/hourly-opportunity-scout.yml` runs hourly and uploads a report artifact. It reads public RSS/Atom sources configured in `config/opportunity_sources.json` (We Work Remotely and Remotive), scores listings, and marks every listing as unverified until a human checks it. These sources primarily list remote roles, not guaranteed freelance contracts. It does not apply for jobs or contact clients.
+The GitHub Actions workflow `.github/workflows/hourly-opportunity-scout.yml` runs hourly and uploads a report artifact. It reads public RSS/Atom sources configured in `config/opportunity_sources.json` (We Work Remotely, Remotive, and added Reddit `r/forhire` / `r/DesignJobs` community feeds), scores listings, and marks every listing as unverified until a human checks it. The Reddit feeds are a discovery experiment: they may contain buyer requests, job ads, self-promotion, or low-quality posts, and may be rate-limited. The scout does not contact posters or submit applications. These sources primarily list remote roles, not guaranteed freelance contracts. It does not apply for jobs or contact clients.
 
 ## Business Intelligence & Revenue Scout
 The new `company/business_intelligence.py` agent maps observed business needs to service opportunities and can call `company/site_audit.py` to inspect a single public HTTPS homepage for basic SEO, mobile, accessibility, and contact-path signals. Findings are heuristic and must be human-verified. It creates a draft conversation but does not contact prospects.
