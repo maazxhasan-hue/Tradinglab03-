@@ -64,8 +64,11 @@ jobs:
           elif [ -n "$CLIENT_BUSINESS" ] && [ -n "$CLIENT_NEED" ]; then
             echo "Using manually supplied business details."
           else
-            echo "::error::Enter a saved lead ID OR provide both Business name and Observed need in Run workflow inputs. No proposal was generated."
-            exit 1
+            echo "No lead or business details supplied. Generating a clearly labeled DEMO sample so the workflow can be verified safely."
+            echo "CLIENT_BUSINESS=TradingLab03 Demo Business (sample only)" >> "$GITHUB_ENV"
+            echo "CLIENT_NEED=DEMO ONLY: sample website brief used to verify the proposal workflow. This is not a real prospect or verified opportunity." >> "$GITHUB_ENV"
+            echo "CLIENT_EVIDENCE=Workflow test sample; not a real lead. Do not contact anyone based on this draft." >> "$GITHUB_ENV"
+            echo "CLIENT_SERVICE=business_website" >> "$GITHUB_ENV"
           fi
       - name: Generate proposal and outreach drafts without paid APIs
         env:
