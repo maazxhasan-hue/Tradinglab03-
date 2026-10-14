@@ -64,6 +64,29 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertTrue(s["client_fit"])
         self.assertEqual(s["opportunity_type"], "client_project")
 
+    def test_first_person_website_request_is_client_project(self):
+        s = score_listing(
+            "Website help needed",
+            "I need a new website for my business and can pay for the project."
+        )
+        self.assertTrue(s["client_fit"])
+        self.assertEqual(s["opportunity_type"], "client_project")
+
+    def test_business_service_request_pattern_is_not_required_to_use_exact_phrase(self):
+        s = score_listing(
+            "Help with online store",
+            "We need help with our Shopify store. Please send a fixed-price proposal."
+        )
+        self.assertTrue(s["client_fit"])
+        self.assertEqual(s["opportunity_type"], "client_project")
+
+    def test_buyer_pattern_does_not_override_hiring_language(self):
+        s = score_listing(
+            "Website Developer",
+            "We are hiring. I need a website developer to join our team full-time."
+        )
+        self.assertFalse(s["client_fit"])
+
     def test_suspicious_listing_gets_risk_flag(self):
         s = score_listing("Website project", "Pay to apply for unpaid test")
         self.assertTrue(s["risk_flags"])
