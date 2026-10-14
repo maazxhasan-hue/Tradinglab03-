@@ -44,8 +44,8 @@
   {
     "name": "Jobicy - freelance marketing listings",
     "url": "https://jobicy.com/jobs/feed?type=freelance&industry=marketing",
-    "enabled": false,
-    "notes": "Public Jobicy RSS feed filtered for freelance marketing roles. These are work opportunities, not presumed direct buyers; preserve Jobicy attribution and original listing links. Disabled in the direct-client-focused scan because this is primarily a job board, not a verified project-request feed."
+    "enabled": true,
+    "notes": "Free public RSS feed filtered for freelance marketing opportunities. Secondary source for freelance/contract work, not presumed direct buyers; preserve Jobicy attribution and original listing links. Keep these results classified separately from direct client project requests."
   },
   {
     "name": "Himalayas - public remote jobs",
