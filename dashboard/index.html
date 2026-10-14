@@ -60,7 +60,20 @@
 <div class="row"><div><strong>Department registry</strong><div class="muted">Full team missions and functions.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/departments.json" target="_blank" rel="noopener">View registry</a></div>
 <div class="row"><div><strong>KPI scorecards</strong><div class="muted">Revenue, delivery, quality, customer outcomes, risk.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/scorecards.json" target="_blank" rel="noopener">View scorecards</a></div>
 </section>
-\n<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
+\n<section class="card" style="margin-top:1rem" id="leadReview">
+<h2>Lead review desk</h2>
+<p class="muted">Import a downloaded <code>leads.json</code> from this repository to review it in this browser. The file is not uploaded anywhere. Leads are unverified until a human checks the original listing.</p>
+<div class="row"><div><strong>Current lead register</strong><div class="muted">Open the repository's saved lead data or download it first.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">Open leads.json</a></div>
+<label for="leadFile">Choose downloaded leads.json</label><input id="leadFile" type="file" accept=".json,application/json">
+<label for="leadFilter">Filter lead review</label><select id="leadFilter"><option value="all">All imported leads</option><option value="client">Potential client projects only</option><option value="freelance">Freelance work opportunities</option><option value="review">Needs human review / unverified</option></select>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+<div><div class="muted">Loaded leads</div><div class="metric" id="leadTotal">0</div></div>
+<div><div class="muted">Potential projects</div><div class="metric" id="leadClients">0</div></div>
+<div><div class="muted">Freelance work</div><div class="metric" id="leadFreelance">0</div></div>
+</div>
+<div id="leadFeedback" class="muted" aria-live="polite">No lead file loaded in this browser session.</div><div id="leadRows"></div>
+</section>
+<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
 <div class="foot">TradingLab03 AI Services · Demo dashboard · Connect APIs only after reviewing permissions, privacy, platform rules, and approval gates.</div></main>
 <script>
 const form=document.querySelector('#projectForm'),queue=document.querySelector('#queue'),count=document.querySelector('#projectCount'),feedback=document.querySelector('#feedback');
@@ -69,5 +82,19 @@ let projects=[];
 try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');if(Array.isArray(saved))projects=saved.filter(p=>p&&typeof p.client==='string'&&typeof p.type==='string'&&typeof p.goal==='string')}catch(_){projects=[]}
 function renderProjects(){count.textContent=String(projects.length);queue.replaceChildren();if(!projects.length){queue.textContent='No project briefs yet.';return}projects.forEach(function(x){const row=document.createElement('div');row.className='row';const left=document.createElement('div');const strong=document.createElement('strong');strong.textContent=x.client+' · '+x.type;const small=document.createElement('div');small.className='muted';small.textContent=x.goal;left.append(strong,small);const status=document.createElement('span');status.className='status';status.textContent=x.state||'Needs human scoping';row.append(left,status);queue.append(row)})}
 renderProjects();
+const leadFile=document.querySelector('#leadFile'),leadFilter=document.querySelector('#leadFilter'),leadRows=document.querySelector('#leadRows'),leadFeedback=document.querySelector('#leadFeedback');
+let importedLeads=[];
+function renderLeadReview(){
+ const visible=importedLeads.filter(x=>{const kind=x.opportunity_type||'legacy_or_unclassified';if(leadFilter.value==='client')return kind==='client_project'||x.client_fit===true;if(leadFilter.value==='freelance')return kind==='freelance_work'||x.freelance_work_fit===true;if(leadFilter.value==='review')return x.paid_contract_verified!==true||x.status==='needs_review';return true});
+ document.querySelector('#leadTotal').textContent=String(importedLeads.length);
+ document.querySelector('#leadClients').textContent=String(importedLeads.filter(x=>x.opportunity_type==='client_project'||x.client_fit===true).length);
+ document.querySelector('#leadFreelance').textContent=String(importedLeads.filter(x=>x.opportunity_type==='freelance_work'||x.freelance_work_fit===true).length);
+ leadRows.replaceChildren();
+ if(!visible.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='No leads match this filter.';leadRows.append(empty);return}
+ visible.slice(0,100).forEach(x=>{const card=document.createElement('div');card.className='row';card.style.alignItems='flex-start';const left=document.createElement('div');left.style.minWidth='0';const title=document.createElement('strong');title.textContent=x.business_name||x.title||'Untitled listing';const detail=document.createElement('div');detail.className='muted';detail.textContent=[x.source_name||'Source not recorded',x.opportunity_type||'legacy / unclassified',x.status||'status unknown'].join(' · ');const action=document.createElement('div');action.className='muted';action.textContent=x.next_action||'Check original source, buyer intent, scope, and payment before acting.';left.append(title,detail,action);const right=document.createElement('div');right.style.flexShrink='0';const link=document.createElement('a');link.textContent='Original listing';link.href=typeof x.source_url==='string'&&x.source_url.startsWith('https://')?x.source_url:'#';link.target='_blank';link.rel='noopener';if(link.href.endsWith('#'))link.textContent='No safe URL';right.append(link);card.append(left,right);leadRows.append(card)});
+ if(visible.length>100){const note=document.createElement('p');note.className='muted';note.textContent='Showing first 100 matching leads. Narrow the filter to review more precisely.';leadRows.append(note)}
+}
+leadFile.addEventListener('change',async function(){const file=leadFile.files&&leadFile.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text());const rows=Array.isArray(parsed)?parsed:parsed.leads;if(!Array.isArray(rows))throw new Error('Expected a leads array.');importedLeads=rows.filter(x=>x&&typeof x==='object');leadFeedback.textContent='Loaded '+importedLeads.length+' records locally. Nothing was uploaded, contacted, or marked as paid.';renderLeadReview()}catch(err){importedLeads=[];leadFeedback.textContent='Could not read this JSON: '+err.message;renderLeadReview()}});
+leadFilter.addEventListener('change',renderLeadReview);
 form.addEventListener('submit',function(e){e.preventDefault();const p={id:Date.now().toString(36),client:document.querySelector('#client').value.trim(),type:document.querySelector('#type').value,goal:document.querySelector('#goal').value.trim(),state:'Needs human scoping',createdAt:new Date().toISOString()};if(!p.client||!p.goal){feedback.textContent='Please enter the business name and project requirements.';return}projects.unshift(p);projects=projects.slice(0,100);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(projects));feedback.textContent='Project brief saved in this browser. No client has been contacted and no quote has been sent.'}catch(_){feedback.textContent='Project brief added for this session only; browser storage is unavailable.'}renderProjects();form.reset()});
 </script></body></html>
