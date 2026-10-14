@@ -6,7 +6,7 @@ class OpportunityImporterTests(unittest.TestCase):
     def test_imports_qualified_listing_as_unverified(self):
         store={"schema_version":1,"leads":[]}
         report={"opportunities":[{"id":"abc","title":"Freelance website redesign","url":"https://example.org/job/1",
-            "description":"Paid freelance website redesign for a small business","source_name":"Example Jobs",
+            "description":"Paid freelance website redesign project for a small business; looking for a freelancer","source_name":"Example Jobs",
             "score":12,"priority":"high","risk_flags":[],"client_fit":True,"contract_signals":["freelance"],"disqualifiers":[]}]}
         result=import_report(report,store)
         self.assertEqual(result["imported_count"],1)
@@ -18,12 +18,27 @@ class OpportunityImporterTests(unittest.TestCase):
 
     def test_duplicate_source_url_is_not_imported_twice(self):
         store={"schema_version":1,"leads":[]}
-        item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid web design",
+        item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid freelance website design project; looking for a freelancer",
               "source_name":"Example","score":8,"priority":"review","risk_flags":[],"client_fit":True,"contract_signals":["contractor"],"disqualifiers":[]}
         report={"opportunities":[item]}
         self.assertEqual(import_report(report,store)["imported_count"],1)
         self.assertEqual(import_report(report,store)["duplicates_skipped"],1)
         self.assertEqual(len(store["leads"]),1)
+
+    def test_skips_contract_job_without_project_intent(self):
+        store={"schema_version":1,"leads":[]}
+        report={"opportunities":[{
+            "id":"job1","title":"Senior Shopify Developer",
+            "url":"https://example.org/job/contract-role",
+            "description":"We are hiring a contract-based developer to join our team full-time.",
+            "source_name":"Example Jobs","score":14,"priority":"high",
+            "risk_flags":[],"client_fit":False,
+            "contract_signals":["contract-based"],"project_signals":[],
+            "disqualifiers":["no explicit service-project request"]
+        }]}
+        result=import_report(report,store)
+        self.assertEqual(result["imported_count"],0)
+        self.assertEqual(result["low_priority_or_risky_skipped"],1)
 
     def test_skips_risky_and_low_priority(self):
         store={"schema_version":1,"leads":[]}
