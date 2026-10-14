@@ -14,18 +14,20 @@ DEFAULT_STORE = ROOT / "data" / "leads.json"
 
 def infer_service(title: str, description: str) -> str:
     text = f"{title} {description}".casefold()
-    if any(x in text for x in ("video editing", "short-form video", "reels editor", "youtube editor")):
+    if any(x in text for x in ("video editing", "short-form video", "reels editor", "youtube editor", "montage vidéo", "montage video")):
         return "short_video"
-    if any(x in text for x in ("seo", "search engine optimization", "content marketing")):
+    if any(x in text for x in ("seo", "search engine optimization", "content marketing", "référencement", "reseaux sociaux", "réseaux sociaux", "gestion des réseaux sociaux")):
         return "seo_content"
-    if any(x in text for x in ("shopify", "e-commerce", "ecommerce", "online store")):
+    if any(x in text for x in ("shopify", "e-commerce", "ecommerce", "online store", "boutique en ligne")):
         return "business_website"
     if any(x in text for x in ("landing page", "conversion page")):
         return "landing_page"
     if any(x in text for x in ("automation", "workflow automation", "zapier", "make.com")):
         return "business_automation"
-    if any(x in text for x in ("design", "figma", "ui/ux", "graphic")):
+    if any(x in text for x in ("design", "figma", "ui/ux", "graphic", "graphisme", "identité visuelle")):
         return "design_or_website"
+    if any(x in text for x in ("site internet", "site web", "création de site", "refonte de site", "développement web")):
+        return "website_or_digital_service"
     return "website_or_digital_service"
 
 def import_report(report: dict, store: dict) -> dict:
