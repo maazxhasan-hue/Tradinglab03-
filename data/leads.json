@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14T12:04:49.093980+00:00",
+  "updated_at": "2026-10-14T13:04:21.053987+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -1622,6 +1622,240 @@
       "disqualifiers": [
         "no explicit service-project request"
       ]
+    },
+    {
+      "id": "TL-20261014130421-052",
+      "business_name": "Site vitrine wordpress : réalisation et intégration",
+      "service": "design_or_website",
+      "need": "Budget : 1 000 € à 10 000 € - Catégories : Création de site internet, Site clé en main, CMS, WordPress, Web design électricien je veux un site vitrine Wordpress de 7 pages avec formulaire de contact. Je fournis les textes et \"pré-maquettes\" réalisées par ChatGpt -à vous de vous en rapprocher le plus … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491253-site-vitrine-wordpress-realisation-et-integration",
+      "evidence": "Public listing title: Site vitrine wordpress : réalisation et intégration. Source: Codeur - public freelance project requests. Match score: 19. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=19; listing_id=c5568b7dcef3cb59.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053388+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053398+00:00",
+      "updated_at": "2026-10-14T13:04:21.053400+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 19,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014130421-053",
+      "business_name": "Site internet pour osteopathe",
+      "service": "landing_page",
+      "need": "Budget : 500 € à 1 000 € - Catégories : Création de site internet, Site clé en main, Experience utilisateur, Landing page, Web design je suis ostéopathe et je cherche quelqu'un pour faire un site internet qui donne envie de me faire confiance et de prendre rdv Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491234-site-internet-pour-osteopathe",
+      "evidence": "Public listing title: Site internet pour osteopathe. Source: Codeur - public freelance project requests. Match score: 19. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=19; listing_id=cd4f07a9afe70f9f.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053456+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053458+00:00",
+      "updated_at": "2026-10-14T13:04:21.053459+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 19,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014130421-054",
+      "business_name": "Je souhaite créer un site vitrine pour mon activité d'art-thérapeute.",
+      "service": "design_or_website",
+      "need": "Budget : Moins de 500 € - Catégories : Création de site internet, Site clé en main, CMS, WordPress, Web design Création d'un site vitrine professionnel pour mon métier d'art-thérapeute. Description du projet : Bonjour, Je viens de lancer mon projet en art-thérapie et je souhaite développer mon activité avec un site … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491230-je-souhaite-creer-un-site-vitrine-pour-mon-activite-d-art-therapeute",
+      "evidence": "Public listing title: Je souhaite créer un site vitrine pour mon activité d'art-thérapeute.. Source: Codeur - public freelance project requests. Match score: 19. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=19; listing_id=1657535979e0bb32.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053505+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053508+00:00",
+      "updated_at": "2026-10-14T13:04:21.053510+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 19,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014130421-055",
+      "business_name": "Conception et réalisation d'un site vitrine internet",
+      "service": "design_or_website",
+      "need": "Budget : 500 € à 1 000 € - Catégories : Création de site internet, Site clé en main, Charte graphique, Experience utilisateur, Web design Site vitrine pour un réseau de 5 boulangeries en France. Un réseau de 5 boulangeries en France souhaite se doter d'un site vitrine commun, pensé d'abord pour le mobile, qui présente … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491245-conception-et-realisation-d-un-site-vitrine-internet",
+      "evidence": "Public listing title: Conception et réalisation d'un site vitrine internet. Source: Codeur - public freelance project requests. Match score: 15. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=15; listing_id=e6f0d161a890a98d.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053549+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053551+00:00",
+      "updated_at": "2026-10-14T13:04:21.053552+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 15,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014130421-056",
+      "business_name": "Créer un site internet",
+      "service": "design_or_website",
+      "need": "Budget : 500 € à 1 000 € - Catégories : Création de site internet, Développement spécifique, CMS, Front-end, Web design 1. Objectifs principaux Zéro maintenance payante : Je ne souhaite pas souscrire à un contrat de maintenance mensuel. Le site doit être techniquement stable, robuste, hautement sécurisé et conçu pour ne … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491247-creer-un-site-internet",
+      "evidence": "Public listing title: Créer un site internet. Source: Codeur - public freelance project requests. Match score: 15. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=15; listing_id=7e67d36b34bac5a0.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053589+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053591+00:00",
+      "updated_at": "2026-10-14T13:04:21.053607+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 15,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014130421-057",
+      "business_name": "Site internet , développer une application , backend",
+      "service": "website_or_digital_service",
+      "need": "Budget : 1 000 € à 10 000 € - Catégories : Création de site internet, Développement spécifique, Full-stack, Back-end, Machine Learning Bonjour, Je suis à la recherche d’un partenaire technique capable de m’accompagner dans la conception et le développement d’une application moderne, intégrant des fonctionnalités d’intelligence artificielle (IA). Le projet comprend également … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491269-site-internet-developper-une-application-backend",
+      "evidence": "Public listing title: Site internet , développer une application , backend. Source: Codeur - public freelance project requests. Match score: 10. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=10; listing_id=4f50563882144ba9.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T13:04:21.053653+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T13:04:21.053655+00:00",
+      "updated_at": "2026-10-14T13:04:21.053656+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 10,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
     }
   ]
 }
