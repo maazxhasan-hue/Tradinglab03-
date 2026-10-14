@@ -47,6 +47,13 @@ PROJECT_SIGNALS = (
     "our business needs a website", "business needs a landing page",
     "we need a website", "we need a landing page", "we need help redesigning",
     "project brief: build", "project brief: design",
+    "looking for a web designer", "looking for a website designer",
+    "need a web designer", "need a website designer", "need a developer for our website",
+    "looking for an seo specialist for our business", "need seo help for my business",
+    "looking for a video editor for my channel", "need a video editor for my business",
+    "looking for someone to edit our videos", "seeking a wordpress developer for our site",
+    "need help with our shopify store", "looking for help with our shopify store",
+    "budget is", "budget:", "paid gig", "paid freelance project",
 )
 # Role-filling wording is disqualifying for client buyer intent, but a listing can
 # still qualify as a separate freelance-work opportunity.
