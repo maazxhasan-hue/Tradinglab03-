@@ -81,6 +81,23 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertTrue(s["client_fit"])
         self.assertEqual(s["opportunity_type"], "client_project")
 
+    def test_french_codeur_project_request_is_client_project(self):
+        s = score_listing(
+            "Création de site internet pour une petite entreprise",
+            "Je recherche un freelance pour créer un site web. Budget de 500 euros, merci d'envoyer un devis."
+        )
+        self.assertTrue(s["client_fit"])
+        self.assertEqual(s["opportunity_type"], "client_project")
+        self.assertGreaterEqual(s["score"], 9)
+
+    def test_french_job_vacancy_is_not_a_client_project(self):
+        s = score_listing(
+            "Développeur web - CDI temps plein",
+            "Nous recrutons un développeur pour rejoindre notre équipe. Offre d'emploi, salaire et candidature avec CV."
+        )
+        self.assertFalse(s["client_fit"])
+        self.assertIn(s["opportunity_type"], {"employment_role", "unqualified"})
+
     def test_buyer_pattern_does_not_override_hiring_language(self):
         s = score_listing(
             "Website Developer",
