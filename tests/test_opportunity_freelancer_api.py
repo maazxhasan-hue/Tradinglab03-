@@ -33,6 +33,7 @@ class FreelancerApiSourceTests(unittest.TestCase):
     def test_maps_api_projects_to_unverified_leads(self):
         response = {"result": {"projects": [{
             "id": 12345, "title": "Need a website redesign",
+            "seo_url": "https://www.freelancer.com/projects/12345",
             "description": "<p>I need a new website for my business and can pay for the project.</p>",
             "time_submitted": 1720000000,
         }]}}
