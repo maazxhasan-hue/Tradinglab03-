@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14T13:04:21.053987+00:00",
+  "updated_at": "2026-10-14T17:18:55.967404+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -1856,6 +1856,86 @@
         "création de site internet"
       ],
       "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014171855-058",
+      "business_name": "Site de présentation de mon activité",
+      "service": "design_or_website",
+      "need": "Budget : Moins de 500 € - Catégories : Création de site internet, Site clé en main, Développement spécifique, Système de paiement, Web design Projet site web de présentation de l’activité assistance informatique avec possibilité de réservation de créneau et règlement Plusieurs pages , un planning de réservation et de paiement Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491283-site-de-presentation-de-mon-activite",
+      "evidence": "Public listing title: Site de présentation de mon activité. Source: Codeur - public freelance project requests. Match score: 19. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=19; listing_id=b996e35cf916fc39.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T17:18:55.966986+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T17:18:55.966994+00:00",
+      "updated_at": "2026-10-14T17:18:55.966996+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 19,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261014171855-059",
+      "business_name": "Je gère www.lavapote.fr et je travaille sur mons en Belgique ...",
+      "service": "business_website",
+      "need": "Budget : Moins de 500 € - Catégories : Gestion site web, Site E-commerce, Prestashop, Administration, Data entry 📢 Recherche freelance à Mons — mission disponible rapidement Sur place au bureau Attention... Je suis le responsable dune boutique en ligne et je recherche une personne sérieuse et autonome pour … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491275-je-gere-www-lavapote-fr-et-je-travaille-sur-mons-en-belgique",
+      "evidence": "Public listing title: Je gère www.lavapote.fr et je travaille sur mons en Belgique .... Source: Codeur - public freelance project requests. Match score: 17. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=17; listing_id=07a0c0092d02b8f9.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-14T17:18:55.967080+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-14T17:18:55.967082+00:00",
+      "updated_at": "2026-10-14T17:18:55.967084+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 17,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
     }
   ]
 }
