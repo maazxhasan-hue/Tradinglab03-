@@ -59,11 +59,11 @@ PROJECT_SIGNALS = (
 # Broader first-person buyer language. These are deliberately phrased as requests
 # for a deliverable/service, not generic hiring or role-filling language.
 BUYER_REQUEST_PATTERNS = (
-    r"\\bi need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\\b",
-    r"\\bwe need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\\b",
-    r"\\b(?:looking|seeking) for (?:someone to|help with|a freelancer to|an agency to) (?:build|design|redesign|create|edit|improve|manage|set up|optimize)\\b",
-    r"\\bneed help (?:building|designing|redesigning|creating|editing|improving|managing|setting up|optimizing) (?:our|my|the)\\b",
-    r"\\b(?:my|our) (?:business|company|store|website|channel) (?:needs|need) (?:help|a|an|someone)\\b",
+    r"\bi need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\b",
+    r"\bwe need (?:a|an|someone to|help with) (?:new )?(?:website|web site|landing page|shopify store|wordpress site|logo|brand identity|video editor|video editing|seo|social media|online store|ecommerce store)\b",
+    r"\b(?:looking|seeking) for (?:someone to|help with|a freelancer to|an agency to) (?:build|design|redesign|create|edit|improve|manage|set up|optimize)\b",
+    r"\bneed help (?:building|designing|redesigning|creating|editing|improving|managing|setting up|optimizing) (?:our|my|the)\b",
+    r"\b(?:my|our) (?:business|company|store|website|channel) (?:needs|need) (?:help|a|an|someone)\b",
 )
 # Role-filling wording is disqualifying for client buyer intent, but a listing can
 # still qualify as a separate freelance-work opportunity.
