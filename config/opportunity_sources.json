@@ -19,7 +19,7 @@
   },
   {
     "name": "Remotive - All remote jobs",
-    "url": "https://remotive.com/feed",
+    "url": "https://remotive.com/remote-jobs/rss-feed",
     "enabled": true,
     "notes": "Public feed. Preserve attribution and link users to the original Remotive listing. Many listings are employment roles rather than freelance contracts."
   }
