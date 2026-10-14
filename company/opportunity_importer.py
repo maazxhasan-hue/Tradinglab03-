@@ -41,11 +41,11 @@ def import_report(report: dict, store: dict) -> dict:
         if url in existing_urls:
             duplicates += 1
             continue
-        # Import only explicit contract/freelance opportunities. A high keyword
-        # score alone is not proof that a listing is a client project.
-        if (item.get("risk_flags") or item.get("disqualifiers")
-                or item.get("client_fit") is not True
-                or item.get("priority") not in {"high", "review"}):
+        # Keep direct buyer projects and freelance work in separate types. A
+        # freelance role can be a paid-work opportunity without being a client lead.
+        eligible = item.get("client_fit") is True or item.get("freelance_work_fit") is True
+        if (item.get("risk_flags") or item.get("location_restrictions")
+                or not eligible or item.get("priority") not in {"high", "review"}):
             skipped += 1
             continue
         source_name = str(item.get("source_name", "Public listing"))[:160]
@@ -69,15 +69,26 @@ def import_report(report: dict, store: dict) -> dict:
         lead["opportunity_score"] = score
         lead["opportunity_priority"] = item.get("priority", "review")
         lead["paid_contract_verified"] = False
-        lead["client_fit"] = True
+        lead["client_fit"] = item.get("client_fit") is True
+        lead["freelance_work_fit"] = item.get("freelance_work_fit") is True
+        lead["opportunity_type"] = item.get("opportunity_type", "client_project" if item.get("client_fit") else "freelance_work")
         lead["contract_signals"] = item.get("contract_signals", [])
+        lead["project_signals"] = item.get("project_signals", [])
         lead["disqualifiers"] = item.get("disqualifiers", [])
-        lead["next_action"] = "Verify client/project status, country eligibility, payment terms, scope, legitimacy, and platform rules before any proposal."
+        if lead["opportunity_type"] == "client_project":
+            lead["next_action"] = "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal."
+        else:
+            lead["next_action"] = "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead."
         existing_urls.add(url)
         imported.append(lead["id"])
+    types = {}
+    for lead in store["leads"]:
+        kind = lead.get("opportunity_type", "legacy_or_unclassified")
+        types[kind] = types.get(kind, 0) + 1
     return {"imported_count": len(imported), "imported_ids": imported,
             "duplicates_skipped": duplicates, "low_priority_or_risky_skipped": skipped,
-            "total_leads": len(store["leads"]), "ledger_summary": summary(store)}
+            "total_leads": len(store["leads"]), "opportunity_type_counts": types,
+            "ledger_summary": summary(store)}
 
 def latest_report(report_dir: str | Path = DEFAULT_REPORT_DIR) -> Path:
     paths = sorted(Path(report_dir).glob("opportunities-*.json"), key=lambda p: p.stat().st_mtime)
