@@ -73,6 +73,11 @@ EMPLOYMENT_SIGNALS = (
 LOCATION_RESTRICTIONS = (
     "onsite", "on-site", "in-office", "in office", "u.s. based", "us-based", "usa only",
     "united states only", "must be based in the united states", "must be based in the us",
+    "remote us only", "remote - us", "us residents only", "u.s. residents only",
+)
+TITLE_LOCATION_RESTRICTIONS = (
+    " - united states", "- united states", "(united states)", " - us only", "(us only)",
+    " - u.s. only", "(u.s. only)", " - usa only", "(usa only)",
 )
 
 class TextExtractor(HTMLParser):
@@ -120,6 +125,8 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
     job_vacancy_signals = [term for term in JOB_VACANCY_SIGNALS if term in text]
     employment_signals = [term for term in EMPLOYMENT_SIGNALS if term in text]
     location_restrictions = [term for term in LOCATION_RESTRICTIONS if term in text]
+    if any(term in title_text for term in TITLE_LOCATION_RESTRICTIONS):
+        location_restrictions.append("country-restricted title")
     freelance_work_signals = [term for term in FREELANCE_WORK_SIGNALS if term in text]
     permanent_role_signals = [term for term in PERMANENT_ROLE_SIGNALS if term in text]
     if risk_flags:
@@ -286,11 +293,33 @@ def discover(sources: list[dict] | None = None) -> dict:
                     items[item["id"]] = item
         except Exception as exc:
             errors.append({"source": source.get("name", source.get("url", "unknown")), "error": str(exc)[:300]})
-    leads = sorted(items.values(), key=lambda x: (x["priority"] == "high", x["score"]), reverse=True)
+    leads = sorted(
+        items.values(),
+        key=lambda x: (
+            x.get("client_fit") is True,
+            x.get("priority") == "high",
+            x.get("freelance_work_fit") is True,
+            x.get("score", 0),
+        ),
+        reverse=True,
+    )
+    type_counts = {}
+    for item in leads:
+        kind = item.get("opportunity_type", "unqualified")
+        type_counts[kind] = type_counts.get(kind, 0) + 1
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "sources_configured": len(sources), "items_found": len(leads),
-        "note": "Listings are unverified leads, not guaranteed paid contracts. No messages, bids, or applications are sent.",
+        "summary": {
+            "client_projects": type_counts.get("client_project", 0),
+            "freelance_work": type_counts.get("freelance_work", 0),
+            "employment_roles": type_counts.get("employment_role", 0),
+            "unqualified": type_counts.get("unqualified", 0),
+            "high_priority": sum(x.get("priority") == "high" for x in leads),
+            "review_priority": sum(x.get("priority") == "review" for x in leads),
+            "low_priority": sum(x.get("priority") == "low" for x in leads),
+        },
+        "note": "Listings are unverified. Client projects are buyer-intent requests; freelance work listings are not direct client leads. Payment and eligibility are unverified. No messages, bids, or applications are sent.",
         "errors": errors, "opportunities": leads,
     }
 
@@ -303,13 +332,27 @@ def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, P
     json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     lines = ["# TradingLab03 Opportunity Scout", "", f"Generated: {report['generated_at']}", "",
              f"- Sources configured: {report['sources_configured']}",
-             f"- Listings found: {report['items_found']}", "",
-             "> Leads are unverified. No applications or messages were sent.", ""]
+             f"- Listings found: {report['items_found']}", ""]
+    summary = report.get("summary", {})
+    if summary:
+        lines.extend([
+            "## Qualification summary", "",
+            f"- Direct client-project requests: {summary.get('client_projects', 0)}",
+            f"- Freelance work listings (not direct client leads): {summary.get('freelance_work', 0)}",
+            f"- Employment-role listings: {summary.get('employment_roles', 0)}",
+            f"- Unqualified / ambiguous: {summary.get('unqualified', 0)}",
+            f"- High / review / low priority: {summary.get('high_priority', 0)} / {summary.get('review_priority', 0)} / {summary.get('low_priority', 0)}", ""
+        ])
+    lines.extend(["> Listings are unverified. No applications or messages were sent.", ""])
     for item in report["opportunities"]:
         lines.extend([f"## [{item['title']}]({item['url']})",
+                      f"- Classification: {item.get('opportunity_type', 'unqualified')}",
                       f"- Priority: {item['priority']} (service score {item['score']})",
-                      f"- Client fit: {'potential contract' if item.get('client_fit') else 'excluded from lead import'}",
+                      f"- Direct client-project request: {'yes' if item.get('client_fit') else 'no'}",
+                      f"- Potential freelance work: {'yes' if item.get('freelance_work_fit') else 'no'}",
                       f"- Contract signals: {', '.join(item.get('contract_signals', [])) or 'none detected'}",
+                      f"- Buyer/project signals: {', '.join(item.get('project_signals', [])) or 'none detected'}",
+                      f"- Job-role signals: {', '.join(item.get('job_vacancy_signals', [])) or 'none detected'}",
                       f"- Disqualifiers: {', '.join(item.get('disqualifiers', [])) or 'none detected'}",
                       f"- Source: {item['source_name']}",
                       f"- Payment verified: no",
