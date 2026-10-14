@@ -201,7 +201,7 @@ def fetch_feed(source: dict, timeout: int = 12) -> list[dict]:
         if "remotive" not in str(source.get("name", "")).casefold():
             raise
         api_request = Request(
-            "https://remotive.com/api/remote-jobs",
+            "https://remotive.com/api/remote-jobs?limit=50",
             headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
         )
         with urlopen(api_request, timeout=timeout) as response:
