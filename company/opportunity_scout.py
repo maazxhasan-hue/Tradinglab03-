@@ -36,19 +36,35 @@ CONTRACT_SIGNALS = (
     "project based", "paid project", "client project", "freelance project",
 )
 # Signals that indicate a purchasable project/service request rather than a job vacancy.
+# Explicit buyer-intent wording: a business is seeking a deliverable, not merely filling a role.
 PROJECT_SIGNALS = (
     "looking for a freelancer to", "hire a freelancer to", "seeking a freelancer to",
     "need a website", "need a landing page", "need someone to build",
     "need someone to design", "looking for someone to build", "looking for someone to design",
     "seeking a developer to build", "seeking a designer to create",
-    "request for proposal", "rfp for website", "website redesign project for our business",
+    "request for proposal", "rfp for website", "requesting proposals for",
+    "looking for an agency to", "seeking an agency to",
     "our business needs a website", "business needs a landing page",
+    "we need a website", "we need a landing page", "we need help redesigning",
     "project brief: build", "project brief: design",
 )
+# Role-filling wording is disqualifying for client buyer intent, but a listing can
+# still qualify as a separate freelance-work opportunity.
 JOB_VACANCY_SIGNALS = (
     "we are hiring", "we're hiring", "join our team", "join our team as",
     "apply for this role", "job opening", "full-time position", "full time position",
     "salary and benefits", "benefits package", "your responsibilities will",
+    "submit your resume", "submit a resume", "employment type", "about the role",
+    "we are looking to fill", "we're looking to fill",
+)
+FREELANCE_WORK_SIGNALS = (
+    "freelance", "freelancer", "independent contractor", "project-based",
+    "project based", "paid projects", "rate of pay", "per completed task",
+    "per article", "per word", "paid per",
+)
+PERMANENT_ROLE_SIGNALS = (
+    "full-time", "full time", "permanent employee", "employee position",
+    "salary and benefits", "benefits package", "full-time ongoing position",
 )
 EMPLOYMENT_SIGNALS = (
     "full-time", "full time", "permanent employee", "employee position", "salary and benefits",
@@ -104,35 +120,49 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
     job_vacancy_signals = [term for term in JOB_VACANCY_SIGNALS if term in text]
     employment_signals = [term for term in EMPLOYMENT_SIGNALS if term in text]
     location_restrictions = [term for term in LOCATION_RESTRICTIONS if term in text]
+    freelance_work_signals = [term for term in FREELANCE_WORK_SIGNALS if term in text]
+    permanent_role_signals = [term for term in PERMANENT_ROLE_SIGNALS if term in text]
     if risk_flags:
         score -= 8 * len(risk_flags)
 
-    # Keep ordinary employment ads out unless they clearly advertise contract work.
-    # On-site and explicitly location-restricted roles do not fit this remote-first queue.
+    # Separate direct buyer projects from job/gig opportunities. A role-filling ad
+    # cannot be labelled a client buyer lead simply because it mentions clients.
     disqualifiers = list(risk_flags)
-    if not contract_signals and employment_signals:
-        disqualifiers.extend(employment_signals)
     if location_restrictions:
         disqualifiers.extend(location_restrictions)
-    # Contract language alone often appears in job vacancies. Require evidence of
-    # an actual service/project request, and reject job-vacancy wording by default.
     if not project_signals:
         disqualifiers.append("no explicit service-project request")
-    # A job-vacancy phrase disqualifies the listing even if boilerplate mentions
-    # a client project elsewhere. Keep this queue for buyers, not employers.
     if job_vacancy_signals:
         disqualifiers.extend(job_vacancy_signals)
-    client_fit = bool(contract_signals) and bool(project_signals) and not disqualifiers
+    client_fit = bool(project_signals) and not disqualifiers
+
+    # Freelance roles may be paid work, but are not direct client leads. Generic
+    # "contractor" wording alone is insufficient. Exclude risky/location-restricted
+    # and clearly permanent/full-time employee roles.
+    freelance_work_fit = (
+        bool(freelance_work_signals)
+        and not risk_flags
+        and not location_restrictions
+        and not permanent_role_signals
+    )
     if client_fit:
-        reasons.append("contract signal plus explicit service-project request")
-    elif not contract_signals:
-        reasons.append("no explicit freelance/contract signal")
-    elif not project_signals:
-        reasons.append("contract wording found but no explicit service-project request")
+        opportunity_type = "client_project"
+        reasons.append("explicit buyer-intent service request")
+    elif freelance_work_fit:
+        opportunity_type = "freelance_work"
+        reasons.append("freelance/project/rate signal; not a direct client buyer lead")
+    elif job_vacancy_signals or employment_signals:
+        opportunity_type = "employment_role"
+        reasons.append("role/job-vacancy language detected")
+    else:
+        opportunity_type = "unqualified"
+    if not project_signals:
+        reasons.append("no explicit service-project request")
     if location_restrictions:
         reasons.append("location or on-site restriction detected")
 
-    priority = "high" if client_fit and score >= 9 else ("review" if client_fit and score >= 4 else "low")
+    qualified = client_fit or freelance_work_fit
+    priority = "high" if qualified and score >= 9 else ("review" if qualified and score >= 4 else "low")
     return {
         "score": max(0, min(100, score)),
         "reasons": reasons[:10],
@@ -141,9 +171,13 @@ def score_listing(title: str, description: str, source_name: str = "") -> dict:
         "project_signals": project_signals,
         "job_vacancy_signals": job_vacancy_signals,
         "employment_signals": employment_signals,
+        "freelance_work_signals": freelance_work_signals,
+        "permanent_role_signals": permanent_role_signals,
         "location_restrictions": location_restrictions,
         "disqualifiers": sorted(set(disqualifiers)),
         "client_fit": client_fit,
+        "freelance_work_fit": freelance_work_fit,
+        "opportunity_type": opportunity_type,
         "priority": priority,
         "source_name": source_name,
     }
