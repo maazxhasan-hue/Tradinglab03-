@@ -37,6 +37,9 @@ For optional model-generated text, set `AI_PROVIDER=openai` and configure `OPENA
 ## Free client proposal pack
 `.github/workflows/client-proposal-pack.yml` creates a client-specific proposal and outreach draft without paid APIs. Run it manually, enter a business name, choose a service, and provide a specific need; add evidence only when checked by a human. It produces Markdown and JSON artifacts. Any quote is optional and must be entered by the operator. Nothing is sent, no prospect is contacted, and no work is accepted automatically. Review the scope, pricing, and message before using them.
 
+## Persistent lead tracker
+`data/leads.json` is the company lead register. Run `.github/workflows/lead-tracker.yml` manually to add a lead or update its stage; successful runs commit the register back to `main`. Each record keeps evidence, next action, and status history. Paid revenue counts only when an operator sets `paid_verified` and supplies revenue evidence. This is a lightweight JSON ledger, not a CRM service or payment processor. Never put passwords, payment data, private customer details, or secrets into lead notes. The workflow does not contact prospects or send proposals.
+
 ## Website build pipeline
 `.github/workflows/website-draft.yml` builds a static website draft from the provided brief and runs simple quality checks. It uploads HTML and a QA report as an artifact. It does not deploy the site. Browser testing, security review, accessibility review, client approval, and deployment configuration remain required.
 
