@@ -26,9 +26,20 @@ class AgentRuntimeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 q.enqueue("draft_website_copy","x","a"*12001)
     def test_model_requires_key(self):
-        with patch.dict("os.environ",{},clear=True):
+        with patch.dict("os.environ",{"AI_PROVIDER":"openai"},clear=True):
             with self.assertRaisesRegex(RuntimeError,"OPENAI_API_KEY"):
-                call_model("draft_proposal","title","context",api_key="")
+                call_model("draft_proposal","title","context",api_key="",provider="openai")
+
+    def test_free_template_mode_needs_no_key(self):
+        with patch.dict("os.environ",{},clear=True):
+            output = call_model("draft_proposal","Landing page","Need a simple landing page")
+        self.assertIn("free template mode", output)
+        self.assertIn("Landing page", output)
+
+    def test_free_templates_cover_all_allowed_tasks(self):
+        for task_type in ALLOWED_TASKS:
+            output = call_model(task_type,"Example","Example brief")
+            self.assertTrue(output.strip())
     def test_only_allowlisted_tasks(self):
         self.assertEqual(ALLOWED_TASKS,{"draft_proposal","draft_website_copy","summarize_opportunity"})
 
