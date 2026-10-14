@@ -22,5 +22,17 @@
     "url": "https://remotive.com/feed",
     "enabled": true,
     "notes": "Public feed. Preserve attribution and link users to the original Remotive listing. Many listings are employment roles rather than freelance contracts."
+  },
+  {
+    "name": "Reddit r/forhire - public service requests",
+    "url": "https://www.reddit.com/r/forhire/new/.rss?limit=25",
+    "enabled": true,
+    "notes": "Public community feed to discover posts offering or requesting freelance services. Review subreddit rules, poster intent, eligibility, legitimacy, and payment before acting; not a verified client source."
+  },
+  {
+    "name": "Reddit r/DesignJobs - public design requests",
+    "url": "https://www.reddit.com/r/DesignJobs/new/.rss?limit=25",
+    "enabled": true,
+    "notes": "Public design community feed. Some posts are jobs or self-promotion rather than buyers; qualification is heuristic and requires human review."
   }
 ]
