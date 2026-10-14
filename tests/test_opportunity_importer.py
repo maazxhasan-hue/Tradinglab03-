@@ -6,7 +6,7 @@ class OpportunityImporterTests(unittest.TestCase):
     def test_imports_qualified_listing_as_unverified(self):
         store={"schema_version":1,"leads":[]}
         report={"opportunities":[{"id":"abc","title":"Freelance website redesign","url":"https://example.org/job/1",
-            "description":"Paid freelance website redesign project for a small business; looking for a freelancer","source_name":"Example Jobs",
+            "description":"Paid freelance website redesign; looking for a freelancer to build a website for our small business","source_name":"Example Jobs",
             "score":12,"priority":"high","risk_flags":[],"client_fit":True,"contract_signals":["freelance"],"disqualifiers":[]}]}
         result=import_report(report,store)
         self.assertEqual(result["imported_count"],1)
@@ -18,7 +18,7 @@ class OpportunityImporterTests(unittest.TestCase):
 
     def test_duplicate_source_url_is_not_imported_twice(self):
         store={"schema_version":1,"leads":[]}
-        item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid freelance website design project; looking for a freelancer",
+        item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid freelance website design; looking for a freelancer to build a website for our small business",
               "source_name":"Example","score":8,"priority":"review","risk_flags":[],"client_fit":True,"contract_signals":["contractor"],"disqualifiers":[]}
         report={"opportunities":[item]}
         self.assertEqual(import_report(report,store)["imported_count"],1)
@@ -39,6 +39,20 @@ class OpportunityImporterTests(unittest.TestCase):
         result=import_report(report,store)
         self.assertEqual(result["imported_count"],0)
         self.assertEqual(result["low_priority_or_risky_skipped"],1)
+
+    def test_skips_listing_with_generic_client_project_wording(self):
+        store={"schema_version":1,"leads":[]}
+        report={"opportunities":[{
+            "id":"job2","title":"Senior Shopify Developer",
+            "url":"https://example.org/job/client-project-role",
+            "description":"We are hiring a contractor to join our team and support client projects.",
+            "source_name":"Example Jobs","score":14,"priority":"high",
+            "risk_flags":[],"client_fit":False,
+            "contract_signals":["contractor"],"project_signals":[],
+            "disqualifiers":["no explicit service-project request"]
+        }]}
+        result=import_report(report,store)
+        self.assertEqual(result["imported_count"],0)
 
     def test_skips_risky_and_low_priority(self):
         store={"schema_version":1,"leads":[]}
