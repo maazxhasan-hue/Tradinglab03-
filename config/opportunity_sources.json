@@ -32,8 +32,8 @@
   {
     "name": "Reddit r/DesignJobs - public design requests",
     "url": "https://www.reddit.com/r/DesignJobs/new/.rss?limit=25",
-    "enabled": true,
-    "notes": "Public design community feed. Some posts are jobs or self-promotion rather than buyers; qualification is heuristic and requires human review."
+    "enabled": false,
+    "notes": "Disabled after live scout returned HTTP 429 Too Many Requests; do not poll until stable access is available."
   },
   {
     "name": "Reddit r/hiring - public hiring requests",
