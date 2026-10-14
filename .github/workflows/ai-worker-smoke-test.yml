@@ -1,0 +1,62 @@
+name: AI Worker Smoke Test
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ai-worker-smoke-test.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  api-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check API key is configured
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::OPENAI_API_KEY is missing from repository Actions secrets."
+            exit 1
+          fi
+          echo "API key secret is present (value hidden)."
+      - name: Make a minimal model request
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set +x
+          code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+            --max-time 45 \
+            https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"gpt-4.1-mini","messages":[{"role":"user","content":"Reply with exactly: TradingLab03 API test OK"}],"max_tokens":20,"temperature":0}')
+          echo "OpenAI API HTTP status: $code"
+          if [ "$code" != "200" ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              data = json.loads(Path("response.json").read_text())
+              err = data.get("error", {})
+              print("API error type:", err.get("type", "unknown"))
+              print("API error code:", err.get("code", "unknown"))
+              print("API error message:", err.get("message", "No details returned"))
+          except Exception:
+              print("Could not parse provider error response.")
+          PY
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("response.json").read_text())
+          choices = data.get("choices", [])
+          if not choices or not choices[0].get("message", {}).get("content", "").strip():
+              raise SystemExit("API responded but returned no assistant text.")
+          print("Model response received successfully.")
+          print("Model:", data.get("model", "unspecified"))
+          usage = data.get("usage", {})
+          print("Total tokens:", usage.get("total_tokens", "not reported"))
+          PY
