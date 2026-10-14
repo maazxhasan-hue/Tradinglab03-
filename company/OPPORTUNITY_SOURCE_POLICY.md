@@ -20,7 +20,7 @@ Find actionable public project requests for digital services while keeping the h
 7. Never auto-message, bid, apply, purchase a subscription, or claim revenue from discovery alone.
 
 ## Freelancer.com API assessment
-Freelancer.com publishes an official developer API and an official Python SDK, but the SDK documentation requires an OAuth token. This is not a plug-and-play anonymous RSS feed. Do not enable a Freelancer.com integration until an authorized token is supplied through GitHub Actions secrets/environment variables, the exact read-only project-search endpoint and permitted use are confirmed against official documentation, and tests cover authentication failures, rate limits, and response parsing. Never commit tokens or place them in reports/artifacts. No paid third-party API proxy is approved by this policy.
+Freelancer.com now has a free, read-only fallback that makes one bounded GET request to the publicly accessible active-project endpoint (`/api/projects/0.1/projects/active/`) when no token is configured. When an authorized token is present, the collector can use the official Python SDK. This public endpoint has been reported to return active public projects without authentication, but its anonymous access and response schema are not guaranteed by the SDK docs and may change; the workflow tests parsing with fixtures, while live availability still needs to be confirmed by the next Actions run. Do not bypass authentication, CAPTCHAs, or rate limits. On HTTP errors the source is recorded as an error and other sources continue. Never commit tokens or place them in reports/artifacts. No paid proxy or subscription is used.
 
 References:
 - Official developer portal: https://developers.freelancer.com/
