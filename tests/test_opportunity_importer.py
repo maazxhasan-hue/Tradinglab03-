@@ -8,7 +8,7 @@ class OpportunityImporterTests(unittest.TestCase):
         report={"opportunities":[{"id":"abc","title":"Freelance website redesign","url":"https://example.org/job/1",
             "description":"Paid freelance website redesign; looking for a freelancer to build a website for our small business","source_name":"Example Jobs",
             "score":12,"priority":"high","risk_flags":[],"client_fit":True,"contract_signals":["freelance"],"disqualifiers":[]}]}
-        result=import_report(report,store)
+        result=import_report(report,store,allowed_sources={"Example Jobs"})
         self.assertEqual(result["imported_count"],1)
         lead=store["leads"][0]
         self.assertEqual(lead["source_type"],"public_opportunity_listing")
@@ -21,8 +21,8 @@ class OpportunityImporterTests(unittest.TestCase):
         item={"id":"abc","title":"Website design","url":"https://example.org/job/1","description":"Paid freelance website design; looking for a freelancer to build a website for our small business",
               "source_name":"Example","score":8,"priority":"review","risk_flags":[],"client_fit":True,"contract_signals":["contractor"],"disqualifiers":[]}
         report={"opportunities":[item]}
-        self.assertEqual(import_report(report,store)["imported_count"],1)
-        self.assertEqual(import_report(report,store)["duplicates_skipped"],1)
+        self.assertEqual(import_report(report,store,allowed_sources={"Example Jobs"})["imported_count"],1)
+        self.assertEqual(import_report(report,store,allowed_sources={"Example Jobs"})["duplicates_skipped"],1)
         self.assertEqual(len(store["leads"]),1)
 
     def test_imports_freelance_work_without_claiming_it_is_a_client_lead(self):
@@ -38,7 +38,7 @@ class OpportunityImporterTests(unittest.TestCase):
             "contract_signals":["freelance"],"project_signals":[],
             "disqualifiers":["no explicit service-project request"]
         }]}
-        result=import_report(report,store)
+        result=import_report(report,store,allowed_sources={"Example Jobs"})
         self.assertEqual(result["imported_count"],1)
         lead=store["leads"][0]
         self.assertFalse(lead["client_fit"])
@@ -57,7 +57,7 @@ class OpportunityImporterTests(unittest.TestCase):
             "contract_signals":["contract-based"],"project_signals":[],
             "disqualifiers":["no explicit service-project request"]
         }]}
-        result=import_report(report,store)
+        result=import_report(report,store,allowed_sources={"Example Jobs"})
         self.assertEqual(result["imported_count"],0)
         self.assertEqual(result["low_priority_or_risky_skipped"],1)
 
@@ -72,7 +72,7 @@ class OpportunityImporterTests(unittest.TestCase):
             "contract_signals":["contractor"],"project_signals":[],
             "disqualifiers":["no explicit service-project request"]
         }]}
-        result=import_report(report,store)
+        result=import_report(report,store,allowed_sources={"Example Jobs"})
         self.assertEqual(result["imported_count"],0)
 
     def test_skips_risky_and_low_priority(self):
@@ -83,14 +83,14 @@ class OpportunityImporterTests(unittest.TestCase):
           {"title":"Weak listing","url":"https://example.org/2","description":"misc",
            "source_name":"Example","score":1,"priority":"low","risk_flags":[],"client_fit":False,"disqualifiers":["no contract signal"]}
         ]}
-        result=import_report(report,store)
+        result=import_report(report,store,allowed_sources={"Example Jobs"})
         self.assertEqual(result["imported_count"],0)
         self.assertEqual(result["low_priority_or_risky_skipped"],2)
 
     def test_non_https_or_missing_url_skipped(self):
         store={"schema_version":1,"leads":[]}
         report={"opportunities":[{"title":"bad link","url":"http://example.org","priority":"high","score":20,"client_fit":True,"contract_signals":["freelance"],"disqualifiers":[]}]}
-        self.assertEqual(import_report(report,store)["imported_count"],0)
+        self.assertEqual(import_report(report,store,allowed_sources={"Example Jobs"})["imported_count"],0)
 
     def test_ordinary_employment_is_not_client_fit(self):
         result = score_listing(
@@ -116,5 +116,30 @@ class OpportunityImporterTests(unittest.TestCase):
         )
         self.assertFalse(result["client_fit"])
         self.assertTrue(result["location_restrictions"])
+
+    def test_disabled_source_is_not_imported(self):
+        store={"schema_version":1,"leads":[]}
+        report={"opportunities":[{
+            "id":"old-feed","title":"Freelance website redesign",
+            "url":"https://example.org/job/old-feed",
+            "description":"Paid freelance project; looking for a freelancer to build a website for our small business",
+            "source_name":"We Work Remotely - Design","score":20,"priority":"high",
+            "risk_flags":[],"client_fit":True,"freelance_work_fit":False,
+            "opportunity_type":"client_project"
+        }]}
+        result=import_report(report,store,allowed_sources={"Reddit r/forhire - public service requests"})
+        self.assertEqual(result["imported_count"],0)
+        self.assertEqual(store["leads"],[])
+
+    def test_empty_enabled_source_list_fails_closed(self):
+        store={"schema_version":1,"leads":[]}
+        report={"opportunities":[{
+            "title":"Freelance website redesign","url":"https://example.org/job/1",
+            "description":"Paid freelance project","source_name":"Example Jobs",
+            "score":12,"priority":"high","risk_flags":[],"client_fit":True
+        }]}
+        result=import_report(report,store,allowed_sources=set())
+        self.assertEqual(result["imported_count"],0)
+        self.assertEqual(store["leads"],[])
 
 if __name__ == "__main__": unittest.main()
