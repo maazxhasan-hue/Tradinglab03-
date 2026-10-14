@@ -56,6 +56,14 @@ class OpportunityScoutTests(unittest.TestCase):
         self.assertFalse(s["freelance_work_fit"] or s["opportunity_type"] == "freelance_work")
         self.assertEqual(s["opportunity_type"], "client_project")
 
+    def test_buyer_intent_for_web_design_request_is_client_project(self):
+        s = score_listing(
+            "Need a website designer for my small business",
+            "Looking for a web designer. Budget: $500 for a paid project to redesign our business website."
+        )
+        self.assertTrue(s["client_fit"])
+        self.assertEqual(s["opportunity_type"], "client_project")
+
     def test_suspicious_listing_gets_risk_flag(self):
         s = score_listing("Website project", "Pay to apply for unpaid test")
         self.assertTrue(s["risk_flags"])
