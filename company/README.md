@@ -29,8 +29,10 @@ The current decision engine uses a default 30-day grace + 30-day evaluation wind
 No autonomous spending, paid subscriptions, refunds, price changes, bulk outreach, fake claims, or customer-domain deployment. No brokerage credentials or private trading infrastructure access.
 
 
-## AI task worker
-`.github/workflows/agent-worker.yml` can run an explicitly requested AI draft task. Add `OPENAI_API_KEY` in repository Settings → Secrets and variables → Actions. Optional `OPENAI_MODEL` and `OPENAI_BASE_URL` are supported by local runs. The worker supports only proposal drafts, website copy drafts, and opportunity summaries; it cannot execute shell commands, publish, contact clients, or spend money. The workflow is manual dispatch only and uploads the draft as an artifact.
+## Free draft worker
+`.github/workflows/agent-worker.yml` runs without paid API credits using a built-in rule-based template mode. Choose a task type, title, and context in the workflow's **Run workflow** form; the resulting draft is uploaded as an artifact. This mode is not a generative AI model: it produces structured starter drafts and checklists only.
+
+For optional model-generated text, set `AI_PROVIDER=openai` and configure `OPENAI_API_KEY` locally. OpenAI API billing is separate from ChatGPT plans and is not required for free template mode. The worker supports only proposal drafts, website copy drafts, and opportunity summaries; it cannot execute shell commands, publish, contact clients, or spend money. The workflow is manual dispatch only.
 
 ## Website build pipeline
 `.github/workflows/website-draft.yml` builds a static website draft from the provided brief and runs simple quality checks. It uploads HTML and a QA report as an artifact. It does not deploy the site. Browser testing, security review, accessibility review, client approval, and deployment configuration remain required.
