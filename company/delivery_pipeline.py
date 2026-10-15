@@ -45,9 +45,9 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
     def field(label: str, key: str) -> str:
         value = brief.get(key, "")
         if isinstance(value, list):
-            value = "\\n".join(f"- {item}" for item in value if str(item).strip())
+            value = "\n".join(f"- {item}" for item in value if str(item).strip())
         value = str(value).strip()
-        return f"## {label}\\n\\n{value if value else '_Not supplied — confirm with the client before build._'}\\n"
+        return f"## {label}\n\n{value if value else '_Not supplied — confirm with the client before build._'}\n"
 
     scope_sections = [
         "# Client Project Brief — Draft for Written Confirmation",
@@ -80,7 +80,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- Client approval recorded: not recorded by this generator.",
         "",
     ]
-    (out / "project_brief.md").write_text("\\n".join(scope_sections), encoding="utf-8")
+    (out / "project_brief.md").write_text("\n".join(scope_sections), encoding="utf-8")
     future = str(brief.get("future_features_backlog", "")).strip()
     future_doc = [
         "# Future Feature Backlog",
@@ -99,7 +99,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "",
         "Any accepted future item requires a written change request and updated scope/version.",
     ]
-    (out / "future_feature_backlog.md").write_text("\\n".join(future_doc) + "\\n", encoding="utf-8")
+    (out / "future_feature_backlog.md").write_text("\n".join(future_doc) + "\n", encoding="utf-8")
     acceptance = [
         "# Acceptance Checklist — Complete with Client",
         "",
@@ -121,7 +121,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "",
         "Automated static checks are not a substitute for browser testing, independent QA, or client acceptance.",
     ]
-    (out / "acceptance_checklist.md").write_text("\\n".join(acceptance) + "\\n", encoding="utf-8")
+    (out / "acceptance_checklist.md").write_text("\n".join(acceptance) + "\n", encoding="utf-8")
     change = [
         "# Client Change Request",
         "",
@@ -140,7 +140,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "",
         "Do not implement a scope-changing request until price, timeline, and acceptance criteria are agreed in writing.",
     ]
-    (out / "change_request_template.md").write_text("\\n".join(change) + "\\n", encoding="utf-8")
+    (out / "change_request_template.md").write_text("\n".join(change) + "\n", encoding="utf-8")
     handover = [
         "# Client Handover & Next-Step Plan",
         "",
@@ -157,7 +157,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "",
         "Offer maintenance or future features only if relevant and wanted. Do not send unsolicited follow-ups or imply a subscription has been started.",
     ]
-    (out / "handover_and_next_steps.md").write_text("\\n".join(handover) + "\\n", encoding="utf-8")
+    (out / "handover_and_next_steps.md").write_text("\n".join(handover) + "\n", encoding="utf-8")
     if brief.get("lead_id"):
         proposal = build_pack_from_lead(str(brief["lead_id"]), store_path=lead_store,
                                         price_quote=str(brief.get("price_quote", "")),
