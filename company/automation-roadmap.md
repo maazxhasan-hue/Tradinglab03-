@@ -4,7 +4,7 @@ Last reviewed: 2026-10-15
 
 ## Current confirmed baseline
 
-- Hourly opportunity scout workflow exists: `.github/workflows/hourly-opportunity-scout.yml`.
+- Hourly opportunity scout workflow exists: `.github/workflows/hourly-opportunity-scout.yml`; Freelancer.com sources and API setup have been disabled by owner choice, and the workflow now scans only enabled public sources.
 - Manual AI draft worker exists: `.github/workflows/agent-worker.yml`. Its current template mode is not proof of a connected LLM provider.
 - Scheduled company health check exists: `.github/workflows/company-health-check.yml`.
 - Operating controls require separate human authorization for sensitive actions.
@@ -17,6 +17,8 @@ The repository alone does not establish that the website is continuously reachab
 ## Phased implementation plan
 
 ### Phase 1 — Reliable discovery and reporting
+- Do not use Freelancer.com; its configured source entries are disabled and the scout no longer installs its SDK or reads its token.
+- Keep the public RSS sources already enabled (Reddit r/forhire and Codeur); do not assume they provide enough volume or all sources are accessible on every run.
 - Keep the hourly scout on a schedule and allow manual runs.
 - Store timestamped reports and deduplicate leads.
 - Make test failures fail the workflow and upload logs even on failure.
