@@ -2186,13 +2186,13 @@
     {
       "id": "TL-20261015071433-066",
       "business_name": "Recherche Freelance Meta Ads & SEA pour e-commerce au Maroc",
-      "service": "business_website",
+      "service": "seo_content",
       "need": "Budget : Moins de 500 € - Catégories : Publicité, SEM, Marketing, Web Analytics, Google Ads Nous recherchons un véritable expert en acquisition payante (Social Ads) pour piloter nos campagnes e-commerce au Maroc. Attention : Nous avons déjà travaillé avec plusieurs prestataires qui n'ont pas donné satisfaction … Voir ce projet sur Codeur",
       "website_url": "",
       "source_url": "https://www.codeur.com/projects/491314",
       "evidence": "Public listing title: Recherche Freelance Meta Ads & SEA pour e-commerce au Maroc. Source: Codeur - public freelance project requests. Match score: 8. Payment/contract status is unverified.",
       "contact_name": "",
-      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=8; listing_id=57d010cc695998f7.",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=8; listing_id=57d010cc695998f7. Classification corrected 2026-10-15 after adding French buyer-intent detection; listing text requests a paid acquisition expert to manage the store's campaigns, so it is a client project rather than a freelance role. Payment, legitimacy, scope, and eligibility remain unverified.",
       "status": "new",
       "status_history": [
         {
@@ -2202,27 +2202,27 @@
         }
       ],
       "created_at": "2026-10-15T07:14:33.325129+00:00",
-      "updated_at": "2026-10-15T07:14:33.325131+00:00",
+      "updated_at": "2026-10-15T07:17:58.674Z",
       "quote_inr": null,
       "revenue_inr": null,
       "revenue_evidence": "",
       "contacted": false,
-      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "next_action": "Verify buyer intent, scope, budget, payment terms, legitimacy, and platform rules before any proposal.",
       "source_type": "public_opportunity_listing",
       "source_name": "Codeur - public freelance project requests",
       "opportunity_score": 8,
       "opportunity_priority": "review",
       "paid_contract_verified": false,
-      "client_fit": false,
-      "freelance_work_fit": true,
-      "opportunity_type": "freelance_work",
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
       "contract_signals": [
         "freelance"
       ],
-      "project_signals": [],
-      "disqualifiers": [
-        "no explicit service-project request"
-      ]
+      "project_signals": [
+        "pattern: explicit buyer request"
+      ],
+      "disqualifiers": []
     }
   ]
 }
