@@ -40,15 +40,24 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
-    proposal = build_client_pack(
-        business_name=str(brief["business_name"]),
-        website_url=str(brief.get("website_url", "")),
-        service=service,
-        observed_need=str(brief["observed_need"]),
-        evidence=str(brief.get("evidence", "")),
-        price_quote=str(brief.get("price_quote", "")),
-        sender_name=str(brief.get("sender_name", "TradingLab03")),
-    )
+    if brief.get("lead_id"):
+        proposal = build_pack_from_lead(str(brief["lead_id"]), store_path=lead_store,
+                                        price_quote=str(brief.get("price_quote", "")),
+                                        sender_name=str(brief.get("sender_name", "TradingLab03")))
+        if proposal["service"] != service:
+            raise ValueError("Selected service must match the saved lead service mapping: " + proposal["service"])
+        if str(brief["business_name"]).strip() != proposal["business_name"]:
+            raise ValueError("business_name must match the saved lead when lead_id is used")
+    else:
+        proposal = build_client_pack(
+            business_name=str(brief["business_name"]),
+            website_url=str(brief.get("website_url", "")),
+            service=service,
+            observed_need=str(brief["observed_need"]),
+            evidence=str(brief.get("evidence", "")),
+            price_quote=str(brief.get("price_quote", "")),
+            sender_name=str(brief.get("sender_name", "TradingLab03")),
+        )
     (out / "proposal.md").write_text(proposal["proposal_markdown"], encoding="utf-8")
     (out / "proposal.json").write_text(json.dumps(proposal, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
