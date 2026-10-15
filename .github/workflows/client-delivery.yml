@@ -143,9 +143,12 @@ jobs:
                   }.get(project_type, "business_website")
               if not brief.get("business_name") or not brief.get("observed_need"):
                   raise SystemExit("requirements_json must include client and goal")
-          for key in ("business_name", "tagline", "contact_email"):
+          for key in ("business_name",):
               if not brief.get(key):
-                  raise SystemExit(f"{key} must be supplied explicitly or in requirements_json; do not invent client-approved content")
+                  raise SystemExit(f"{key} must be supplied explicitly or in requirements_json")
+          # Tagline and public contact email are optional intake fields. If missing,
+          # the generator uses a visible placeholder and the release-readiness report
+          # records the content gap; no client-approved content is invented.
           if not brief.get("services"):
               raise SystemExit("Provide at least one client-approved service explicitly or in requirements_json")
           if not brief["lead_id"] and not brief["observed_need"]:
