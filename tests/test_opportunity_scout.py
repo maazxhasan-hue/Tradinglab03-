@@ -177,4 +177,22 @@ class OpportunityScoutTests(unittest.TestCase):
         public_fetch.assert_called_once()
         self.assertEqual(report["errors"], [])
 
+    def test_french_codeur_acquisition_request_is_direct_client_project(self):
+        title = "Recherche Freelance Meta Ads & SEA pour e-commerce au Maroc"
+        description = ("Budget : Moins de 500 euros. Nous recherchons un véritable expert "
+                       "en acquisition payante pour piloter nos campagnes e-commerce au Maroc.")
+        result = score_listing(title, description)
+        self.assertTrue(result["client_fit"])
+        self.assertEqual(result["opportunity_type"], "client_project")
+        self.assertIn("pattern: explicit buyer request", result["project_signals"])
+
+    def test_french_expert_role_joining_team_is_not_client_project(self):
+        result = score_listing(
+            "Recherche expert marketing",
+            "Nous recherchons un expert pour rejoindre notre équipe à temps plein. "
+            "Offre d'emploi, salaire et candidature avec CV."
+        )
+        self.assertFalse(result["client_fit"])
+        self.assertIn(result["opportunity_type"], {"employment_role", "unqualified"})
+
 if __name__ == "__main__": unittest.main()
