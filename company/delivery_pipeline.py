@@ -33,7 +33,7 @@ def _text_items(value) -> list[str]:
 
 def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path = ROOT / "data" / "leads.json") -> dict:
     """Build proposal + pages from requirements + scope docs + truthful QA manifest."""
-    required = ("business_name", "tagline", "services", "contact_email")
+    required = ("business_name", "services")
     missing = [key for key in required if not brief.get(key)]
     if not brief.get("lead_id") and not brief.get("observed_need"):
         missing.append("observed_need (or a saved client-project lead_id)")
@@ -174,6 +174,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
     # Scope readiness is deliberately separate from draft-generation success.
     # Missing client details can be reviewed, but never silently count as approved.
     scope_required = {
+        "approved_tagline": bool(str(brief.get("tagline", "")).strip()),
         "business_goal": bool(str(brief.get("observed_need", "")).strip()),
         "pages_or_deliverables": bool(_text_items(brief.get("pages_screens_deliverables"))),
         "version_1_features": bool(_text_items(brief.get("version_1_must_have_features"))),
@@ -213,7 +214,8 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
             "Requested pages and feature descriptions are included in generated draft scaffolding; this does not prove complex features are implemented.",
             "Forms, authentication, payments, booking, backend behavior, and integrations require separate implementation and functional tests.",
             "Review proposal scope, evidence, price, timeline, claims, contact permissions, and website content before use.",
-            "Confirm project brief, budget, deadline, features, and acceptance criteria with the client in writing before production work.",
+            "Confirm project brief, budget, deadline, features, acceptance criteria, tagline, and public contact details with the client in writing before production work.",
+            "Missing tagline or contact email is rendered as a clearly flagged placeholder/content gap; it never authorizes production release.",
             "Future backlog items are not part of version 1 unless approved in writing.",
             "Use the acceptance checklist, change request, and handover documents to control QA, scope changes, and repeat support.",
         ],
