@@ -40,12 +40,56 @@ def main() -> int:
             json.dumps(pack, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         created += 1
+    # Write a compact operator-facing shortlist alongside the individual drafts.
+    ranked = sorted(
+        eligible,
+        key=lambda lead: (
+            {"high": 0, "review": 1, "medium": 1, "low": 2}.get(
+                str(lead.get("opportunity_priority", "")).lower(), 3
+            ),
+            -(int(lead.get("opportunity_score", 0))
+              if str(lead.get("opportunity_score", "")).lstrip("-").isdigit() else 0),
+        ),
+    )
+    shortlist = [
+        "# Client Opportunity Shortlist",
+        "",
+        "Review this shortlist before applying or contacting anyone. Listings can expire and are not verified clients.",
+        "",
+        f"- Direct client-project candidates: {len(ranked)}",
+        f"- Drafts prepared in this run: {created}",
+        "",
+        "| Rank | Lead | Score | Service | Status | Original listing | Draft |",
+        "|---:|---|---:|---|---|---|---|",
+    ]
+    for index, lead in enumerate(ranked[:15], start=1):
+        lead_id = str(lead.get("id", "")).strip()
+        safe_id = "".join(ch for ch in lead_id if ch.isalnum() or ch in "-_")[:80]
+        name = str(lead.get("business_name", "Untitled listing")).replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
+        service = str(lead.get("service", "unmapped")).replace("|", "/")
+        status = str(lead.get("status", "new")).replace("|", "/")
+        score = lead.get("opportunity_score", "—")
+        source_url = str(lead.get("source_url", "")).strip()
+        source_link = f"[Open listing]({source_url})" if source_url.startswith("https://") else "URL missing — verify manually"
+        draft_link = f"[Draft]({safe_id}.md)" if safe_id and (OUT_DIR / f"{safe_id}.md").exists() else "Not generated"
+        shortlist.append(f"| {index} | {name} ({lead_id}) | {score} | {service} | {status} | {source_link} | {draft_link} |")
+    shortlist.extend([
+        "",
+        "## Before applying",
+        "- Confirm the listing is still open and the buyer is genuinely seeking the listed deliverable.",
+        "- Check language, country eligibility, platform rules/fees, scope, deadline, budget and payment protection.",
+        "- Tailor each draft to the listing and your actual skills/portfolio; do not claim experience or results you cannot prove.",
+        "- No bids, messages, or proposals were sent by this workflow.",
+    ])
+    (OUT_DIR / "SHORTLIST.md").write_text("\n".join(shortlist) + "\n", encoding="utf-8")
+
     report = [
         "# Client Opportunity Draft Queue", "",
         f"- Saved leads scanned: {len(leads)}",
         f"- Client-project leads considered: {len(eligible)}",
         f"- Draft packs generated: {created}",
         f"- Drafts skipped: {len(skipped)}",
+        "- Operator shortlist: SHORTLIST.md",
         "", "## Safety / review requirements",
         "- Every pack is an unapproved draft; no messages, bids, or proposals were sent.",
         "- Listings are not verified clients or guaranteed paid contracts.",
