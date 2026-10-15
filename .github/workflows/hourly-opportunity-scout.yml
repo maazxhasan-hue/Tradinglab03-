@@ -1,6 +1,10 @@
 name: Hourly Opportunity Scout
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/hourly-opportunity-scout.yml"
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
