@@ -78,5 +78,11 @@
     "limit": 50,
     "query": "website wordpress ecommerce web design video editing SEO automation",
     "notes": "Free read-only public active-project endpoint is attempted when no token is configured; an authorized token enables the official SDK path. One bounded GET per hourly run, no retries on rate limits, no bids/messages/applications. Listings remain unverified and anonymous endpoint availability may change."
+  },
+  {
+    "name": "Upwork - public freelance project RSS",
+    "url": "https://www.upwork.com/freelance-jobs/rss/",
+    "enabled": true,
+    "notes": "Public RSS feed of freelance job/project listings. Secondary source for possible paid work; listings are unverified, and not all are direct buyer leads. Preserve Upwork attribution and original listing links; manually verify budget, client legitimacy, eligibility, and platform rules. Never auto-apply, bid, or message."
   }
 ]
