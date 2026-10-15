@@ -1,0 +1,63 @@
+name: Delivery Pipeline Smoke Test
+on:
+  push:
+    paths:
+      - "company/**"
+      - "tests/test_delivery_pipeline.py"
+      - ".github/workflows/delivery-smoke.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-test-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create clearly labeled synthetic test brief
+        run: |
+          mkdir -p data
+          python - <<'PY'
+          import json
+          brief = {
+              "business_name": "TradingLab03 Smoke Test Cafe",
+              "tagline": "A sample website for pipeline validation",
+              "services": ["Sample menu page", "Contact details"],
+              "contact_email": "test@example.invalid",
+              "service": "business_website",
+              "observed_need": "Synthetic test request; not a real client or buyer",
+              "evidence": "Synthetic CI fixture only",
+              "price_quote": ""
+          }
+          with open("data/delivery_smoke_brief.json", "w", encoding="utf-8") as f:
+              json.dump(brief, f, ensure_ascii=False)
+          PY
+      - name: Run all Python tests
+        run: python -m unittest discover -s tests -v
+      - name: Build proposal and website draft
+        run: python -m company.delivery_pipeline --brief data/delivery_smoke_brief.json --output data/delivery_bundles/smoke
+      - name: Assert honest smoke-test report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/delivery_bundles/smoke")
+          report = json.loads((root / "delivery_report.json").read_text(encoding="utf-8"))
+          assert report["status"] == "ready_for_human_review", report
+          assert report["sent"] is False
+          assert report["production_deployment_enabled"] is False
+          assert report["verified_revenue"] == 0
+          assert (root / "proposal.md").is_file()
+          assert (root / "website" / "index.html").is_file()
+          print("PASS: synthetic proposal + website bundle generated; no outreach, deployment, or revenue recorded.")
+          PY
+      - name: Upload smoke-test bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-delivery-smoke-${{ github.run_id }}
+          path: data/delivery_bundles/smoke/
+          if-no-files-found: error
+          retention-days: 7
