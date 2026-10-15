@@ -1,0 +1,60 @@
+name: Autonomous Client Execution
+on:
+  workflow_dispatch:
+    inputs:
+      brief_json:
+        description: Complete client brief as a JSON object
+        required: true
+        type: string
+      output_name:
+        description: Short label for the review bundle (letters, digits, hyphens only)
+        required: true
+        default: client-review
+        type: string
+permissions:
+  contents: read
+jobs:
+  execute-supported-work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate input and write brief
+        env:
+          BRIEF_JSON: ${{ inputs.brief_json }}
+          OUTPUT_NAME: ${{ inputs.output_name }}
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          raw = os.environ["BRIEF_JSON"]
+          try:
+              brief = json.loads(raw)
+          except json.JSONDecodeError as exc:
+              raise SystemExit(f"brief_json must be valid JSON: {exc}")
+          if not isinstance(brief, dict):
+              raise SystemExit("brief_json must be a JSON object")
+          label = os.environ["OUTPUT_NAME"]
+          if not re.fullmatch(r"[A-Za-z0-9-]{1,60}", label):
+              raise SystemExit("output_name may contain only letters, digits, and hyphens")
+          Path("data").mkdir(exist_ok=True)
+          Path("data/autonomous_client_brief.json").write_text(json.dumps(brief, ensure_ascii=False), encoding="utf-8")
+          Path("data/autonomous_output_name.txt").write_text(label, encoding="utf-8")
+          PY
+      - name: Run all regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Execute supported delivery steps and create traceability report
+        run: |
+          OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
+          python -m company.autonomous_delivery --brief data/autonomous_client_brief.json --output "data/client_executions/$OUTPUT_NAME"
+      - name: Upload execution bundle for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-autonomous-client-review-${{ github.run_id }}
+          path: data/client_executions/
+          if-no-files-found: warn
+          retention-days: 14
