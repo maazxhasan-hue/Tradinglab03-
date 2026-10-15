@@ -107,5 +107,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tradinglab03-delivery-smoke-${{ github.run_id }}
-          path: data/delivery_bundles/smoke/\n            data/delivery_bundles/saved-lead-review/\n          if-no-files-found: error
+          path: |
+            data/delivery_bundles/smoke/
+            data/delivery_bundles/saved-lead-review/
+          if-no-files-found: error
           retention-days: 7
