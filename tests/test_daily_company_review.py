@@ -23,6 +23,8 @@ class DailyCompanyReviewTests(unittest.TestCase):
                  "opportunity_score": 80, "status": "new",
                  "source_url": "https://example.com/high",
                  "next_action": "Review fit"},
+                {"business_name": "Malformed score", "opportunity_priority": "medium",
+                 "opportunity_score": "not-a-number", "status": "new"},
             ]}), encoding="utf-8")
             with patch.object(daily_company_review, "ROOT", root), \
                  patch.object(daily_company_review, "LEADS_FILE", leads_file), \
