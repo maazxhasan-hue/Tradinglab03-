@@ -53,5 +53,16 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertNotIn("sendBeacon(", script)
 
 
+    def test_client_projects_are_prioritized_and_categories_stay_separate(self):
+        self.assertIn("function leadKind(x)", self.html)
+        self.assertIn("return kind==='client_project';if(leadFilter.value==='freelance')return kind==='freelance_work';", self.html)
+        self.assertIn("kindRank(a)-kindRank(b)||reviewRank(a)-reviewRank(b)", self.html)
+
+    def test_review_mark_is_not_misrepresented_as_verification(self):
+        self.assertIn("Reviewed in this browser", self.html)
+        self.assertIn("Not reviewed in this browser", self.html)
+        self.assertIn("Human verification pending", self.html)
+        self.assertIn("It does not verify the lead or payment.", self.html)
+
 if __name__ == "__main__":
     unittest.main()
