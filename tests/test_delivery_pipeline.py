@@ -1,0 +1,52 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from company.delivery_pipeline import run_delivery
+
+
+class DeliveryPipelineTests(unittest.TestCase):
+    def test_end_to_end_bundle_contains_proposal_website_and_honest_report(self):
+        brief = {
+            "business_name": "Example Cafe",
+            "tagline": "Coffee and conversation",
+            "services": ["Cafe menu", "Contact details"],
+            "contact_email": "hello@example.com",
+            "service": "business_website",
+            "observed_need": "The provided brief requests a menu and contact page",
+            "evidence": "Operator-provided test brief",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            report = run_delivery(brief=brief, output_dir=tmp)
+            root = Path(tmp)
+            self.assertEqual(report["status"], "ready_for_human_review")
+            self.assertTrue((root / "proposal.md").is_file())
+            self.assertTrue((root / "proposal.json").is_file())
+            self.assertTrue((root / "website" / "index.html").is_file())
+            self.assertTrue((root / "website" / "quality_report.json").is_file())
+            self.assertFalse(report["sent"])
+            self.assertFalse(report["production_deployment_enabled"])
+            self.assertEqual(report["verified_revenue"], 0)
+            self.assertIn("not sent or accepted", (root / "proposal.md").read_text())
+            saved = json.loads((root / "delivery_report.json").read_text())
+            self.assertEqual(saved["status"], "ready_for_human_review")
+
+    def test_requires_complete_brief(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "Missing required brief fields"):
+                run_delivery(brief={"business_name": "Incomplete"}, output_dir=tmp)
+
+    def test_rejects_unknown_service(self):
+        brief = {
+            "business_name": "Example", "tagline": "Tagline",
+            "services": ["Web"], "contact_email": "hello@example.com",
+            "observed_need": "Test need", "service": "guaranteed_money",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "Unsupported proposal service"):
+                run_delivery(brief=brief, output_dir=tmp)
+
+
+if __name__ == "__main__":
+    unittest.main()
