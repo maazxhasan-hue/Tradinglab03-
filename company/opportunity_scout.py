@@ -345,7 +345,10 @@ def discover(sources: list[dict] | None = None) -> dict:
     for source in sources:
         source_name = source.get("name", source.get("url", "unknown"))
         try:
-            if source.get("type") == "freelancer_api":
+            if source.get("type") == "peopleperhour":
+                from .peopleperhour_source import fetch_projects
+                source_items = fetch_projects(source, score_listing)
+            elif source.get("type") == "freelancer_api":
                 from .freelancer_api_source import fetch_projects, fetch_public_projects
                 token = os.environ.get("FREELANCER_API_TOKEN", "").strip()
                 if token:
