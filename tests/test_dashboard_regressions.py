@@ -70,5 +70,14 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("recorded signal", self.html)
         self.assertIn("Review flags: ", self.html)
 
+    def test_lead_qualification_checklist_is_local_and_exported(self):
+        self.assertIn("const QUAL_KEY='tradinglab03_hq_lead_qualification_v1'", self.html)
+        self.assertIn("Listing is still open", self.html)
+        self.assertIn("Buyer need and intent checked", self.html)
+        self.assertIn("Budget and payment terms checked", self.html)
+        self.assertIn("localStorage.setItem(QUAL_KEY,JSON.stringify(qualification))", self.html)
+        self.assertIn("'qualification_checks'", self.html)
+        self.assertIn("not proof of legitimacy or payment", self.html)
+
 if __name__ == "__main__":
     unittest.main()
