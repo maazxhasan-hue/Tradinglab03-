@@ -44,8 +44,8 @@ def generate_website(
     content_and_assets: str = "",
     integrations_and_data: str = "",
 ) -> Path:
-    if not business_name.strip() or not tagline.strip() or not services:
-        raise ValueError("Business name, tagline, and at least one service are required")
+    if not business_name.strip() or not services:
+        raise ValueError("Business name and at least one service are required")
     if not (primary_color.startswith("#") and len(primary_color) in (4, 7)
             and all(c in "0123456789abcdefABCDEF" for c in primary_color[1:])):
         raise ValueError("primary_color must be a hex color")
@@ -71,7 +71,12 @@ def generate_website(
         unique_pages.append(("Contact", "contact"))
 
     esc = html.escape
-    name, tag = esc(business_name), esc(tagline)
+    name = esc(business_name)
+    # Never invent client-approved copy. Render a visible placeholder when the
+    # tagline is missing and record the gap in the manifest for human review.
+    tagline_supplied = bool(tagline.strip())
+    display_tagline = tagline.strip() if tagline_supplied else "Headline to be confirmed with client"
+    tag = esc(display_tagline)
     email = esc(contact_email.strip())
     service_cards = "".join(
         '<article class="card"><h3>' + esc(s) +
@@ -171,6 +176,14 @@ footer{padding:2rem 1.25rem;background:#101a22;color:white;text-align:center}:fo
         "requested_pages": page_files,
         "version_1_features": features,
         "contact_email_supplied": bool(contact_email.strip()),
+        "tagline_supplied": tagline_supplied,
+        "content_gaps": [
+            gap for gap, present in (
+                ("approved_tagline", tagline_supplied),
+                ("approved_public_contact_email", bool(contact_email.strip())),
+            ) if not present
+        ],
+        "production_scope_complete": False,
         "review_required": True,
         "production_deployment_enabled": False,
         "unimplemented_features_require_implementation_and_acceptance_testing": True,
