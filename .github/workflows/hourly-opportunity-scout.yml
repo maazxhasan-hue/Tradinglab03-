@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/hourly-opportunity-scout.yml"
+      - "config/opportunity_sources.json"
+      - "company/opportunity_scout.py"
+      - "company/opportunity_importer.py"
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
