@@ -53,9 +53,16 @@ jobs:
           assert report["sent"] is False
           assert report["production_deployment_enabled"] is False
           assert report["verified_revenue"] == 0
-          assert (root / "proposal.md").is_file()
-          assert (root / "website" / "index.html").is_file()
-          print("PASS: synthetic proposal + website bundle generated; no outreach, deployment, or revenue recorded.")
+          required = [
+              "proposal.md", "proposal.json", "project_brief.md",
+              "future_feature_backlog.md", "acceptance_checklist.md",
+              "change_request_template.md", "handover_and_next_steps.md",
+              "website/index.html", "website/quality_report.json",
+          ]
+          for name in required:
+              assert (root / name).is_file(), f"Missing delivery artifact: {name}"
+          assert report["checks"]["client_scope_documents_generated"] is True
+          print("PASS: synthetic proposal + website + scope + future backlog + QA + handover bundle generated; no outreach, deployment, or revenue recorded.")
           PY
       - name: Build a review-only draft from a saved client-project lead
         run: |
@@ -99,9 +106,16 @@ jobs:
           assert report["sent"] is False
           assert report["production_deployment_enabled"] is False
           assert report["verified_revenue"] == 0
-          assert (root / "proposal.md").is_file()
-          assert (root / "website" / "index.html").is_file()
-          print("PASS: saved lead -> proposal + website draft; no outreach, deployment, or revenue recorded.")
+          required = [
+              "proposal.md", "proposal.json", "project_brief.md",
+              "future_feature_backlog.md", "acceptance_checklist.md",
+              "change_request_template.md", "handover_and_next_steps.md",
+              "website/index.html", "website/quality_report.json",
+          ]
+          for name in required:
+              assert (root / name).is_file(), f"Missing saved-lead delivery artifact: {name}"
+          assert report["checks"]["client_scope_documents_generated"] is True
+          print("PASS: saved lead -> proposal + website + scope + future backlog + QA + handover; no outreach, deployment, or revenue recorded.")
           PY
       - name: Upload smoke-test bundle
         uses: actions/upload-artifact@v4
