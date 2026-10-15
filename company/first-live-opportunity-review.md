@@ -1,51 +1,61 @@
-# First Live Opportunity — Review Pack
+# TradingLab03 — Free-First Client Acquisition Pack
 
-**Prepared:** 2026-10-15  
-**Status:** Research and draft only — not submitted  
-**Original listing:** https://www.freelancer.com/projects/web-design/website-design-40725156  
-**Listing snapshot checked:** Public search result currently shows ₹1,500–₹12,500 INR, open for bidding, paid on delivery, remote, 15 proposals, average bid around ₹6,300, and the client's payment method marked verified. The displayed client location is Hyderabad, India; member since September 2019. These are marketplace page claims, not a guarantee of safety or that the listing will remain open. Reconfirm after signing in.  
-**Source:** Freelancer.com public listing. No account actions have been taken.
+**Updated:** 2026-10-15  
+**Strategy:** Do not use Freelancer.com. Focus on public, no-subscription sources and direct inbound marketing.  
+**Status:** Discovery automation is configured; outreach remains manual and approval-gated.
 
-## Why this is a candidate
+## Current discovery channels
 
-The brief asks for a responsive portfolio website for an IT services company, including service pages, case-study-style project highlights, contact path, basic SEO, and a hand-off guide. This aligns with TradingLab03's website-delivery offer better than a generic employment vacancy.
+1. **Reddit r/forhire public RSS** — review posts where buyers request paid services. Use the original post and obey current community rules. Do not automate comments, DMs, or promotional posts.
+2. **Codeur public project RSS** — project requests are mainly French-language. Qualify language fit and any platform fees or membership requirements before spending time.
+3. **TradingLab03 website/portfolio** — use the existing GitHub Pages site and clearly labelled portfolio concepts to invite inbound enquiries.
+4. **Manual direct prospect research** — shortlist small businesses with an observable website problem, then draft a personalized, evidence-based note for owner review. No bulk scraping or unsolicited mass messaging.
 
-## Proposal draft — edit before sending
+## Free-first service offers to test
 
-Hello,
+- One-page landing page or small business website.
+- Mobile layout and accessibility cleanup.
+- WordPress/Shopify bug-fix or content update, only where the operator can confidently deliver.
+- Short-form video and social content packs.
+- Simple spreadsheet/report automation.
 
-I can help build a clean, responsive portfolio website that presents your IT services clearly and gives potential customers a straightforward way to contact you.
+Start with one narrow offer and one demonstrable sample. Do not promise services that are not deliverable yet.
 
-My proposed approach:
-- Confirm the required pages, brand assets, content, and preferred hosting/CMS.
-- Build a mobile-friendly layout with clear service sections and project highlights based only on information you provide.
-- Add basic page titles, metadata, accessible structure, and a tested contact path.
-- Check mobile and desktop layouts, navigation, links, and page content.
-- Hand over the source/files and a short guide for future updates.
+## Lead handling pipeline
 
-Before confirming a fixed price or delivery date, I'd like to clarify the number of pages, whether copy and images are supplied, the preferred platform, and how the contact form should deliver messages. I won't claim case studies or results that I cannot substantiate; any portfolio examples can be shared only if genuinely available.
+`new → qualified → draft_ready → awaiting_approval → contacted → reply_received → scope_confirmed → contracted → in_progress → QA → delivered → invoiced → paid`
 
-If this scope matches your expectations, I can provide a concise delivery plan after those details are confirmed.
+Only the owner can approve a message, quote, deadline, contract, purchase, or external account action. A lead, proposal, invoice, or workflow success is not revenue. Mark a lead paid only after receipt is verified.
 
-Regards,  
-TradingLab03
+## Daily operating routine
 
-## Suggested bid approach
+- Scan enabled public sources hourly via GitHub Actions.
+- Deduplicate leads and keep the original source link.
+- Review the ranked shortlist and prepare a tailored draft for eligible direct-client requests.
+- Check each source's current rules, project status, eligibility, scope, budget, and payment protections.
+- Use one real portfolio example or a clearly labelled concept; never invent client history, testimonials, or outcomes.
+- Track replies and delivery obligations only after they actually occur.
 
-- Do not promise the full multi-page build at a price you cannot sustain. First ask whether the client already has the logo, page copy, images, hosting, and a preferred platform.
-- The public listing shows bids ranging from ₹1,500 to ₹12,500 and an average around ₹6,300. Treat that only as market context, not a recommended quote. Choose your price after confirming scope and what you can personally deliver.
-- If your portfolio does not contain a relevant real project, do not claim that you have built similar client sites. You can offer a small clearly labelled concept/mockup instead, if you can produce it.
+## What is not automated yet
 
-## Before submitting
+- No authenticated CRM, inbox, or social account is connected for direct outreach.
+- No AI API key is configured; the draft worker remains in template mode.
+- Scheduled workflows are periodic jobs, not a permanently running 24/7 agent.
+- No client, contract, or income is confirmed by this document.
 
-- [ ] Sign in through the official Freelancer.com website and confirm the listing is still open.
-- [ ] Check the client's profile, payment verification, project details, bid count, deadline, and current terms.
-- [ ] Confirm the actual deliverables and the minimum scope you can confidently deliver.
-- [ ] Choose a price and delivery date only after scope is clear; do not blindly bid the maximum or promise unsupported results.
-- [ ] Add only real portfolio examples and verified experience.
-- [ ] Read the platform's current fees and payment protection rules.
-- [ ] Human approval required before submission.
+## Immediate execution checklist
 
-## Boundaries
+- [x] Disable all Freelancer.com discovery sources.
+- [x] Remove Freelancer API token and SDK dependency from the scout workflow.
+- [x] Keep free public RSS sources enabled where previously configured.
+- [ ] Inspect the next scout run and its artifact after the config change.
+- [ ] Improve the website portfolio with a real, clearly labelled sample offer.
+- [ ] Connect any outreach/publishing account only after owner authorization; keep sending approval-gated.
+- [ ] Test failure alerts and verify actual scheduled runs.
 
-This is a draft, not a submitted bid or a verified contract. No message has been sent. No payment, subscription, or account change was made. Do not count this as revenue.
+## Source and safety notes
+
+- Public posts and feeds are leads, not verified buyers.
+- Respect the original platform's terms, community rules, and rate limits.
+- Never auto-submit applications, send DMs, or make purchases.
+- No subscriptions or paid APIs without explicit authorization.
