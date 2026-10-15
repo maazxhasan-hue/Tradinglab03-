@@ -1,0 +1,64 @@
+name: Synthetic Client Delivery Validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "config/synthetic_client_brief.json"
+      - "tests/test_autonomous_client_e2e.py"
+      - ".github/workflows/synthetic-client-validation.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-synthetic-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Generate synthetic client review bundle
+        run: |
+          python -m company.autonomous_delivery --brief config/synthetic_client_brief.json --output data/client_executions/synthetic-validation
+          python -m company.tool_agent --brief config/synthetic_client_brief.json --workspace data/client_executions/synthetic-validation
+          python -m company.specialist_orchestrator --brief config/synthetic_client_brief.json --workspace data/client_executions/synthetic-validation
+      - name: Assert report integrity and disclose demo scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/client_executions/synthetic-validation")
+          delivery = json.loads((root / "agent_execution_report.json").read_text(encoding="utf-8"))
+          agent = json.loads((root / "agent_run_report.json").read_text(encoding="utf-8"))
+          specialists = json.loads((root / "specialist_execution_report.json").read_text(encoding="utf-8"))
+          assert delivery["status"] == "completed_with_limitations", delivery
+          assert delivery["external_actions_performed"] == []
+          assert delivery["production_deployment_enabled"] is False
+          assert delivery["sent"] is False
+          assert delivery["verified_revenue"] == 0
+          assert agent["status"] in {"skipped_no_api_key", "completed", "max_rounds_reached", "unavailable"}
+          assert specialists["status"] in {"skipped_no_api_key", "completed_with_limitations", "partial_or_unavailable"}
+          assert (root / "delivery_bundle" / "proposal.md").is_file()
+          assert (root / "delivery_bundle" / "website" / "index.html").is_file()
+          assert (root / "requirement_traceability.csv").is_file()
+          assert (root / "agent_task_plan.md").is_file()
+          (root / "SYNTHETIC_VALIDATION_NOTICE.md").write_text(
+              "# Synthetic validation only\n\nThis is a demo brief, not a real customer. No client was contacted, no payment was taken, and no production deployment occurred. Requested interactive features remain subject to implementation and acceptance testing.\n",
+              encoding="utf-8",
+          )
+          print("Synthetic client delivery generated and report integrity checks passed.")
+          print("Agent status:", agent["status"])
+          print("Specialist status:", specialists["status"])
+          PY
+      - name: Upload synthetic review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-synthetic-client-review-${{ github.run_id }}
+          path: data/client_executions/synthetic-validation/
+          if-no-files-found: error
+          retention-days: 14
