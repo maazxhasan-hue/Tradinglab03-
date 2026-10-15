@@ -84,7 +84,7 @@ def generate_website(
         '<p class="muted">Version 1 features have not yet been confirmed. Confirm them before implementation.</p>'
     )
     nav = "".join(
-        f'<a href="{esc(slug)}.html">{esc(label)}</a>'
+        '<a href="' + ("index.html" if slug in {"home", "homepage", "home-page"} else esc(slug + ".html")) + '">' + esc(label) + "</a>"
         for label, slug in unique_pages
     )
     contact_block = (
