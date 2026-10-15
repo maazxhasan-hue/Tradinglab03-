@@ -39,7 +39,7 @@ class ClientPipelineTests(unittest.TestCase):
                 "id": "TL-1", "business_name": "Example Cafe",
                 "service": "business_website", "need": "Needs a menu page",
                 "website_url": "https://example.com", "source_url": "https://example.org/project/1",
-                "opportunity_type": "client_project", "paid_contract_verified": False,
+                "opportunity_type": "client_project", "client_fit": True, "paid_contract_verified": False,
                 "evidence": "Public listing; not verified",
             }]}), encoding="utf-8")
             pack = build_pack_from_lead("TL-1", store_path=store)
@@ -56,7 +56,7 @@ class ClientPipelineTests(unittest.TestCase):
                 "service": "business_website", "need": "Contract role",
                 "opportunity_type": "freelance_work", "client_fit": False,
             }]}), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "not classified as a potential client"):
+            with self.assertRaisesRegex(ValueError, "explicitly classified as a client_project"):
                 build_pack_from_lead("TL-2", store_path=store)
 
     def test_rejects_unknown_service(self):
