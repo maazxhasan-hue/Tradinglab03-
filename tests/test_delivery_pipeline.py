@@ -83,7 +83,7 @@ class DeliveryPipelineTests(unittest.TestCase):
                 "tagline": "Tagline", "services": ["Web"], "contact_email": "hello@example.com",
                 "service": "business_website",
             }
-            with self.assertRaisesRegex(ValueError, "not classified as a potential client"):
+            with self.assertRaisesRegex(ValueError, "explicitly classified as a client_project"):
                 run_delivery(brief=brief, output_dir=root / "bundle", lead_store=store)
 
     def test_legacy_lead_with_client_fit_flag_but_no_client_project_type_is_rejected(self):
