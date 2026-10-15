@@ -71,7 +71,7 @@ jobs:
           }
           leads = store.get("leads", [])
           lead = next((x for x in leads if isinstance(x, dict)
-                       and (x.get("opportunity_type") == "client_project" or x.get("client_fit") is True)
+                       and x.get("opportunity_type") == "client_project" and x.get("client_fit") is True
                        and x.get("service") in service_map and x.get("id")), None)
           if lead is None:
               raise SystemExit("No saved client-project lead with a supported service is available for integration smoke test")
