@@ -59,9 +59,17 @@ def main() -> int:
     lines += [f"- Status {key}: {value}" for key, value in sorted(statuses.items())]
     lines += ["", "## Highest-priority review queue", ""]
     valid = [x for x in leads if isinstance(x, dict)]
+
+    def score_for_sort(lead: dict) -> int:
+        # Malformed public-feed data must not crash the daily report.
+        try:
+            return int(lead.get("opportunity_score", 0) or 0)
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
     valid.sort(key=lambda x: (
         {"high": 0, "medium": 1, "low": 2}.get(str(x.get("opportunity_priority", "")).lower(), 3),
-        -int(x.get("opportunity_score", 0) or 0),
+        -score_for_sort(x),
         str(x.get("created_at", "")),
     ))
     for lead in valid[:15]:
