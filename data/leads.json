@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-15T17:08:17.069776+00:00",
+  "updated_at": "2026-10-15T20:23:05.839682+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -2577,6 +2577,86 @@
       "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
       "source_type": "public_opportunity_listing",
       "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 8,
+      "opportunity_priority": "review",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
+    },
+    {
+      "id": "TL-20261015202305-076",
+      "business_name": "APPLICATION",
+      "service": "website_or_digital_service",
+      "need": "Budget : Moins de 500 € - Catégories : Création de site internet, Site clé en main, Développement spécifique, Application mobile, Full-stack Détails du projet : APPLICATION POUR COMMUNAUTE DU FOOTBALL AMATEUR Détails des prestations attendues : CREATION APPLICATION + SITE WEB Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491349-application",
+      "evidence": "Public listing title: APPLICATION. Source: Codeur - public freelance project requests. Match score: 14. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=14; listing_id=a91bd436d21e3620.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T20:23:05.839374+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T20:23:05.839380+00:00",
+      "updated_at": "2026-10-15T20:23:05.839382+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 14,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261015202305-077",
+      "business_name": "[For hire] Open for freelance social media management cum website designing + paid ads",
+      "service": "design_or_website",
+      "need": "[For hire] Open for freelance social media management cum website designing + paid ads",
+      "website_url": "",
+      "source_url": "https://www.reddit.com/r/forhire/comments/1x6v54z/for_hire_open_for_freelance_social_media/",
+      "evidence": "Public listing title: [For hire] Open for freelance social media management cum website designing + paid ads. Source: Reddit r/forhire - public service requests. Match score: 8. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=8; listing_id=55923d1a295991d3.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T20:23:05.839444+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T20:23:05.839445+00:00",
+      "updated_at": "2026-10-15T20:23:05.839447+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Reddit r/forhire - public service requests",
       "opportunity_score": 8,
       "opportunity_priority": "review",
       "paid_contract_verified": false,
