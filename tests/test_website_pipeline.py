@@ -37,6 +37,21 @@ class WebsitePipelineTests(unittest.TestCase):
             manifest = result["manifest"]
             self.assertTrue(manifest["unimplemented_features_require_implementation_and_acceptance_testing"])
 
+    def test_missing_optional_copy_is_flagged_not_invented(self):
+        brief = {"business_name": "Example Co", "tagline": "",
+                 "services": ["Web design"], "contact_email": ""}
+        with tempfile.TemporaryDirectory() as td:
+            result = build_from_brief(brief, td)
+            self.assertTrue(result["passed"], result["errors"])
+            index = (Path(td) / "index.html").read_text()
+            self.assertIn("Headline to be confirmed with client", index)
+            self.assertIn("Public contact details are pending client approval", index)
+            self.assertEqual(
+                result["manifest"]["content_gaps"],
+                ["approved_tagline", "approved_public_contact_email"],
+            )
+            self.assertFalse(result["manifest"]["production_scope_complete"])
+
     def test_unknown_fields_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaises(ValueError):
