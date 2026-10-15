@@ -102,7 +102,7 @@
   {
     "name": "Remote OK - public remote freelance and contract listings",
     "url": "https://remoteok.com/remote-jobs.rss",
-    "enabled": true,
-    "notes": "Free public RSS feed, read-only. Supplementary source for remote contract/freelance work, not direct client buyer leads. Preserve Remote OK attribution and original listing links; qualify each listing separately and do not apply or message automatically."
+    "enabled": false,
+    "notes": "Disabled after live GitHub Actions validation returned HTTP 410 Gone for https://remoteok.com/remote-jobs.rss. Do not re-enable unless a current feed endpoint is verified from the runner."
   }
 ]
