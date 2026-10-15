@@ -2,8 +2,12 @@ name: End-to-End Client Delivery Draft
 on:
   workflow_dispatch:
     inputs:
+      lead_id:
+        description: Optional saved lead ID (must be classified as a client project)
+        required: false
+        type: string
       business_name:
-        description: Business name (use only authorized, accurate details)
+        description: Business name (use only authorized, accurate details; must match saved lead when lead_id is used)
         required: true
         type: string
       tagline:
@@ -19,8 +23,8 @@ on:
         required: true
         type: string
       observed_need:
-        description: Specific need from a brief or verified public source
-        required: true
+        description: Specific buyer need from a brief or verified public source; optional when using a saved lead
+        required: false
         type: string
       evidence:
         description: Evidence/source to verify
@@ -58,7 +62,8 @@ jobs:
           python-version: "3.11"
       - name: Write brief safely
         env:
-          LEAD_ID: ${{ inputs.lead_id }}\n          BUSINESS_NAME: ${{ inputs.business_name }}
+          LEAD_ID: ${{ inputs.lead_id }}
+          BUSINESS_NAME: ${{ inputs.business_name }}
           TAGLINE: ${{ inputs.tagline }}
           SERVICES: ${{ inputs.services }}
           CONTACT_EMAIL: ${{ inputs.contact_email }}
@@ -68,19 +73,23 @@ jobs:
           SERVICE: ${{ inputs.service }}
           PRICE_QUOTE: ${{ inputs.price_quote }}
         run: |
+          mkdir -p data
           python - <<'PY'
           import json, os
           brief = {
-              "lead_id": os.environ.get("LEAD_ID", ""),\n              "business_name": os.environ["BUSINESS_NAME"],
+              "lead_id": os.environ.get("LEAD_ID", ""),
+              "business_name": os.environ["BUSINESS_NAME"],
               "tagline": os.environ["TAGLINE"],
               "services": [x.strip() for x in os.environ["SERVICES"].split(",") if x.strip()],
               "contact_email": os.environ["CONTACT_EMAIL"],
-              "observed_need": os.environ["OBSERVED_NEED"],
+              "observed_need": os.environ.get("OBSERVED_NEED", ""),
               "evidence": os.environ.get("EVIDENCE", ""),
               "website_url": os.environ.get("WEBSITE_URL", ""),
               "service": os.environ["SERVICE"],
               "price_quote": os.environ.get("PRICE_QUOTE", ""),
           }
+          if not brief["lead_id"] and not brief["observed_need"].strip():
+              raise SystemExit("Provide observed_need when no saved lead_id is supplied.")
           with open("data/delivery_brief.json", "w", encoding="utf-8") as f:
               json.dump(brief, f, ensure_ascii=False)
           PY
