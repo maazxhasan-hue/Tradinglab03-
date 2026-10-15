@@ -27,7 +27,7 @@ def _text_items(value) -> list[str]:
     if isinstance(value, list):
         return [str(x).strip() for x in value if str(x).strip()]
     if isinstance(value, str):
-        return [x.strip() for x in value.replace(";", "\\n").splitlines() if x.strip()]
+        return [x.strip() for x in value.replace(";", "\n").splitlines() if x.strip()]
     return []
 
 
@@ -51,9 +51,9 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
     def field(label: str, key: str) -> str:
         value = brief.get(key, "")
         if isinstance(value, list):
-            value = "\\n".join(f"- {item}" for item in value if str(item).strip())
+            value = "\n".join(f"- {item}" for item in value if str(item).strip())
         value = str(value).strip()
-        return f"## {label}\\n\\n{value if value else '_Not supplied — confirm with the client before build._'}\\n"
+        return f"## {label}\n\n{value if value else '_Not supplied — confirm with the client before build._'}\n"
 
     scope_sections = [
         "# Client Project Brief — Draft for Written Confirmation", "",
@@ -81,21 +81,21 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- Payment milestones, tax, revisions, ownership, cancellation, delivery date, and support boundary: confirm and agree in writing.",
         "- Client approval recorded: not recorded by this generator.", "",
     ]
-    (out / "project_brief.md").write_text("\\n".join(scope_sections), encoding="utf-8")
+    (out / "project_brief.md").write_text("\n".join(scope_sections), encoding="utf-8")
 
     future = brief.get("future_features_backlog", "")
     future_items = _text_items(future)
     future_doc = [
         "# Future Feature Backlog", "",
         "This list is for discovery and prioritization only. These items are not included in version 1 unless the signed scope explicitly includes them.", "",
-        ("\\n".join(f"- {item}" for item in future_items) if future_items else "_No future features supplied yet. Ask the client what they may need later, but do not invent commitments._"), "",
+        ("\n".join(f"- {item}" for item in future_items) if future_items else "_No future features supplied yet. Ask the client what they may need later, but do not invent commitments._"), "",
         "## Prioritization for review",
         "- Value to the user's business", "- Effort and ongoing maintenance",
         "- Security, privacy, accessibility, and integration risks", "- Dependencies and data ownership",
         "- Budget and timeline impact", "- Proposed release/version and acceptance criteria", "",
         "Any accepted future item requires a written change request and updated scope/version.",
     ]
-    (out / "future_features_backlog.md").write_text("\\n".join(future_doc) + "\\n", encoding="utf-8")
+    (out / "future_features_backlog.md").write_text("\n".join(future_doc) + "\n", encoding="utf-8")
     acceptance = [
         "# Acceptance Checklist — Complete with Client", "",
         "Replace each example with a concrete, agreed pass/fail criterion. Do not treat a blank checkbox as passed.", "",
@@ -114,7 +114,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- [ ] Owner approved release; deployment is separately authorized.", "",
         "Automated static checks are not a substitute for browser testing, independent QA, or client acceptance.",
     ]
-    (out / "acceptance_checklist.md").write_text("\\n".join(acceptance) + "\\n", encoding="utf-8")
+    (out / "acceptance_checklist.md").write_text("\n".join(acceptance) + "\n", encoding="utf-8")
     change = [
         "# Client Change Request", "", "- Client / project:", "- Current scope version:",
         "- Requested change:", "- Business reason / expected outcome:", "- User story / expected behavior:",
@@ -123,7 +123,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- Owner approval and date:", "",
         "Do not implement a scope-changing request until price, timeline, and acceptance criteria are agreed in writing.",
     ]
-    (out / "change_request_template.md").write_text("\\n".join(change) + "\\n", encoding="utf-8")
+    (out / "change_request_template.md").write_text("\n".join(change) + "\n", encoding="utf-8")
     handover = [
         "# Client Handover & Next-Step Plan", "", "- Delivered items:", "- Acceptance checks passed:",
         "- Known limitations / exclusions:", "- Source files and ownership transfer:",
@@ -132,7 +132,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- Optional next priorities (not commitments):", "- Follow-up permission / preferred channel:", "",
         "Offer maintenance or future features only if relevant and wanted. Do not send unsolicited follow-ups or imply a subscription has been started.",
     ]
-    (out / "handover_and_next_steps.md").write_text("\\n".join(handover) + "\\n", encoding="utf-8")
+    (out / "handover_and_next_steps.md").write_text("\n".join(handover) + "\n", encoding="utf-8")
 
     if brief.get("lead_id"):
         proposal = build_pack_from_lead(str(brief["lead_id"]), store_path=lead_store,
@@ -149,7 +149,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
             price_quote=str(brief.get("price_quote", "")), sender_name=str(brief.get("sender_name", "TradingLab03")),
         )
     (out / "proposal.md").write_text(proposal["proposal_markdown"], encoding="utf-8")
-    (out / "proposal.json").write_text(json.dumps(proposal, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    (out / "proposal.json").write_text(json.dumps(proposal, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     website_brief = {
         "business_name": str(brief["business_name"]), "tagline": str(brief["tagline"]),
@@ -218,7 +218,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
             "Use the acceptance checklist, change request, and handover documents to control QA, scope changes, and repeat support.",
         ],
     }
-    (out / "delivery_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    (out / "delivery_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return report
 
 
