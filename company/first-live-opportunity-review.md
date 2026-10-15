@@ -3,7 +3,7 @@
 **Prepared:** 2026-10-15  
 **Status:** Research and draft only — not submitted  
 **Original listing:** https://www.freelancer.com/projects/web-design/website-design-40725156  
-**Listing snapshot:** Public search result showed ₹1,500–₹12,500 INR, open for bidding, paid on delivery, and remote. Listing state, terms, and eligibility must be reconfirmed after signing in.  
+**Listing snapshot checked:** Public search result currently shows ₹1,500–₹12,500 INR, open for bidding, paid on delivery, remote, 15 proposals, average bid around ₹6,300, and the client's payment method marked verified. The displayed client location is Hyderabad, India; member since September 2019. These are marketplace page claims, not a guarantee of safety or that the listing will remain open. Reconfirm after signing in.  
 **Source:** Freelancer.com public listing. No account actions have been taken.
 
 ## Why this is a candidate
@@ -29,6 +29,12 @@ If this scope matches your expectations, I can provide a concise delivery plan a
 
 Regards,  
 TradingLab03
+
+## Suggested bid approach
+
+- Do not promise the full multi-page build at a price you cannot sustain. First ask whether the client already has the logo, page copy, images, hosting, and a preferred platform.
+- The public listing shows bids ranging from ₹1,500 to ₹12,500 and an average around ₹6,300. Treat that only as market context, not a recommended quote. Choose your price after confirming scope and what you can personally deliver.
+- If your portfolio does not contain a relevant real project, do not claim that you have built similar client sites. You can offer a small clearly labelled concept/mockup instead, if you can produce it.
 
 ## Before submitting
 
