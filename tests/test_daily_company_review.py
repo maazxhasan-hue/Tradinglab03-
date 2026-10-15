@@ -31,7 +31,7 @@ class DailyCompanyReviewTests(unittest.TestCase):
                  patch.object(daily_company_review, "OUT_FILE", out_file):
                 self.assertEqual(daily_company_review.main(), 0)
             report = out_file.read_text(encoding="utf-8")
-            self.assertIn("Total tracked records: 2", report)
+            self.assertIn("Total tracked records: 3", report)
             self.assertLess(report.index("High priority"), report.index("Low priority"))
             self.assertIn("No bids, cold messages", report)
             self.assertIn("unverified opportunities", report)
