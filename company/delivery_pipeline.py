@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 
-from .client_pipeline import build_client_pack
+from .client_pipeline import build_client_pack, build_pack_from_lead
 from .website_pipeline import build_from_brief
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +24,7 @@ SERVICE_MAP = {
 }
 
 
-def run_delivery(*, brief: dict, output_dir: str | Path) -> dict:
+def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path = ROOT / "data" / "leads.json") -> dict:
     """Build proposal + static site + combined QA manifest from an explicit brief."""
     required = ("business_name", "tagline", "services", "contact_email", "observed_need")
     missing = [key for key in required if not brief.get(key)]
