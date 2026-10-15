@@ -32,6 +32,36 @@ class DeliveryPipelineTests(unittest.TestCase):
             saved = json.loads((root / "delivery_report.json").read_text())
             self.assertEqual(saved["status"], "ready_for_human_review")
 
+    def test_generates_scope_acceptance_future_backlog_change_and_handover_documents(self):
+        brief = {
+            "business_name": "Example Studio",
+            "tagline": "Helpful digital services",
+            "services": ["Website", "Booking"],
+            "contact_email": "hello@example.com",
+            "service": "business_website",
+            "observed_need": "Client needs a clear service website",
+            "target_audience": "Local customers",
+            "pages_screens_deliverables": "Home, Services, Contact",
+            "version_1_must_have_features": "Working enquiry form",
+            "future_features_backlog": "Customer portal; online payments",
+            "acceptance_criteria": "Form validates and shows success state",
+            "budget_range": "To be agreed",
+            "target_deadline": "To be agreed",
+            "post_launch_support": "Bug-fix window",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            report = run_delivery(brief=brief, output_dir=tmp)
+            root = Path(tmp)
+            self.assertEqual(report["status"], "ready_for_human_review")
+            for name in ("project_brief.md", "future_feature_backlog.md",
+                         "acceptance_checklist.md", "change_request_template.md",
+                         "handover_and_next_steps.md"):
+                self.assertTrue((root / name).is_file(), name)
+            self.assertIn("Customer portal; online payments", (root / "future_feature_backlog.md").read_text())
+            self.assertIn("not included in version 1", (root / "future_feature_backlog.md").read_text())
+            self.assertIn("Form validates and shows success state", (root / "project_brief.md").read_text())
+            self.assertTrue(report["checks"]["client_scope_documents_generated"])
+
     def test_requires_complete_brief(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "Missing required brief fields"):
