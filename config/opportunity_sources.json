@@ -72,12 +72,20 @@
     "notes": "Public RSS feed documented by XPlace for freelance sales/marketing projects. Listings are requests to bid, not verified contracts; preserve attribution and follow platform rules. Disabled after live scout returned HTTP 404; do not reactivate without verifying a valid public feed."
   },
   {
-    "name": "Freelancer.com - free public active-project API",
+    "name": "Freelancer.com - website and ecommerce projects",
     "type": "freelancer_api",
     "enabled": true,
     "limit": 50,
-    "query": "website wordpress ecommerce web design video editing SEO automation",
-    "notes": "Free read-only public active-project endpoint is attempted when no token is configured; an authorized token enables the official SDK path. One bounded GET per hourly run, no retries on rate limits, no bids/messages/applications. Listings remain unverified and anonymous endpoint availability may change."
+    "query": "website redesign landing page wordpress shopify ecommerce",
+    "notes": "Free read-only public active-project endpoint, one bounded GET per hourly run. Focused on website, landing-page, WordPress, Shopify and ecommerce projects. Listings are unverified; no bids/messages/applications. Preserve original project URLs."
+  },
+  {
+    "name": "Freelancer.com - SEO, content and video projects",
+    "type": "freelancer_api",
+    "enabled": true,
+    "limit": 50,
+    "query": "SEO content writing video editing social media marketing automation",
+    "notes": "Free read-only public active-project endpoint with a separate service-focused query, one bounded GET per hourly run. Intended to broaden discovery beyond website projects. Listings remain unverified; no bids/messages/applications. Preserve original project URLs."
   },
   {
     "name": "Upwork - public freelance project RSS",
