@@ -36,7 +36,7 @@ jobs:
       - name: Run full test suite
         id: tests
         continue-on-error: true
-        run: python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
+        run: set -o pipefail; python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
 
       - name: Check critical files and workflow configuration
         id: config
