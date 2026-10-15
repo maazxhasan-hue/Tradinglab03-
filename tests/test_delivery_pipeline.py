@@ -86,5 +86,23 @@ class DeliveryPipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "not classified as a potential client"):
                 run_delivery(brief=brief, output_dir=root / "bundle", lead_store=store)
 
+    def test_legacy_lead_with_client_fit_flag_but_no_client_project_type_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            store = root / "leads.json"
+            store.write_text(json.dumps({"leads": [{
+                "id": "TL-LEGACY-JOB", "business_name": "Freelance Copywriter",
+                "service": "seo_content", "need": "A freelance job vacancy, not a buyer request",
+                "source_url": "https://example.invalid/job", "evidence": "Legacy imported listing",
+                "client_fit": True,
+            }]}), encoding="utf-8")
+            brief = {
+                "lead_id": "TL-LEGACY-JOB", "business_name": "Freelance Copywriter",
+                "tagline": "Draft only", "services": ["Content"], "contact_email": "review@example.invalid",
+                "service": "seo_content",
+            }
+            with self.assertRaisesRegex(ValueError, "explicitly classified as a client_project"):
+                run_delivery(brief=brief, output_dir=root / "bundle", lead_store=store)
+
 if __name__ == "__main__":
     unittest.main()
