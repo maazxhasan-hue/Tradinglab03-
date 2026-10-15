@@ -11,6 +11,7 @@ on:
       - "company/automation-roadmap.md"
       - "company/daily_company_review.py"
       - "data/leads.json"
+      - "tests/test_daily_company_review.py"
       - ".github/workflows/daily-company-operations.yml"
 
 permissions:
