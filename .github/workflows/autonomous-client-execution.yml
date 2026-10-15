@@ -16,7 +16,7 @@ permissions:
 jobs:
   execute-supported-work:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,8 +55,23 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
+          if [ ! -f data/autonomous_client_brief.json ]; then
+            echo "Brief unavailable; skipping model pass."
+            exit 0
+          fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
           python -m company.tool_agent --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME"
+      - name: Run role-specific specialist passes
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ ! -f data/autonomous_client_brief.json ]; then
+            echo "Brief unavailable; skipping specialist passes."
+            exit 0
+          fi
+          OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
+          python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 2
       - name: Upload execution bundle for review
         if: always()
         uses: actions/upload-artifact@v4
