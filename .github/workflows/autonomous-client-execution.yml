@@ -50,6 +50,13 @@ jobs:
         run: |
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
           python -m company.autonomous_delivery --brief data/autonomous_client_brief.json --output "data/client_executions/$OUTPUT_NAME"
+      - name: Attempt bounded tool-using agent pass
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
+          python -m company.tool_agent --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME"
       - name: Upload execution bundle for review
         if: always()
         uses: actions/upload-artifact@v4
