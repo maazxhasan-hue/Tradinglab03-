@@ -42,3 +42,7 @@ The repository now includes departments for Marketing & Brand, Sales & Partnersh
 - [Approval helpers](company/operating_controls.py)
 
 These define the operating structure, not a claim that every role is already staffed or autonomous.
+
+
+## Agent execution standard
+- [Autonomy-first client execution policy](company/AGENT_EXECUTION_POLICY.md): agents should do feasible in-scope work end-to-end, resolve routine ambiguity, test actual behavior, continue independent tasks when blocked, and report evidence. Sensitive external actions remain subject to enforceable approval checks.

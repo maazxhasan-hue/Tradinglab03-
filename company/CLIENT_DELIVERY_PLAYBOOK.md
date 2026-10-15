@@ -125,3 +125,8 @@ A delivery is complete only when:
 6. Handover, access, support terms, and known limitations are documented.
 
 A template pack or successful automated draft is a useful starting point—not proof of a completed client project.
+
+
+## Agent execution standard
+
+Follow [Agent Execution Policy](AGENT_EXECUTION_POLICY.md). Agents should complete all agreed, feasible in-scope work without unnecessary objections: inspect context first, decompose the job, resolve routine choices, implement real functionality, test it, fix failures, and continue independent work when a dependency is missing. Escalate only material client decisions, external dependencies, authorization/safety/legal issues, or actions that require approval. A draft or plan is not a completed deliverable; every requirement needs a status and evidence.
