@@ -1,0 +1,107 @@
+name: Company Health Check
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "tests/**"
+      - ".github/workflows/company-health-check.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: company-health-check
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout company repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run full test suite
+        id: tests
+        continue-on-error: true
+        run: python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
+
+      - name: Check critical files and workflow configuration
+        id: config
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, sys
+          required = [
+              "company/opportunity_scout.py",
+              "company/opportunity_importer.py",
+              "company/operating_controls.py",
+              "company/agent_runtime.py",
+              "company/OPERATING_PLAN.md",
+              "config/opportunity_sources.json",
+              ".github/workflows/hourly-opportunity-scout.yml",
+              ".github/workflows/agent-worker.yml",
+          ]
+          missing = [p for p in required if not Path(p).is_file()]
+          errors = []
+          try:
+              config = json.loads(Path("config/opportunity_sources.json").read_text())
+              if not isinstance(config, (dict, list)):
+                  errors.append("opportunity source config has unexpected root type")
+          except Exception as exc:
+              errors.append(f"opportunity source config invalid: {exc}")
+          report = Path("health-report.md")
+          report.write_text(
+              "# Company Health Check\n\n"
+              f"- Checked (UTC): {__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}\n"
+              f"- Repository revision: {__import__('os').environ.get('GITHUB_SHA', 'unknown')}\n"
+              f"- Required files: {'PASS' if not missing else 'FAIL'}\n"
+              f"- Source configuration JSON: {'PASS' if not errors else 'FAIL'}\n"
+              f"- Missing files: {', '.join(missing) if missing else 'none'}\n"
+              f"- Configuration issues: {'; '.join(errors) if errors else 'none'}\n\n"
+              "## Scope and limits\n"
+              "This is a repository/configuration and unit-test check. It does not prove the live website is reachable, scheduled runs are enabled, an AI provider is connected, a cloud VM is healthy, or that client work/revenue is occurring.\n"
+          )
+          if missing or errors:
+              sys.exit(1)
+          PY
+
+      - name: Add test result to report
+        if: always()
+        run: |
+          if [ -f health-report.md ]; then
+            printf '\n## Test suite\n\n' >> health-report.md
+            if [ "${{ steps.tests.outcome }}" = "success" ]; then
+              echo "Result: PASS" >> health-report.md
+            else
+              echo "Result: FAIL — see test-results.txt artifact." >> health-report.md
+            fi
+          fi
+
+      - name: Upload health report and test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: company-health-${{ github.run_id }}
+          path: |
+            health-report.md
+            test-results.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail if tests or configuration checks failed
+        if: steps.tests.outcome != 'success' || steps.config.outcome != 'success'
+        run: exit 1
