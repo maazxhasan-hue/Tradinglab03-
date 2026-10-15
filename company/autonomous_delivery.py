@@ -151,7 +151,7 @@ def execute_client_project(*, brief: dict, output_dir: str | Path) -> dict:
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
-    delivery = run_delivery(brief=brief, output_dir=out / "delivery_bundle")
+    # Normalize optional copy/contact fields so agents can proceed with visible gaps instead of stalling.\n    normalized_brief = dict(brief)\n    normalized_brief.setdefault("tagline", "")\n    normalized_brief.setdefault("contact_email", "")\n    normalized_brief.setdefault("primary_color", "#0b7a75")\n    normalized_brief.setdefault("pages_screens_deliverables", [])\n    normalized_brief.setdefault("version_1_must_have_features", [])\n    delivery = run_delivery(brief=normalized_brief, output_dir=out / "delivery_bundle")
     artifacts = _service_artifact(service, brief, out)
     website_dir = out / "delivery_bundle" / "website"
     requirements: list[dict[str, Any]] = []
