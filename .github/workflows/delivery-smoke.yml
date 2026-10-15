@@ -5,6 +5,8 @@ on:
       - "company/**"
       - "tests/test_delivery_pipeline.py"
       - ".github/workflows/delivery-smoke.yml"
+      - ".github/workflows/client-delivery.yml"
+      - ".github/workflows/end-to-end-delivery.yml"
   workflow_dispatch:
 permissions:
   contents: read
