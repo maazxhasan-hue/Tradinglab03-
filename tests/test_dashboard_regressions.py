@@ -64,5 +64,11 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("Human verification pending", self.html)
         self.assertIn("It does not verify the lead or payment.", self.html)
 
+    def test_lead_review_shows_evidence_and_ranks_higher_scores_first(self):
+        self.assertIn("Number(b.opportunity_score||0)-Number(a.opportunity_score||0)", self.html)
+        self.assertIn("'Scout score '+Number(x.opportunity_score)", self.html)
+        self.assertIn("recorded signal", self.html)
+        self.assertIn("Review flags: ", self.html)
+
 if __name__ == "__main__":
     unittest.main()
