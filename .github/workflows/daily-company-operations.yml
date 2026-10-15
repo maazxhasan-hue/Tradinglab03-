@@ -9,6 +9,8 @@ on:
     paths:
       - "company/OPERATING_PLAN.md"
       - "company/automation-roadmap.md"
+      - "company/daily_company_review.py"
+      - "data/leads.json"
       - ".github/workflows/daily-company-operations.yml"
 
 permissions:
@@ -108,6 +110,10 @@ jobs:
           ]
           Path('daily-company-operations-report.md').write_text('\n'.join(report), encoding='utf-8')
 
+      - name: Generate prioritized lead review
+        if: always()
+        run: python -m company.daily_company_review
+
       - name: Upload daily report and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -115,6 +121,7 @@ jobs:
           name: daily-company-operations-${{ github.run_id }}
           path: |
             daily-company-operations-report.md
+            data/opportunities/daily-company-review.md
             company-test-results.txt
           if-no-files-found: warn
           retention-days: 30
