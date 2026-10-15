@@ -95,7 +95,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "- Budget and timeline impact", "- Proposed release/version and acceptance criteria", "",
         "Any accepted future item requires a written change request and updated scope/version.",
     ]
-    (out / "future_features_backlog.md").write_text("\n".join(future_doc) + "\n", encoding="utf-8")
+    (out / "future_feature_backlog.md").write_text("\n".join(future_doc) + "\n", encoding="utf-8")
     acceptance = [
         "# Acceptance Checklist — Complete with Client", "",
         "Replace each example with a concrete, agreed pass/fail criterion. Do not treat a blank checkbox as passed.", "",
@@ -165,7 +165,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
     }
     site_report = build_from_brief(website_brief, out / "website")
     required_files = [
-        "proposal.md", "proposal.json", "project_brief.md", "future_features_backlog.md",
+        "proposal.md", "proposal.json", "project_brief.md", "future_feature_backlog.md",
         "acceptance_checklist.md", "change_request_template.md", "handover_and_next_steps.md",
         "website/index.html", "website/quality_report.json",
     ]
@@ -190,7 +190,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "website_generated": (out / "website/index.html").is_file(),
         "website_static_quality_gate": bool(site_report.get("passed")),
         "client_scope_documents_generated": all((out / name).is_file() for name in [
-            "project_brief.md", "future_features_backlog.md", "acceptance_checklist.md",
+            "project_brief.md", "future_feature_backlog.md", "acceptance_checklist.md",
             "change_request_template.md", "handover_and_next_steps.md",
         ]),
         "no_automatic_outreach_or_deployment": True,
