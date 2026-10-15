@@ -57,7 +57,7 @@
     "name": "Codeur - public freelance project requests",
     "url": "https://www.codeur.com/projects?format=rss",
     "enabled": true,
-    "notes": "Public RSS listing of client-posted freelance projects, mainly French-language web/design/marketing work. Preserve attribution and original listing links; assess language, location, budget, and eligibility manually."
+    "notes": "Public RSS listing of client-posted freelance projects, mainly French-language web/design/marketing work. Preserve attribution and original listing links; assess language, location, budget, and eligibility manually. French buyer-intent classifier expanded to recognize direct paid-service requests such as Meta Ads/SEA campaign management; job-vacancy signals still disqualify employment roles."
   },
   {
     "name": "XPlace - website projects",
