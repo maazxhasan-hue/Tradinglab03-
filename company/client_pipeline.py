@@ -145,8 +145,8 @@ def build_pack_from_lead(lead_id: str, *, store_path: str | Path = ROOT / "data"
     lead = next((x for x in leads if isinstance(x, dict) and str(x.get("id", "")) == lead_id), None)
     if lead is None:
         raise ValueError(f"Lead ID not found: {lead_id}")
-    if lead.get("opportunity_type") != "client_project" and lead.get("client_fit") is not True:
-        raise ValueError("This listing is not classified as a potential client project; no pack generated.")
+    if lead.get("opportunity_type") != "client_project" or lead.get("client_fit") is not True:
+        raise ValueError("This listing is not explicitly classified as a client_project with client_fit=true; no pack generated.")
     service_map = {
         "business_website": "business_website", "landing_page": "landing_page",
         "website_audit": "website_audit", "seo_content": "seo_content",
