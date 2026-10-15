@@ -40,6 +40,124 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
+
+    # Keep client requirements and future ideas explicit in the review bundle.
+    def field(label: str, key: str) -> str:
+        value = brief.get(key, "")
+        if isinstance(value, list):
+            value = "\\n".join(f"- {item}" for item in value if str(item).strip())
+        value = str(value).strip()
+        return f"## {label}\\n\\n{value if value else '_Not supplied — confirm with the client before build._'}\\n"
+
+    scope_sections = [
+        "# Client Project Brief — Draft for Written Confirmation",
+        "",
+        f"- Client: {brief['business_name']}",
+        f"- Project type: {service}",
+        f"- Scope version: {brief.get('scope_version', 1)}",
+        f"- Status: {brief.get('approval_status', 'not_approved')}",
+        f"- Generated: {datetime.now(timezone.utc).isoformat()}",
+        "",
+        "> Do not start production work until the client and owner approve scope, price, timeline, dependencies, and acceptance criteria in writing.",
+        "",
+        field("Business goal / problem", "observed_need"),
+        field("Target audience", "target_audience"),
+        field("Version 1 pages / screens / deliverables", "pages_screens_deliverables"),
+        field("Version 1 required features", "version_1_must_have_features"),
+        field("Design direction and references", "design_direction_and_references"),
+        field("Content and assets", "content_and_assets"),
+        field("Integrations and data", "integrations_and_data"),
+        field("Constraints, dependencies, exclusions", "constraints_dependencies_exclusions"),
+        field("Budget range", "budget_range"),
+        field("Target deadline / milestones", "target_deadline"),
+        field("Post-launch support requested", "post_launch_support"),
+        field("Acceptance criteria", "acceptance_criteria"),
+        field("Future feature backlog (not included in v1 unless separately approved)", "future_features_backlog"),
+        "## Commercial agreement",
+        "",
+        f"- Quote supplied to pipeline: {brief.get('price_quote') or 'Not set'}",
+        "- Payment milestones, tax, revisions, ownership, cancellation, delivery date, and support boundary: confirm and agree in writing.",
+        "- Client approval recorded: not recorded by this generator.",
+        "",
+    ]
+    (out / "project_brief.md").write_text("\\n".join(scope_sections), encoding="utf-8")
+    future = str(brief.get("future_features_backlog", "")).strip()
+    future_doc = [
+        "# Future Feature Backlog",
+        "",
+        "This list is for discovery and prioritization only. These items are not included in version 1 unless the signed scope explicitly includes them.",
+        "",
+        future or "_No future features supplied yet. Ask the client what they may need later, but do not invent commitments._",
+        "",
+        "## Prioritization for review",
+        "- Value to the user's business",
+        "- Effort and ongoing maintenance",
+        "- Security, privacy, accessibility, and integration risks",
+        "- Dependencies and data ownership",
+        "- Budget and timeline impact",
+        "- Proposed release/version and acceptance criteria",
+        "",
+        "Any accepted future item requires a written change request and updated scope/version.",
+    ]
+    (out / "future_feature_backlog.md").write_text("\\n".join(future_doc) + "\\n", encoding="utf-8")
+    acceptance = [
+        "# Acceptance Checklist — Complete with Client",
+        "",
+        "Replace each example with a concrete, agreed pass/fail criterion. Do not treat a blank checkbox as passed.",
+        "",
+        "- [ ] Client-approved scope version and deliverables are recorded.",
+        "- [ ] Every version 1 feature has an expected behavior and test case.",
+        "- [ ] Responsive/mobile layout checked at agreed viewports.",
+        "- [ ] Keyboard navigation and visible focus reviewed.",
+        "- [ ] Links, contact actions, and forms/integrations tested.",
+        "- [ ] Empty, error, and loading states checked where relevant.",
+        "- [ ] Copy, spelling, metadata, and client-approved assets reviewed.",
+        "- [ ] Browser/device coverage agreed and tested.",
+        "- [ ] Privacy/security checks completed for data and integrations.",
+        "- [ ] Accessibility checks appropriate to project risk completed.",
+        "- [ ] Known limitations and excluded features documented.",
+        "- [ ] Client reviewed preview and acceptance recorded in writing.",
+        "- [ ] Owner approved release; deployment is separately authorized.",
+        "",
+        "Automated static checks are not a substitute for browser testing, independent QA, or client acceptance.",
+    ]
+    (out / "acceptance_checklist.md").write_text("\\n".join(acceptance) + "\\n", encoding="utf-8")
+    change = [
+        "# Client Change Request",
+        "",
+        "- Client / project:",
+        "- Current scope version:",
+        "- Requested change:",
+        "- Business reason / expected outcome:",
+        "- User story / expected behavior:",
+        "- Acceptance criteria:",
+        "- Price impact (owner-approved):",
+        "- Timeline impact:",
+        "- Dependencies / risks:",
+        "- Future version or current scope:",
+        "- Client decision and date:",
+        "- Owner approval and date:",
+        "",
+        "Do not implement a scope-changing request until price, timeline, and acceptance criteria are agreed in writing.",
+    ]
+    (out / "change_request_template.md").write_text("\\n".join(change) + "\\n", encoding="utf-8")
+    handover = [
+        "# Client Handover & Next-Step Plan",
+        "",
+        "- Delivered items:",
+        "- Acceptance checks passed:",
+        "- Known limitations / exclusions:",
+        "- Source files and ownership transfer:",
+        "- Deployment / backup / rollback notes:",
+        "- Access transfer method (never paste secrets in this document):",
+        "- Support window and exclusions:",
+        "- Client acceptance recorded:",
+        "- Optional next priorities (not commitments):",
+        "- Follow-up permission / preferred channel:",
+        "",
+        "Offer maintenance or future features only if relevant and wanted. Do not send unsolicited follow-ups or imply a subscription has been started.",
+    ]
+    (out / "handover_and_next_steps.md").write_text("\\n".join(handover) + "\\n", encoding="utf-8")
     if brief.get("lead_id"):
         proposal = build_pack_from_lead(str(brief["lead_id"]), store_path=lead_store,
                                         price_quote=str(brief.get("price_quote", "")),
@@ -69,13 +187,14 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
         "primary_color": str(brief.get("primary_color", "#0b7a75")),
     }
     site_report = build_from_brief(website_brief, out / "website")
-    required_files = ["proposal.md", "proposal.json", "website/index.html", "website/quality_report.json"]
+    required_files = ["proposal.md", "proposal.json", "project_brief.md", "future_feature_backlog.md", "acceptance_checklist.md", "change_request_template.md", "handover_and_next_steps.md", "website/index.html", "website/quality_report.json"]
     missing_files = [name for name in required_files if not (out / name).is_file()]
     checks = {
         "proposal_generated": (out / "proposal.md").is_file(),
         "proposal_requires_human_review": proposal["status"] == "draft_requires_human_review" and not proposal["sent"],
         "website_generated": (out / "website/index.html").is_file(),
         "website_static_quality_gate": bool(site_report.get("passed")),
+        "client_scope_documents_generated": all((out / name).is_file() for name in ["project_brief.md", "future_feature_backlog.md", "acceptance_checklist.md", "change_request_template.md", "handover_and_next_steps.md"]),
         "no_automatic_outreach_or_deployment": True,
     }
     report = {
@@ -91,6 +210,8 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
             "This pipeline produces drafts only; no client was contacted.",
             "Website static checks do not replace browser, accessibility, security, or client review.",
             "Review proposal scope, evidence, price, timeline, claims, contact permissions, and website content before use.",
+            "Confirm the project_brief.md with the client in writing; future feature backlog items are not part of version 1 unless approved.",
+            "Use acceptance_checklist.md, change_request_template.md, and handover_and_next_steps.md to control QA, scope changes, and repeat support fairly.",
         ],
     }
     (out / "delivery_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
