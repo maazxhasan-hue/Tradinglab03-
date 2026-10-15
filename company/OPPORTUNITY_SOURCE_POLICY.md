@@ -4,7 +4,7 @@
 Find actionable public project requests for digital services while keeping the hourly scout reliable, free-first, and compliant. A listing is a lead to review, never proof of a real buyer, payment, or contract.
 
 ## Current source posture
-- **Codeur public RSS** — enabled; mostly French-language project requests. Manually check language, eligibility, budget, scope, deadline, platform costs, and whether the listing is still open.
+- **Codeur public RSS** — enabled for discovery only; mostly French-language project requests. Codeur's official pricing page says freelancers need a paid plan starting at €31.90 HT/month to send offers, plus a 4% commission (minimum €5 HT) on won projects. Because this is a free-first operation, do not pay or submit offers there; use the feed only for market research unless the owner later explicitly approves spending. Manually check language, eligibility, budget, scope, and whether the listing is still open. Source: https://www.codeur.com/pages/tarifs-codeur-com
 - **Reddit r/forhire RSS** — enabled; public posts are unverified and subreddit rules apply. Never automate posts, comments, or DMs.
 - **Freelancer.com** — disabled by owner decision on 2026-10-15. Its sources are disabled in config, and its SDK/token setup was removed from the scout workflow. Do not re-enable unless the owner explicitly changes this decision.
 - **Reddit r/DesignJobs and r/hiring** — disabled after HTTP 429 throttling. Do not poll repeatedly or rotate identities to bypass limits.
