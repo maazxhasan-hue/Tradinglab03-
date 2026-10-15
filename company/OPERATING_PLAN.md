@@ -11,7 +11,7 @@
 ## Hourly growth loop
 - GitHub Actions runs the public opportunity scout once each hour.
 - The scout reads the currently enabled public sources in `config/opportunity_sources.json`: Reddit r/forhire, Codeur's public project feed, and Jobicy's freelance-marketing feed. Codeur and Reddit are used for potential buyer/project requests; Jobicy is classified as secondary freelance/contract work, not assumed to be a direct buyer. Reddit r/DesignJobs and r/hiring remain disabled after HTTP 429 responses; XPlace feeds remain disabled after HTTP 404 responses; broad employee-job feeds remain disabled. The hourly GitHub Actions workflow uploads a report artifact when a run succeeds. Listings are unverified and may be ineligible, closed, unpaid, or unsuitable; inspect the report and source errors before acting.
-- The Business Intelligence & Revenue Scout maps evidence-backed business needs to possible services and drafts a personalized, non-binding outreach message.
+- The Business Intelligence & Revenue Scout can map evidence-backed business needs to possible services and draft a personalized, non-binding outreach message. The new TradingLab03 services page and 7-day organic marketing pack are drafts/portfolio assets; nothing is automatically published or sent.
 - An operator verifies listing legitimacy, platform rules, budget/payment terms, and fit before any bid or contact.
 - After an accepted contract, agents work from an explicit project brief; engineering output passes QA, security, accessibility, and client review.
 - Revenue is counted only after trusted payment confirmation and after refunds are accounted for.
