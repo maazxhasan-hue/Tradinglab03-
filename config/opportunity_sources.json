@@ -119,5 +119,13 @@
     "limit": 50,
     "query": "AI chatbot automation mobile app Android iOS data entry virtual assistant CRM integration",
     "notes": "Free read-only public active-project endpoint, third targeted query for AI/chatbot, mobile and small-business automation work. Keep direct client projects separate from employment/freelance roles; no bids, messages, or applications are sent."
+  },
+  {
+    "name": "Freelancer.com - graphic design, logos and brand identity projects",
+    "type": "freelancer_api",
+    "enabled": true,
+    "limit": 50,
+    "query": "logo design graphic design brand identity Figma social media posts banner packaging",
+    "notes": "Free read-only public active-project endpoint, focused on visual design services to reduce overlap with website, SEO/video, and automation searches. Listings are unverified; no bids, messages, or applications are sent."
   }
 ]
