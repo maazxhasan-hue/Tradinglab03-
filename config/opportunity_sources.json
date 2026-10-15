@@ -111,5 +111,13 @@
     "type": "peopleperhour",
     "enabled": false,
     "notes": "Disabled after live GitHub Actions runner received HTTP 202 (likely challenge/interstitial) instead of the public listing HTML. Adapter retained for future testing but must remain disabled until a permitted, stable response is verified."
+  },
+  {
+    "name": "Freelancer.com - AI, mobile app and business automation projects",
+    "type": "freelancer_api",
+    "enabled": true,
+    "limit": 50,
+    "query": "AI chatbot automation mobile app Android iOS data entry virtual assistant CRM integration",
+    "notes": "Free read-only public active-project endpoint, third targeted query for AI/chatbot, mobile and small-business automation work. Keep direct client projects separate from employment/freelance roles; no bids, messages, or applications are sent."
   }
 ]
