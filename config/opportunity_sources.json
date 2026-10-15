@@ -127,5 +127,21 @@
     "limit": 50,
     "query": "logo design graphic design brand identity Figma social media posts banner packaging",
     "notes": "Free read-only public active-project endpoint, focused on visual design services to reduce overlap with website, SEO/video, and automation searches. Listings are unverified; no bids, messages, or applications are sent."
+  },
+  {
+    "name": "Freelancer.com - small-business website and landing-page briefs",
+    "type": "freelancer_api",
+    "enabled": true,
+    "limit": 50,
+    "query": "small business website design landing page business website fixed price project",
+    "notes": "Targeted query for buyer briefs for small-business websites and landing pages. Free public read-only discovery; no bids or messages. Duplicates are suppressed and all listings remain unverified."
+  },
+  {
+    "name": "Freelancer.com - WordPress and Shopify fixes",
+    "type": "freelancer_api",
+    "enabled": true,
+    "limit": 50,
+    "query": "WordPress bug fix website speed repair Shopify store setup checkout fix ecommerce issue",
+    "notes": "Targeted query for bounded website maintenance and store-fix projects, distinct from broad redesign search. Free public read-only discovery; no bids or messages. Duplicates are suppressed and all listings remain unverified."
   }
 ]
