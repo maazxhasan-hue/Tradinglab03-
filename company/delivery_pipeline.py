@@ -26,8 +26,8 @@ SERVICE_MAP = {
 
 def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path = ROOT / "data" / "leads.json") -> dict:
     """Build proposal + static site + combined QA manifest from an explicit brief."""
-    required = ("business_name", "tagline", "services", "contact_email", "observed_need")
-    missing = [key for key in required if not brief.get(key)]
+    required = ("business_name", "tagline", "services", "contact_email")
+    missing = [key for key in required if not brief.get(key)]\n    if not brief.get("lead_id") and not brief.get("observed_need"):\n        missing.append("observed_need (or a saved client-project lead_id)")
     if missing:
         raise ValueError("Missing required brief fields: " + ", ".join(missing))
     service = brief.get("service", "business_website")
