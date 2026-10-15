@@ -103,9 +103,9 @@ def run_specialist_team(*, brief: dict[str, Any], workspace: str | Path,
                 })
                 break
 
-    completed = sum(x["status"] == "completed" and x["artifact"] for x in results)
+    completed = sum(bool(x["status"] == "completed" and x["artifact"]) for x in results)
     report = {
-        "status": "completed_with_limitations" if all(x["status"] == "completed" for x in results) and results else
+        "status": "completed_with_limitations" if results and all(x["status"] == "completed" for x in results) and completed == len(roles) else
                   "skipped_no_api_key" if results and all(x["status"] == "skipped_no_api_key" for x in results) else
                   "partial_or_unavailable",
         "service": service,
