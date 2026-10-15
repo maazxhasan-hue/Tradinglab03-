@@ -81,6 +81,8 @@ BUYER_REQUEST_PATTERNS = (
     r"\bneed help (?:building|designing|redesigning|creating|editing|improving|managing|setting up|optimizing) (?:our|my|the)\b",
     r"\b(?:my|our) (?:business|company|store|website|channel) (?:needs|need) (?:help|a|an|someone)\b",
     r"\b(?:je recherche|je cherche|nous recherchons) (?:un|une) (?:freelance|prestataire|développeur|développeuse|designer|graphiste|agence) (?:pour|afin de)\b",
+    r"\b(?:recherche|recherchons) (?:un|une )?(?:freelance|prestataire|expert|experte|spécialiste|développeur|développeuse|designer|graphiste|agence)\b.*\b(?:pour|afin de)\b",
+    r"\b(?:nous recherchons|je recherche|je cherche) (?:un|une )?(?:véritable )?(?:expert|experte|spécialiste)\b.*\bpour (?:piloter|gérer|créer|concevoir|optimiser|développer|mettre en place)\b",
     r"\b(?:besoin d'un|besoin d'une) (?:site web|site internet|boutique en ligne|logo|graphiste|développeur|designer)\b",
     r"\b(?:création|refonte) (?:de|d') (?:site web|site internet|boutique en ligne)\b",
     r"\b(?:gestion|animation) (?:des )?réseaux sociaux\b",
