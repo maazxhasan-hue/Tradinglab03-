@@ -49,6 +49,10 @@ on:
         description: Optional operator-entered quote; leave blank if unknown
         required: false
         type: string
+      requirements_json:
+        description: Optional exported detailed brief JSON from the HQ dashboard; maps client requirements and future features into the delivery pack
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -72,6 +76,7 @@ jobs:
           WEBSITE_URL: ${{ inputs.website_url }}
           SERVICE: ${{ inputs.service }}
           PRICE_QUOTE: ${{ inputs.price_quote }}
+          REQUIREMENTS_JSON: ${{ inputs.requirements_json }}
         run: |
           mkdir -p data
           python - <<'PY'
@@ -88,6 +93,38 @@ jobs:
               "service": os.environ["SERVICE"].strip(),
               "price_quote": os.environ.get("PRICE_QUOTE", "").strip(),
           }
+          raw_requirements = os.environ.get("REQUIREMENTS_JSON", "").strip()
+          if raw_requirements:
+              try:
+                  requirements = json.loads(raw_requirements)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit(f"requirements_json must be valid JSON: {exc}")
+              if not isinstance(requirements, dict):
+                  raise SystemExit("requirements_json must be a JSON object")
+              # Normalize the HQ dashboard export to the delivery pipeline schema.
+              aliases = {
+                  "client": "business_name",
+                  "goal": "observed_need",
+                  "project_type": "requested_project_type",
+                  "target_audience": "target_audience",
+                  "pages_screens_deliverables": "pages_screens_deliverables",
+                  "version_1_must_have_features": "version_1_must_have_features",
+                  "future_features_backlog": "future_features_backlog",
+                  "design_direction_and_references": "design_direction_and_references",
+                  "content_and_assets": "content_and_assets",
+                  "integrations_and_data": "integrations_and_data",
+                  "acceptance_criteria": "acceptance_criteria",
+                  "budget_range": "budget_range",
+                  "target_deadline": "target_deadline",
+                  "post_launch_support": "post_launch_support",
+                  "constraints_dependencies_exclusions": "constraints_dependencies_exclusions",
+              }
+              for source_key, target_key in aliases.items():
+                  value = requirements.get(source_key)
+                  if value not in (None, ""):
+                      brief[target_key] = value
+              if not brief.get("business_name") or not brief.get("observed_need"):
+                  raise SystemExit("requirements_json must include client and goal")
           for key in ("business_name", "tagline", "contact_email"):
               if not brief[key]:
                   raise SystemExit(f"{key} must not be blank")
