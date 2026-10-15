@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-15T07:18:45.538901+00:00",
+  "updated_at": "2026-10-15T11:39:56.641028+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -2223,6 +2223,170 @@
         "pattern: explicit buyer request"
       ],
       "disqualifiers": []
+    },
+    {
+      "id": "TL-20261015113956-067",
+      "business_name": "Création site e-commerce",
+      "service": "business_website",
+      "need": "Budget : 1 000 € à 10 000 € - Catégories : Création de site internet, Site clé en main, WordPress, Site E-commerce, WooCommerce Bonjour, ​Je recherche un développeur / intégrateur web indépendant expert sur WordPress et WooCommerce pour m'accompagner dans la création complète d'une boutique en ligne moderne (catalogue d'environ 150 références). ​Le site … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491320-creation-site-e-commerce",
+      "evidence": "Public listing title: Création site e-commerce. Source: Codeur - public freelance project requests. Match score: 29. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=29; listing_id=059603a8053fd5ab.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T11:39:56.640511+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T11:39:56.640518+00:00",
+      "updated_at": "2026-10-15T11:39:56.640519+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 29,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [],
+      "project_signals": [
+        "création de site internet"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261015113956-068",
+      "business_name": "Keyword-Based SEO Campaign Management",
+      "service": "seo_content",
+      "need": "Looking for an SEO FREELANCER Budget: INR 250 Per keyword per month total 18 keywords 2 websites",
+      "website_url": "",
+      "source_url": "https://www.freelancer.com/projects/keyword-research/Keyword-Based-SEO-Campaign-Management/40769337",
+      "evidence": "Public listing title: Keyword-Based SEO Campaign Management. Source: Freelancer.com - SEO, content and video projects. Match score: 10. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=10; listing_id=ee3c9f40570081bf.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T11:39:56.640571+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T11:39:56.640572+00:00",
+      "updated_at": "2026-10-15T11:39:56.640573+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Freelancer.com - SEO, content and video projects",
+      "opportunity_score": 10,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": true,
+      "freelance_work_fit": false,
+      "opportunity_type": "client_project",
+      "contract_signals": [
+        "freelance",
+        "freelancer"
+      ],
+      "project_signals": [
+        "budget:"
+      ],
+      "disqualifiers": []
+    },
+    {
+      "id": "TL-20261015113956-069",
+      "business_name": "Seeking Expert for Website Improvements",
+      "service": "website_or_digital_service",
+      "need": "I'm Georges, founder of Artwist.me, I am looking for an experienced WordPress/WooCommerce freelancer",
+      "website_url": "",
+      "source_url": "https://www.freelancer.com/projects/web-development/Seeking-Expert-for-Website-Improvements/40769364",
+      "evidence": "Public listing title: Seeking Expert for Website Improvements. Source: Freelancer.com - website and ecommerce projects. Match score: 10. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=10; listing_id=e9728e50882d6b57.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T11:39:56.640609+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T11:39:56.640611+00:00",
+      "updated_at": "2026-10-15T11:39:56.640612+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Freelancer.com - website and ecommerce projects",
+      "opportunity_score": 10,
+      "opportunity_priority": "high",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance",
+        "freelancer"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
+    },
+    {
+      "id": "TL-20261015113956-070",
+      "business_name": "Montage vidéo sur longue terme",
+      "service": "short_video",
+      "need": "Budget : 500 € à 1 000 € - Catégories : Community management, Audio, Video, Multimedia, Motion design, Marketing, Communication Recherche monteur vidéo freelance – Reels Premium / Face Cam / Motion Design Bonjour, Nous recherchons un(e) monteur(se) vidéo freelance pour une collaboration régulière avec une clinique de médecine esthétique à … Voir ce projet sur Codeur",
+      "website_url": "",
+      "source_url": "https://www.codeur.com/projects/491310-montage-video-sur-longue-terme",
+      "evidence": "Public listing title: Montage vidéo sur longue terme. Source: Codeur - public freelance project requests. Match score: 6. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=review; score=6; listing_id=a8b4bdd9e6e44d1a.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-15T11:39:56.640631+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-15T11:39:56.640633+00:00",
+      "updated_at": "2026-10-15T11:39:56.640633+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Codeur - public freelance project requests",
+      "opportunity_score": 6,
+      "opportunity_priority": "review",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
     }
   ]
 }
