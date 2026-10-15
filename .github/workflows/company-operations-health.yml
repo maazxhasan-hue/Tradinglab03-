@@ -36,6 +36,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          TESTS_OK: ${{ steps.tests.outcome == 'success' }}
         run: |
           python - <<'PY'
           import json, os, urllib.request, datetime, pathlib
@@ -82,9 +83,6 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"status={status}\n")
           PY
-        env:
-          TESTS_OK: ${{ steps.tests.outcome == 'success' }}
-
       - name: Upload health report
         if: always()
         uses: actions/upload-artifact@v4
