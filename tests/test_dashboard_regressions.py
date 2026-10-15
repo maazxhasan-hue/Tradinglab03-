@@ -22,8 +22,8 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertNotIn(".join('\\\\r\\\\n');const blob=new Blob([csv]", self.html)
 
     def test_csv_cells_escape_quotes_and_sanitize_line_breaks(self):
-        self.assertIn(".replace(/\\"/g,'\\"\\"')", self.html)
-        self.assertIn(".replace(/[\\r\\n]+/g,' ')", self.html)
+        self.assertIn(r""".replace(/"/g,'""')""", self.html)
+        self.assertIn(r""".replace(/[\\r\\n]+/g,' ')""", self.html)
 
     def test_proposal_draft_requires_input_and_is_not_sent(self):
         self.assertIn("if(!business||!need)", self.html)
@@ -32,7 +32,7 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("qpOutput.value=quickProposalText", self.html)
 
     def test_proposal_website_requires_https(self):
-        self.assertIn("if(website&&!/^https:\\/\\/\\//i.test(website))", self.html)
+        self.assertIn(r"if(website&&!/^https:\\/\\/\\//i.test(website))", self.html)
         self.assertIn("Website must use HTTPS, or leave it blank.", self.html)
 
     def test_clipboard_api_has_manual_copy_fallback(self):
