@@ -109,7 +109,7 @@
     "name": "PeoplePerHour - public freelance client projects",
     "url": "https://www.peopleperhour.com/freelance-jobs",
     "type": "peopleperhour",
-    "enabled": true,
-    "notes": "Read-only public listing reader; uses only ?page=1, no login or contact actions. Treat results as unverified project leads; verify platform eligibility, current status, budget, and terms before bidding."
+    "enabled": false,
+    "notes": "Disabled after live GitHub Actions runner received HTTP 202 (likely challenge/interstitial) instead of the public listing HTML. Adapter retained for future testing but must remain disabled until a permitted, stable response is verified."
   }
 ]
