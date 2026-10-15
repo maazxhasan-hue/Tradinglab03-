@@ -86,5 +86,25 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("Lead details copied locally into the proposal form.", self.html)
         self.assertIn("nothing was sent.", self.html)
 
+
+    def test_proposal_quality_review_is_local_and_covers_core_terms(self):
+        self.assertIn('id="qpQuality"', self.html)
+        self.assertIn('id="qpQualityReport"', self.html)
+        self.assertIn("function reviewProposalQuality(text)", self.html)
+        self.assertIn("Scope and deliverables", self.html)
+        self.assertIn("Price or quote decision", self.html)
+        self.assertIn("Timeline and milestones", self.html)
+        self.assertIn("Buyer evidence", self.html)
+        self.assertIn("Potential unsupported claim", self.html)
+        self.assertIn("Heuristic checks only", self.html)
+        self.assertIn("qpQuality.disabled=false", self.html)
+
+    def test_quality_review_does_not_claim_to_verify_facts_or_send_proposals(self):
+        self.assertIn("this does not verify facts, legal terms, pricing, or buyer legitimacy", self.html)
+        self.assertIn("qpQuality.addEventListener('click'", self.html)
+        script = self.html.split("<script>", 1)[1].split("</script>", 1)[0]
+        self.assertNotIn("fetch(", script)
+        self.assertNotIn("sendBeacon(", script)
+
 if __name__ == "__main__":
     unittest.main()
