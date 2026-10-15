@@ -74,18 +74,18 @@
   {
     "name": "Freelancer.com - website and ecommerce projects",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "website redesign landing page wordpress shopify ecommerce",
-    "notes": "Free read-only public active-project endpoint, one bounded GET per hourly run. Focused on website, landing-page, WordPress, Shopify and ecommerce projects. Listings are unverified; no bids/messages/applications. Preserve original project URLs."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   },
   {
     "name": "Freelancer.com - SEO, content and video projects",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "SEO content writing video editing social media marketing automation",
-    "notes": "Free read-only public active-project endpoint with a separate service-focused query, one bounded GET per hourly run. Intended to broaden discovery beyond website projects. Listings remain unverified; no bids/messages/applications. Preserve original project URLs."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   },
   {
     "name": "Upwork - public freelance project RSS",
@@ -115,33 +115,33 @@
   {
     "name": "Freelancer.com - AI, mobile app and business automation projects",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "AI chatbot automation mobile app Android iOS data entry virtual assistant CRM integration",
-    "notes": "Free read-only public active-project endpoint, third targeted query for AI/chatbot, mobile and small-business automation work. Keep direct client projects separate from employment/freelance roles; no bids, messages, or applications are sent."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   },
   {
     "name": "Freelancer.com - graphic design, logos and brand identity projects",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "logo design graphic design brand identity Figma social media posts banner packaging",
-    "notes": "Free read-only public active-project endpoint, focused on visual design services to reduce overlap with website, SEO/video, and automation searches. Listings are unverified; no bids, messages, or applications are sent."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   },
   {
     "name": "Freelancer.com - small-business website and landing-page briefs",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "small business website design landing page business website fixed price project",
-    "notes": "Targeted query for buyer briefs for small-business websites and landing pages. Free public read-only discovery; no bids or messages. Duplicates are suppressed and all listings remain unverified."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   },
   {
     "name": "Freelancer.com - WordPress and Shopify fixes",
     "type": "freelancer_api",
-    "enabled": true,
+    "enabled": false,
     "limit": 50,
     "query": "WordPress bug fix website speed repair Shopify store setup checkout fix ecommerce issue",
-    "notes": "Targeted query for bounded website maintenance and store-fix projects, distinct from broad redesign search. Free public read-only discovery; no bids or messages. Duplicates are suppressed and all listings remain unverified."
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
   }
 ]
