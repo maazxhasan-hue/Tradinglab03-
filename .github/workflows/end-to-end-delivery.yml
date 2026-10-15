@@ -58,7 +58,7 @@ jobs:
           python-version: "3.11"
       - name: Write brief safely
         env:
-          BUSINESS_NAME: ${{ inputs.business_name }}
+          LEAD_ID: ${{ inputs.lead_id }}\n          BUSINESS_NAME: ${{ inputs.business_name }}
           TAGLINE: ${{ inputs.tagline }}
           SERVICES: ${{ inputs.services }}
           CONTACT_EMAIL: ${{ inputs.contact_email }}
@@ -71,7 +71,7 @@ jobs:
           python - <<'PY'
           import json, os
           brief = {
-              "business_name": os.environ["BUSINESS_NAME"],
+              "lead_id": os.environ.get("LEAD_ID", ""),\n              "business_name": os.environ["BUSINESS_NAME"],
               "tagline": os.environ["TAGLINE"],
               "services": [x.strip() for x in os.environ["SERVICES"].split(",") if x.strip()],
               "contact_email": os.environ["CONTACT_EMAIL"],
