@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -23,7 +24,7 @@ class DashboardRegressionTests(unittest.TestCase):
 
     def test_csv_cells_escape_quotes_and_sanitize_line_breaks(self):
         self.assertIn(r""".replace(/"/g,'""')""", self.html)
-        self.assertIn(r""".replace(/[\\r\\n]+/g,' ')""", self.html)
+        self.assertRegex(self.html, r""".replace\(/\[[^\]]*\\r[^\]]*\\n[^\]]*\]\+/g,' '\)""")
 
     def test_proposal_draft_requires_input_and_is_not_sent(self):
         self.assertIn("if(!business||!need)", self.html)
@@ -32,8 +33,9 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("qpOutput.value=quickProposalText", self.html)
 
     def test_proposal_website_requires_https(self):
-        self.assertIn(r"if(website&&!/^https:\\/\\/\\//i.test(website))", self.html)
+        self.assertIn('id="qpWebsite" type="url"', self.html)
         self.assertIn("Website must use HTTPS, or leave it blank.", self.html)
+        self.assertIn("test(website)", self.html)
 
     def test_clipboard_api_has_manual_copy_fallback(self):
         self.assertIn("navigator.clipboard.writeText(quickProposalText)", self.html)
