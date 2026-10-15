@@ -89,10 +89,10 @@
 </section>
 <section class="card" style="margin-top:1rem" id="leadReview">
 <h2>Lead review desk</h2>
-<p class="muted">Import a downloaded <code>leads.json</code> from this repository to review it in this browser. The file is not uploaded anywhere. Leads are unverified until a human checks the original listing.</p>
+<p class="muted">Import a downloaded <code>leads.json</code> from this repository to review it in this browser. The file is not uploaded anywhere. The default filter shows potential client projects first; freelance roles and older unclassified listings stay separate. Every lead is unverified until a human checks that the listing is still open, the buyer intent is genuine, and the scope/payment terms are suitable.</p>
 <div class="row"><div><strong>Current lead register</strong><div class="muted">Open the repository's saved lead data or download it first.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">Open leads.json</a></div>
 <label for="leadFile">Choose downloaded leads.json</label><input id="leadFile" type="file" accept=".json,application/json">
-<label for="leadFilter">Filter lead review</label><select id="leadFilter"><option value="all">All imported leads</option><option value="client">Potential client projects only</option><option value="freelance">Freelance work opportunities</option><option value="review">Needs human review / unverified</option></select>
+<label for="leadFilter">Filter lead review</label><select id="leadFilter"><option value="all">All imported leads</option><option value="client" selected>Potential client projects only (recommended)</option><option value="freelance">Freelance work opportunities</option><option value="review">Needs human review / unverified</option></select>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
 <div><div class="muted">Loaded leads</div><div class="metric" id="leadTotal">0</div></div>
 <div><div class="muted">Potential projects</div><div class="metric" id="leadClients">0</div></div>
