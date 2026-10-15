@@ -88,7 +88,7 @@ def run_delivery(*, brief: dict, output_dir: str | Path, lead_store: str | Path 
     future_doc = [
         "# Future Feature Backlog", "",
         "This list is for discovery and prioritization only. These items are not included in version 1 unless the signed scope explicitly includes them.", "",
-        ("\n".join(f"- {item}" for item in future_items) if future_items else "_No future features supplied yet. Ask the client what they may need later, but do not invent commitments._"), "",
+        (str(future).strip() if isinstance(future, str) and future.strip() else ("\n".join(f"- {item}" for item in future_items) if future_items else "_No future features supplied yet. Ask the client what they may need later, but do not invent commitments._")), "",
         "## Prioritization for review",
         "- Value to the user's business", "- Effort and ongoing maintenance",
         "- Security, privacy, accessibility, and integration risks", "- Dependencies and data ownership",
