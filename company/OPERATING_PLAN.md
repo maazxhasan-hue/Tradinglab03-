@@ -10,7 +10,7 @@
 
 ## Hourly growth loop
 - GitHub Actions runs the public opportunity scout once each hour.
-- The scout reads the currently enabled public sources in `config/opportunity_sources.json`: Reddit r/forhire, Codeur's public project feed, and Jobicy's freelance-marketing feed. Codeur and Reddit are used for potential buyer/project requests; Jobicy is classified as secondary freelance/contract work, not assumed to be a direct buyer. Reddit r/DesignJobs and r/hiring remain disabled after HTTP 429 responses; XPlace feeds remain disabled after HTTP 404 responses; broad employee-job feeds remain disabled. The hourly GitHub Actions workflow uploads a report artifact when a run succeeds. Listings are unverified and may be ineligible, closed, unpaid, or unsuitable; inspect the report and source errors before acting.
+- The scout reads the currently enabled public sources in `config/opportunity_sources.json`: Reddit r/forhire and Codeur's public project feed. Codeur listings are mainly French-language. Freelancer.com sources and API setup are disabled by owner decision. Reddit r/DesignJobs and r/hiring remain disabled after HTTP 429 responses; XPlace feeds remain disabled after HTTP 404 responses; broad employee-job feeds remain disabled. The hourly GitHub Actions workflow uploads a report artifact when a run succeeds. Listings are unverified and may be ineligible, closed, unpaid, or unsuitable; inspect the report and source errors before acting.
 - The Business Intelligence & Revenue Scout can map evidence-backed business needs to possible services and draft a personalized, non-binding outreach message. The new TradingLab03 services page and 7-day organic marketing pack are drafts/portfolio assets; nothing is automatically published or sent.
 - An operator verifies listing legitimacy, platform rules, budget/payment terms, and fit before any bid or contact.
 - After an accepted contract, agents work from an explicit project brief; engineering output passes QA, security, accessibility, and client review.
@@ -38,6 +38,11 @@ Calls require an approved contact, purpose, lawful basis/consent check where req
 
 ## Earn-or-shutdown
 Default policy is a 30-day launch grace period plus 30-day evaluation period, with ₹999 verified non-refunded revenue target. A missed target returns a shutdown decision. A live kill switch, payment reconciliation, and process supervisor must be implemented and tested before this policy can stop running workers. Never count clicks or projected sales as revenue.
+
+## Free-first acquisition assets
+- `company/free-first-outreach-kit.md` contains service scopes, prospect qualification, message templates, and honest tracking rules; drafts must be approved before sending.
+- `portfolio-sample/northline-small-business-website-concept.html` is a fictional concept only. Keep its placeholder contact marked and do not present it as client work.
+- The company dashboard links to the sample, outreach kit, and free-first acquisition plan.
 
 ## First morning release criteria
 - Local dashboard opens from dashboard/index.html.
