@@ -20,10 +20,10 @@ class SpecialistOrchestratorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, patch.dict("os.environ", {}, clear=True):
             with patch("company.specialist_orchestrator.run_tool_agent") as agent:
                 report = run_specialist_team(brief=self.brief(), workspace=tmp, api_key="")
-        agent.assert_not_called()
-        self.assertEqual(report["status"], "skipped_no_api_key")
-        self.assertGreater(report["roles_attempted"], 1)
-        self.assertTrue((Path(tmp) / "specialist_execution_report.json").is_file())
+            agent.assert_not_called()
+            self.assertEqual(report["status"], "skipped_no_api_key")
+            self.assertGreater(report["roles_attempted"], 1)
+            self.assertTrue((Path(tmp) / "specialist_execution_report.json").is_file())
 
     def test_role_passes_are_sequential_and_artifacts_are_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -35,11 +35,11 @@ class SpecialistOrchestratorTests(unittest.TestCase):
                 return {"status": "completed", "tool_calls": 1, "final_message": "done"}
             with patch("company.specialist_orchestrator.run_tool_agent", side_effect=fake_agent) as agent:
                 report = run_specialist_team(brief=self.brief(), workspace=tmp, api_key="test-key")
-        self.assertEqual(agent.call_count, len(report["roles_requested"]))
-        self.assertEqual(report["roles_with_artifact"], len(report["roles_requested"]))
-        self.assertEqual(report["status"], "completed_with_limitations")
-        saved = json.loads((Path(tmp) / "specialist_execution_report.json").read_text(encoding="utf-8"))
-        self.assertEqual(saved["roles_attempted"], len(report["roles_requested"]))
+            self.assertEqual(agent.call_count, len(report["roles_requested"]))
+            self.assertEqual(report["roles_with_artifact"], len(report["roles_requested"]))
+            self.assertEqual(report["status"], "completed_with_limitations")
+            saved = json.loads((Path(tmp) / "specialist_execution_report.json").read_text(encoding="utf-8"))
+            self.assertEqual(saved["roles_attempted"], len(report["roles_requested"]))
 
     def test_stops_after_provider_failure_and_keeps_partial_report(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -47,9 +47,10 @@ class SpecialistOrchestratorTests(unittest.TestCase):
                 "status": "unavailable", "tool_calls": 0, "error": "quota"
             }) as agent:
                 report = run_specialist_team(brief=self.brief(), workspace=tmp, api_key="test-key")
-        self.assertEqual(agent.call_count, 1)
-        self.assertEqual(report["status"], "partial_or_unavailable")
-        self.assertEqual(report["roles_attempted"], 1)
+            self.assertEqual(agent.call_count, 1)
+            self.assertEqual(report["status"], "partial_or_unavailable")
+            self.assertEqual(report["roles_attempted"], 1)
+            self.assertTrue((Path(tmp) / "specialist_execution_report.json").is_file())
 
     def test_rejects_unsupported_service_and_excessive_rounds(self):
         with tempfile.TemporaryDirectory() as tmp:
