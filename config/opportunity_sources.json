@@ -98,5 +98,11 @@
     "url": "https://www.xplace.com/il/en/rss/new-projects",
     "enabled": false,
     "notes": "Disabled after live scout returned HTTP 404 Not Found; do not reactivate until a valid public feed URL is verified."
+  },
+  {
+    "name": "Remote OK - public remote freelance and contract listings",
+    "url": "https://remoteok.com/remote-jobs.rss",
+    "enabled": true,
+    "notes": "Free public RSS feed, read-only. Supplementary source for remote contract/freelance work, not direct client buyer leads. Preserve Remote OK attribution and original listing links; qualify each listing separately and do not apply or message automatically."
   }
 ]
