@@ -45,7 +45,8 @@ class WebsitePipelineTests(unittest.TestCase):
             self.assertTrue(result["passed"], result["errors"])
             index = (Path(td) / "index.html").read_text()
             self.assertIn("Headline to be confirmed with client", index)
-            self.assertIn("Public contact details are pending client approval", index)
+            contact = (Path(td) / "contact.html").read_text()
+            self.assertIn("Public contact details are pending client approval", contact)
             self.assertEqual(
                 result["manifest"]["content_gaps"],
                 ["approved_tagline", "approved_public_contact_email"],
