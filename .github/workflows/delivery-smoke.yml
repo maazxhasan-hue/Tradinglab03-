@@ -4,6 +4,7 @@ on:
     paths:
       - "company/**"
       - "tests/test_delivery_pipeline.py"
+      - "data/leads.json"
       - ".github/workflows/delivery-smoke.yml"
       - ".github/workflows/client-delivery.yml"
       - ".github/workflows/end-to-end-delivery.yml"
@@ -56,10 +57,55 @@ jobs:
           assert (root / "website" / "index.html").is_file()
           print("PASS: synthetic proposal + website bundle generated; no outreach, deployment, or revenue recorded.")
           PY
+      - name: Build a review-only draft from a saved client-project lead
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          store = json.loads(Path("data/leads.json").read_text(encoding="utf-8"))
+          service_map = {
+              "business_website": "business_website", "landing_page": "landing_page",
+              "website_audit": "website_audit", "seo_content": "seo_content",
+              "short_video": "short_video", "business_automation": "business_automation",
+              "design_or_website": "business_website", "website_or_digital_service": "business_website",
+          }
+          leads = store.get("leads", [])
+          lead = next((x for x in leads if isinstance(x, dict)
+                       and (x.get("opportunity_type") == "client_project" or x.get("client_fit") is True)
+                       and x.get("service") in service_map and x.get("id")), None)
+          if lead is None:
+              raise SystemExit("No saved client-project lead with a supported service is available for integration smoke test")
+          brief = {
+              "lead_id": lead["id"],
+              "business_name": lead["business_name"],
+              "tagline": "Draft prepared for human review",
+              "services": ["Scope to be confirmed with the project owner"],
+              "contact_email": "review-only@example.invalid",
+              "service": service_map[lead["service"]],
+              "price_quote": "",
+          }
+          Path("data/saved_lead_delivery_brief.json").write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(f"Using saved lead {lead['id']} ({lead.get('opportunity_type', 'legacy')}); source remains unverified.")
+          PY
+          python -m company.delivery_pipeline --brief data/saved_lead_delivery_brief.json --output data/delivery_bundles/saved-lead-review
+      - name: Assert saved-lead draft remains review-only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/delivery_bundles/saved-lead-review")
+          report = json.loads((root / "delivery_report.json").read_text(encoding="utf-8"))
+          assert report["status"] == "ready_for_human_review", report
+          assert report["sent"] is False
+          assert report["production_deployment_enabled"] is False
+          assert report["verified_revenue"] == 0
+          assert (root / "proposal.md").is_file()
+          assert (root / "website" / "index.html").is_file()
+          print("PASS: saved lead -> proposal + website draft; no outreach, deployment, or revenue recorded.")
+          PY
       - name: Upload smoke-test bundle
         uses: actions/upload-artifact@v4
         with:
           name: tradinglab03-delivery-smoke-${{ github.run_id }}
-          path: data/delivery_bundles/smoke/
-          if-no-files-found: error
+          path: data/delivery_bundles/smoke/\n            data/delivery_bundles/saved-lead-review/\n          if-no-files-found: error
           retention-days: 7
