@@ -150,7 +150,7 @@ jobs:
           assert report["sent"] is False
           assert report["production_deployment_enabled"] is False
           assert report["verified_revenue"] == 0
-          for path in ("proposal.md", "proposal.json", "website/index.html", "website/quality_report.json"):
+          for path in ("proposal.md", "proposal.json", "project_brief.md", "future_feature_backlog.md", "acceptance_checklist.md", "change_request_template.md", "handover_and_next_steps.md", "website/index.html", "website/quality_report.json"):
               assert (root / path).is_file(), f"Missing {path}"
           print("PASS: bundle is ready for human review only.")
           PY
