@@ -104,5 +104,12 @@
     "url": "https://remoteok.com/remote-jobs.rss",
     "enabled": false,
     "notes": "Disabled after live GitHub Actions validation returned HTTP 410 Gone for https://remoteok.com/remote-jobs.rss. Do not re-enable unless a current feed endpoint is verified from the runner."
+  },
+  {
+    "name": "PeoplePerHour - public freelance client projects",
+    "url": "https://www.peopleperhour.com/freelance-jobs",
+    "type": "peopleperhour",
+    "enabled": true,
+    "notes": "Read-only public listing reader; uses only ?page=1, no login or contact actions. Treat results as unverified project leads; verify platform eligibility, current status, budget, and terms before bidding."
   }
 ]
