@@ -79,5 +79,12 @@ class DashboardRegressionTests(unittest.TestCase):
         self.assertIn("'qualification_checks'", self.html)
         self.assertIn("not proof of legitimacy or payment", self.html)
 
+    def test_client_lead_can_prefill_local_proposal_draft(self):
+        self.assertIn("prepare.textContent='Prepare proposal draft'", self.html)
+        self.assertIn("prepare.disabled=kind!=='client_project'", self.html)
+        self.assertIn("Public listing: ", self.html)
+        self.assertIn("Lead details copied locally into the proposal form.", self.html)
+        self.assertIn("nothing was sent.", self.html)
+
 if __name__ == "__main__":
     unittest.main()
