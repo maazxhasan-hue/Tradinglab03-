@@ -11,16 +11,16 @@ on:
         required: true
         type: string
       tagline:
-        description: Approved tagline
-        required: true
+        description: Approved tagline, or supply it in requirements_json
+        required: false
         type: string
       services:
-        description: Comma-separated services for the draft website
-        required: true
+        description: Comma-separated approved services, or supply a services array in requirements_json
+        required: false
         type: string
       contact_email:
-        description: Approved public contact email
-        required: true
+        description: Approved public contact email, or supply it in requirements_json
+        required: false
         type: string
       observed_need:
         description: Verified buyer need; required unless using lead_id
@@ -36,7 +36,7 @@ on:
         type: string
       service:
         description: Service category
-        required: true
+        required: false
         type: choice
         options:
           - business_website
@@ -85,7 +85,7 @@ jobs:
               "lead_id": os.environ.get("LEAD_ID", "").strip(),
               "business_name": os.environ["BUSINESS_NAME"].strip(),
               "tagline": os.environ["TAGLINE"].strip(),
-              "services": [x.strip() for x in os.environ["SERVICES"].split(",") if x.strip()],
+              "services": [x.strip() for x in os.environ.get("SERVICES", "").split(",") if x.strip()],
               "contact_email": os.environ["CONTACT_EMAIL"].strip(),
               "observed_need": os.environ.get("OBSERVED_NEED", "").strip(),
               "evidence": os.environ.get("EVIDENCE", "").strip(),
@@ -104,6 +104,9 @@ jobs:
               # Normalize the HQ dashboard export to the delivery pipeline schema.
               aliases = {
                   "client": "business_name",
+                  "tagline": "tagline",
+                  "services": "services",
+                  "contact_email": "contact_email",
                   "goal": "observed_need",
                   "project_type": "requested_project_type",
                   "target_audience": "target_audience",
@@ -123,13 +126,28 @@ jobs:
                   value = requirements.get(source_key)
                   if value not in (None, ""):
                       brief[target_key] = value
+              # Dashboard exports services as a list; normalize and map project types.
+              if isinstance(brief.get("services"), str):
+                  brief["services"] = [x.strip() for x in brief["services"].split(",") if x.strip()]
+              if not brief.get("service"):
+                  project_type = str(requirements.get("project_type", "")).lower()
+                  brief["service"] = {
+                      "business website": "business_website",
+                      "landing page": "landing_page",
+                      "website redesign": "business_website",
+                      "e-commerce website": "business_website",
+                      "web app / dashboard": "business_website",
+                      "workflow automation": "business_automation",
+                      "seo & content": "seo_content",
+                      "video editing": "short_video",
+                  }.get(project_type, "business_website")
               if not brief.get("business_name") or not brief.get("observed_need"):
                   raise SystemExit("requirements_json must include client and goal")
           for key in ("business_name", "tagline", "contact_email"):
-              if not brief[key]:
-                  raise SystemExit(f"{key} must not be blank")
-          if not brief["services"]:
-              raise SystemExit("Provide at least one service")
+              if not brief.get(key):
+                  raise SystemExit(f"{key} must be supplied explicitly or in requirements_json; do not invent client-approved content")
+          if not brief.get("services"):
+              raise SystemExit("Provide at least one client-approved service explicitly or in requirements_json")
           if not brief["lead_id"] and not brief["observed_need"]:
               raise SystemExit("Provide a verified observed_need or a saved client-project lead_id")
           if brief["website_url"] and not brief["website_url"].startswith("https://"):
