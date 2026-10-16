@@ -76,7 +76,7 @@ class ClientOpportunityReviewTests(unittest.TestCase):
             self.assertIn("Excluded by source/status policy: 3", shortlist)
             self.assertIn("research only, not an actionable lead", report)
             self.assertIn("listing source is disabled or not configured", report)
-            self.assertIn("No bids, messages, or proposals were sent", report)
+            self.assertIn("no messages, bids, or proposals were sent", report)
 
     def test_invalid_lead_store_shape_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
