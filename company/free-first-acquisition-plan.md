@@ -99,3 +99,19 @@ These examples are research notes, not actionable or verified leads. No person w
 - **Do not pursue Codeur leads yet:** the source remains `research_only` because proposals require paid access and commission. No purchase or application was made.
 - **No outreach was sent:** the connected tools available to this workflow do not provide an authenticated Reddit/marketplace account or an authorized outbound messaging action. Do not claim a client was contacted, a proposal was submitted, or revenue was earned until there is evidence.
 - The public portfolio can be shared as capability proof: https://maazxhasan-hue.github.io/Tradinglab03-/dashboard/website.html. Describe demo work as a demo, not a paid client result.
+
+## RequestSignals / live-search follow-through — 2026-10-17
+
+**Decision:** RequestSignals remains a manual research source, not an automated feed. Do not scrape it or treat its index page as a qualified prospect list.
+
+**Research result:** A fresh web search surfaced a recently updated guide describing recent web-design requests, but the examples were summaries without enough direct evidence here to qualify a specific buyer. These are not imported as leads. Search results can be promotional, stale, or incomplete.
+
+**Manual qualification steps**
+1. Open [RequestSignals leads](https://requestsignals.com/leads) and select a request matching a service Nexora AI can deliver.
+2. Open the original Reddit/X/other post; record its direct URL and post date.
+3. Confirm it is a buyer requesting a deliverable, is still open, and does not forbid AI assistance or impose eligibility/experience requirements we cannot meet.
+4. Record scope, budget, deadline, platform rules, payment terms, and uncertainties in the private lead tracker. Do not put personal contact details into public repository files.
+5. Prepare one specific response draft and check every claim against the portfolio. Do not send it until the owner approves and the platform permits that contact.
+6. If no request passes these checks, keep the qualified-lead count at zero; improve the demo rather than inventing a lead.
+
+**Current outcome:** No specific RequestSignals entry has been verified as an actionable buyer during this check. No account was created, no fee paid, no message sent, and no proposal submitted.
