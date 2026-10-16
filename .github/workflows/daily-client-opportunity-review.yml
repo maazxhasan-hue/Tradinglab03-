@@ -12,6 +12,7 @@ on:
       - "company/daily_company_review.py"
       - "config/opportunity_sources.json"
       - "data/leads.json"
+      - "tests/test_client_opportunity_review.py"
       - ".github/workflows/daily-client-opportunity-review.yml"
 
 permissions:
