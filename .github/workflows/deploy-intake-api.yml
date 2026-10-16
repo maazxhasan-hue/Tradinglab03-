@@ -106,7 +106,7 @@ jobs:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
           SITE_ORIGIN: ${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
-          FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL }}
+          FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
         run: |
           python - <<'PY'
           import json, os, pathlib, re
