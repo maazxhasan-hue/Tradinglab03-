@@ -19,11 +19,13 @@ class ProductionIntakeTests(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, worker)
         self.assertIn("origin !== env.ALLOWED_ORIGIN", worker)
-        self.assertIn("ON DELETE", (ROOT / "worker" / "migrations" / "0001_init.sql").read_text(encoding="utf-8")) if False else None
+        migration = (ROOT / "worker" / "migrations" / "0001_init.sql").read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE IF NOT EXISTS submissions", migration)
+        self.assertIn("idx_submissions_ip_created", migration)
 
     def test_public_website_has_opt_in_real_submission_path_and_safe_fallback(self):
         html = (ROOT / "dashboard" / "website.html").read_text(encoding="utf-8")
-        self.assertIn('data-intake-endpoint=""', html)
+        self.assertRegex(html, r'data-intake-endpoint="[^"]*"')
         self.assertIn('name="website"', html)
         self.assertIn('fetch(endpoint + "/api/intake"', html)
         self.assertIn("Your enquiry was received and saved", html)
