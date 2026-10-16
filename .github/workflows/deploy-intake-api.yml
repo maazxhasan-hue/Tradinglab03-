@@ -185,14 +185,32 @@ jobs:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
         run: |
           python - <<'PY'
-          import json, os, urllib.request
+          import json, os, time, urllib.request, urllib.error
           url = os.environ["INTAKE_ENDPOINT"].rstrip("/") + "/health"
-          req = urllib.request.Request(url, headers={"Accept": "application/json"})
-          with urllib.request.urlopen(req, timeout=20) as res:
-              body = json.load(res)
-              if res.status != 200 or body.get("ok") is not True or body.get("storage") != "ready":
-                  raise SystemExit("Intake health check did not confirm storage readiness.")
-          print("Intake API and D1 health check passed.")
+          headers = {
+              "Accept": "application/json",
+              "User-Agent": "Mozilla/5.0 (compatible; TradingLab03-HealthCheck/1.0)"
+          }
+          last_error = None
+          for attempt in range(3):
+              try:
+                  req = urllib.request.Request(url, headers=headers)
+                  with urllib.request.urlopen(req, timeout=20) as res:
+                      body = json.load(res)
+                      if res.status == 200 and body.get("ok") is True and body.get("storage") == "ready":
+                          print("Intake API and D1 health check passed.")
+                          break
+                      raise SystemExit("Intake health check did not confirm storage readiness.")
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", "replace")[:300]
+                  last_error = f"HTTP {exc.code}: {detail}"
+              except Exception as exc:
+                  last_error = str(exc)
+              if attempt < 2:
+                  print(f"Health check attempt {attempt + 1} failed; retrying: {last_error}")
+                  time.sleep(3)
+          else:
+              raise SystemExit("Intake health check failed after 3 attempts: " + str(last_error))
           PY
       - name: Upload website with the connected intake endpoint
         uses: actions/upload-pages-artifact@v3
