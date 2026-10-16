@@ -183,19 +183,23 @@ async function createSubmission(request, env, cors) {
     notification: notificationStatus === "sent" ? "owner_notified" : notificationStatus === "failed" ? "saved_notification_failed" : "saved_no_email"
   }, 201, cors);
 }
-async function deleteSubmission(request, env, id) {
+async function deleteSubmission(request, env, id, cors) {
+  const origin = request.headers.get("Origin") || "";
+  if (origin && origin !== env.ALLOWED_ORIGIN) return response({ error: "This origin is not allowed." }, 403);
   const auth = request.headers.get("Authorization") || "";
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
-    return response({ error: "Unauthorized." }, 401, { "www-authenticate": "Bearer" });
+    return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({ error: "Invalid submission ID." }, 400);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({ error: "Invalid submission ID." }, 400, cors);
   const result = await env.DB.prepare("DELETE FROM submissions WHERE id = ?").bind(id).run();
-  return response({ deleted: Number(result.meta && result.meta.changes || 0) > 0 }, 200, { "cache-control": "no-store" });
+  return response({ deleted: Number(result.meta && result.meta.changes || 0) > 0 }, 200, { ...cors, "cache-control": "no-store" });
 }
-async function listSubmissions(request, env) {
+async function listSubmissions(request, env, cors) {
+  const origin = request.headers.get("Origin") || "";
+  if (origin && origin !== env.ALLOWED_ORIGIN) return response({ error: "This origin is not allowed." }, 403);
   const auth = request.headers.get("Authorization") || "";
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
-    return response({ error: "Unauthorized." }, 401, { "www-authenticate": "Bearer" });
+    return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
   const url = new URL(request.url);
   const limit = Math.min(100, Math.max(1, Number.parseInt(url.searchParams.get("limit") || "50", 10) || 50));
@@ -210,7 +214,7 @@ async function listSubmissions(request, env) {
       "SELECT id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, notification_status FROM submissions ORDER BY created_at DESC LIMIT ?"
     ).bind(limit).all();
   }
-  return response({ submissions: result.results || [] }, 200, { "cache-control": "no-store" });
+  return response({ submissions: result.results || [] }, 200, { ...cors, "cache-control": "no-store" });
 }
 export default {
   async fetch(request, env) {
@@ -233,13 +237,13 @@ export default {
       catch { return response({ error: "The enquiry service is temporarily unavailable. Please retry or use the contact link." }, 503, cors); }
     }
     if (url.pathname === "/api/admin/submissions" && request.method === "GET") {
-      try { return await listSubmissions(request, env); }
-      catch { return response({ error: "Could not load submissions." }, 503); }
+      try { return await listSubmissions(request, env, cors); }
+      catch { return response({ error: "Could not load submissions." }, 503, cors); }
     }
     const deleteMatch = url.pathname.match(/^\/api\/admin\/submissions\/([^/]+)$/);
     if (deleteMatch && request.method === "DELETE") {
-      try { return await deleteSubmission(request, env, deleteMatch[1]); }
-      catch { return response({ error: "Could not delete the submission." }, 503); }
+      try { return await deleteSubmission(request, env, deleteMatch[1], cors); }
+      catch { return response({ error: "Could not delete the submission." }, 503, cors); }
     }
     return response({ error: "Not found." }, 404, cors);
   }

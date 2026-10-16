@@ -27,9 +27,11 @@ This Cloudflare Worker is a separate business-intake service. It does not connec
 
 If the Cloudflare credentials or owner key are missing, deployment intentionally fails instead of pretending the service is live. Without the optional Resend settings, submissions are still stored in D1 but no email alert is sent. The website only reports success after the API confirms the submission was saved.
 
-## Owner-only retrieval
+## Owner inbox and private retrieval
 
-Use the deployed worker URL and owner key privately:
+After deployment, open the public Pages path `inbox.html` on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
+
+For command-line retrieval, use the deployed worker URL and owner key privately:
 
 ```sh
 curl -H "Authorization: Bearer $TRADINGLAB03_ADMIN_API_KEY" \
