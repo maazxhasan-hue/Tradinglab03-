@@ -14,6 +14,14 @@ class WebsitePipelineTests(unittest.TestCase):
             self.assertTrue((Path(td) / "index.html").exists())
             self.assertTrue((Path(td) / "quality_report.json").exists())
             self.assertTrue((Path(td) / "contact.html").exists())
+            contact = (Path(td) / "contact.html").read_text(encoding="utf-8")
+            self.assertIn('action="mailto:hello@example.com"', contact)
+            self.assertIn('name="Message"', contact)
+            self.assertIn("opens your email app", contact.lower())
+            index = (Path(td) / "index.html").read_text(encoding="utf-8")
+            self.assertIn('<details class="mobile-menu">', index)
+            self.assertIn("<summary>Menu</summary>", index)
+            self.assertTrue(result["checks"][next(i for i, item in enumerate(result["checks"]) if item["name"] == "mobile_navigation_toggle")]["passed"])
             self.assertFalse(result["production_deployment_enabled"])
 
     def test_requested_pages_and_features_are_rendered_and_checked(self):
@@ -36,6 +44,10 @@ class WebsitePipelineTests(unittest.TestCase):
             self.assertIn("Help customers compare service plans", index)
             manifest = result["manifest"]
             self.assertTrue(manifest["unimplemented_features_require_implementation_and_acceptance_testing"])
+            self.assertEqual(manifest["contact_form_mode"], "mailto_handoff")
+            contact = (Path(td) / "contact.html").read_text(encoding="utf-8")
+            self.assertIn('action="mailto:hello@example.com"', contact)
+            self.assertTrue(next(item["passed"] for item in result["checks"] if item["name"] == "contact_form_handoff"))
 
     def test_missing_optional_copy_is_flagged_not_invented(self):
         brief = {"business_name": "Example Co", "tagline": "",
@@ -51,6 +63,9 @@ class WebsitePipelineTests(unittest.TestCase):
                 result["manifest"]["content_gaps"],
                 ["approved_tagline", "approved_public_contact_email"],
             )
+            self.assertEqual(result["manifest"]["contact_form_mode"], "not_configured")
+            self.assertNotIn("<form", contact)
+            self.assertTrue(next(item["passed"] for item in result["checks"] if item["name"] == "contact_form_handoff"))
             self.assertFalse(result["manifest"]["production_scope_complete"])
 
     def test_unknown_fields_rejected(self):

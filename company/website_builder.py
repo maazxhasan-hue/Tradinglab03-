@@ -93,9 +93,15 @@ def generate_website(
         for label, slug in unique_pages
     )
     contact_block = (
-        f'<a href="mailto:{email}">{email}</a>'
+        f'<p><a href="mailto:{email}">{email}</a></p>'
+        f'<form class="enquiry-form" action="mailto:{email}" method="post" enctype="text/plain">'
+        '<label for="enquiry-name">Your name</label><input id="enquiry-name" name="Name" autocomplete="name" required>'
+        '<label for="enquiry-email">Your email</label><input id="enquiry-email" name="Reply email" type="email" autocomplete="email" required>'
+        '<label for="enquiry-message">How can we help?</label><textarea id="enquiry-message" name="Message" rows="5" required></textarea>'
+        '<button class="button" type="submit">Prepare enquiry email</button>'
+        '<p class="muted">This opens your email app to review and send. It does not submit data to a server.</p></form>'
         if email else
-        '<p class="notice">Public contact details are pending client approval.</p>'
+        '<p class="notice">Public contact details are pending client approval. An enquiry form cannot be configured until an approved contact email is supplied.</p>'
     )
     goal_block = f"<p>{esc(observed_need)}</p>" if observed_need.strip() else ""
     audience_block = f"<p><strong>Audience:</strong> {esc(target_audience)}</p>" if target_audience.strip() else ""
@@ -108,6 +114,10 @@ def generate_website(
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--ink);line-height:1.6}
 header{padding:1rem max(1.25rem,calc((100% - 1120px)/2));display:flex;justify-content:space-between;align-items:center;gap:1rem;border-bottom:1px solid #e7ecef;flex-wrap:wrap}
 .brand{font-weight:800}nav{display:flex;gap:.8rem;flex-wrap:wrap}nav a,a{color:var(--brand)}nav a{text-decoration:none}
+.mobile-menu{display:none}.mobile-menu summary{cursor:pointer;color:var(--brand);font-weight:700;padding:.35rem 0}
+.mobile-menu nav{display:flex;flex-direction:column;align-items:flex-start;padding:.75rem 0}.enquiry-form{display:grid;gap:.5rem;max-width:620px;margin:1.5rem 0}
+.enquiry-form input,.enquiry-form textarea{width:100%;font:inherit;padding:.7rem;border:1px solid #aab5bd;border-radius:.5rem}
+.enquiry-form button{border:0;cursor:pointer;justify-self:start}
 .hero{padding:5rem 1.25rem;background:linear-gradient(135deg,#eef7f5,var(--paper));text-align:center}.hero-inner{max-width:820px;margin:auto}
 h1{font-size:clamp(2.2rem,6vw,4.2rem);line-height:1.05;letter-spacing:-.04em}
 .button{display:inline-block;background:var(--brand);color:white;text-decoration:none;padding:.85rem 1.2rem;border-radius:.7rem;font-weight:700}
@@ -115,7 +125,7 @@ section{max-width:1120px;margin:auto;padding:2.5rem 1.25rem}.cards{display:grid;
 .card{border:1px solid #e4e9ed;border-radius:1rem;padding:1.25rem;background:white}.feature-list{padding-left:1.4rem}
 .muted{color:var(--muted)}.notice{background:#fff8e5;border-left:4px solid #d39b19;padding:1rem}
 footer{padding:2rem 1.25rem;background:#101a22;color:white;text-align:center}:focus-visible{outline:3px solid #f0b429;outline-offset:3px}
-@media(max-width:600px){header{align-items:flex-start}nav{width:100%}.hero{padding:3rem 1rem}}
+@media(max-width:600px){header{align-items:flex-start}.desktop-nav{display:none}.mobile-menu{display:block;width:100%}.mobile-menu nav{width:100%}.hero{padding:3rem 1rem}}
 </style>""".replace("COLOR", primary_color)
 
     out = Path(output_dir)
@@ -162,7 +172,9 @@ footer{padding:2rem 1.25rem;background:#101a22;color:white;text-align:center}:fo
             '<meta name="description" content="' + tag + '">'
             '<title>' + name + ' | ' + safe_label + '</title>' + styles +
             '</head><body><header><a class="brand" href="index.html">' + name +
-            '</a><nav aria-label="Main navigation">' + nav + '</nav></header><main>' +
+            '</a><nav class="desktop-nav" aria-label="Main navigation">' + nav + '</nav>' +
+            '<details class="mobile-menu"><summary>Menu</summary><nav aria-label="Mobile navigation">' +
+            nav + '</nav></details></header><main>' +
             hero + content + '</main><footer>Draft for review · ' + name +
             ' · Confirm scope, content, contact details, and functionality before launch.</footer></body></html>'
         )
@@ -176,6 +188,7 @@ footer{padding:2rem 1.25rem;background:#101a22;color:white;text-align:center}:fo
         "requested_pages": page_files,
         "version_1_features": features,
         "contact_email_supplied": bool(contact_email.strip()),
+        "contact_form_mode": "mailto_handoff" if contact_email.strip() else "not_configured",
         "tagline_supplied": tagline_supplied,
         "content_gaps": [
             gap for gap, present in (

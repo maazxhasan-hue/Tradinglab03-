@@ -16,6 +16,16 @@ def quality_check(output_dir: str | Path) -> dict:
     page = page_path.read_text(encoding="utf-8")
     manifest_path = out / "site_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    contact_path = out / "contact.html"
+    contact_page = contact_path.read_text(encoding="utf-8") if contact_path.exists() else ""
+    contact_form_handoff = (
+        'action="mailto:' in contact_page
+        and 'method="post"' in contact_page
+        and 'name="Message"' in contact_page
+        and 'type="submit"' in contact_page
+        if manifest.get("contact_email_supplied") is True
+        else "Public contact details are pending client approval" in contact_page
+    )
     requested_pages = manifest.get("requested_pages", [])
     page_checks = {
         f"requested_page_exists:{entry.get('file', '')}": (out / str(entry.get("file", ""))).is_file()
@@ -32,6 +42,8 @@ def quality_check(output_dir: str | Path) -> dict:
         "primary_heading": "<h1>" in page and "</h1>" in page,
         "contact_path": 'id="contact"' in (out / "contact.html").read_text(encoding="utf-8") if (out / "contact.html").exists() else False,
         "responsive_layout": "auto-fit" in page and "minmax(" in page,
+        "mobile_navigation_toggle": 'class="mobile-menu"' in page and "<summary>Menu</summary>" in page and 'class="desktop-nav"' in page,
+        "contact_form_handoff": contact_form_handoff,
         "keyboard_focus": ":focus-visible" in page,
         "no_template_tokens": "TAGLINE" not in page and "BUSINESS" not in page and "COLOR" not in page,
         "manifest_requires_review": manifest.get("review_required") is True,
