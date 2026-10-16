@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-16T03:40:00+00:00",
+  "updated_at": "2026-10-16T04:05:00+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -2678,10 +2678,10 @@
       "need": "Requester seeks a workflow to convert large MCQ PDF question papers (200–500+ questions per PDF) into a fixed 24-column Excel template, preserve Gujarati/English text, numbers and mathematical expressions without rewriting, and extract/associate question and option images.",
       "website_url": "",
       "source_url": "https://www.reddit.com/r/Excel247/comments/1we5tr2/looking_for_a_reliable_solution_to_convert_mcq/",
-      "evidence": "Original Reddit post opened during research on 2026-10-16. Post age shown as approximately 3 days. Requester says they are open to a developer/freelancer and can provide a sample PDF and Excel template. The post does not state a budget or confirm a contract.",
+      "evidence": "Original Reddit post opened during research on 2026-10-16. Post age shown as approximately 3 days. Requester says they are open to a developer/freelancer and can provide a sample PDF and Excel template. The post does not state a budget or confirm a contract. Research correction 2026-10-16: visible post date 2026-09-12; latest visible comment found 2026-09-22. Active buyer intent not verified.",
       "contact_name": "",
-      "notes": "Research-stage potential buyer request, not a qualified contract. Scope is technically non-trivial; OCR fidelity and image-to-question association need sample-based validation. Confirm post still open, buyer intent, acceptable tooling, budget, deadline, source-PDF rights, and template fields before any proposal. No contact has been made.",
-      "status": "researching",
+      "notes": "Research-stage potential buyer request, not a qualified contract. Scope is technically non-trivial; OCR fidelity and image-to-question association need sample-based validation. Confirm post still open, buyer intent, acceptable tooling, budget, deadline, source-PDF rights, and template fields before any proposal. No contact has been made. Research correction 2026-10-16: post is dated 2026-09-12; latest visible comment found is 2026-09-22. Earlier estimated post age was incorrect. Marked stale; no outreach made.",
+      "status": "lost",
       "status_history": [
         {
           "status": "new",
@@ -2692,15 +2692,20 @@
           "status": "researching",
           "at": "2026-10-16T03:40:00+00:00",
           "note": "Specific buyer problem found; budget and engagement terms unknown, so keep in research pending sample and eligibility checks."
+        },
+        {
+          "status": "lost",
+          "at": "2026-10-16T04:05:00+00:00",
+          "note": "Rechecked original public thread on 2026-10-16: original post dates to 2026-09-12 and latest visible comment found dates to 2026-09-22. Current buyer intent is unverified and post is stale; do not contact or treat as active without fresh evidence."
         }
       ],
       "created_at": "2026-10-16T03:40:00+00:00",
-      "updated_at": "2026-10-16T03:40:00+00:00",
+      "updated_at": "2026-10-16T04:05:00+00:00",
       "quote_inr": null,
       "revenue_inr": null,
       "revenue_evidence": "",
       "contacted": false,
-      "next_action": "Prepare a sample-based feasibility plan; verify current post and buyer terms. Owner approval required before any outreach.",
+      "next_action": "Do not contact based on stale listing. Reopen only if requester posts a fresh update or confirms they are still seeking help.",
       "source_type": "manual_research",
       "source_name": "Reddit r/Excel247 via RequestSignals",
       "opportunity_score": 0,
