@@ -11,6 +11,8 @@ class ProductionIntakeTests(unittest.TestCase):
         self.assertIn('INSERT INTO submissions', worker)
         self.assertIn('SELECT id, created_at, name, email', worker)
         self.assertIn('auth !== "Bearer " + env.ADMIN_API_KEY', worker)
+        self.assertIn("payload.consent !== true", worker)
+        self.assertIn("DELETE FROM submissions WHERE id = ?", worker)
         self.assertIn('if (!env.ADMIN_API_KEY', worker)
 
     def test_worker_has_input_and_abuse_controls(self):
@@ -27,10 +29,17 @@ class ProductionIntakeTests(unittest.TestCase):
         html = (ROOT / "dashboard" / "website.html").read_text(encoding="utf-8")
         self.assertRegex(html, r'data-intake-endpoint="[^"]*"')
         self.assertIn('name="website"', html)
-        self.assertIn('fetch(endpoint + "/api/intake"', html)
+        self.assertIn('fetch(endpoint.replace(', html)
         self.assertIn("Your enquiry was received and saved", html)
         self.assertIn("nothing was sent automatically", html)
         self.assertIn("https://www.instagram.com/tradinglab03/", html)
+
+    def test_privacy_notice_and_explicit_consent_are_present(self):
+        html = (ROOT / "dashboard" / "website.html").read_text(encoding="utf-8")
+        privacy = (ROOT / "dashboard" / "privacy.html").read_text(encoding="utf-8")
+        self.assertIn('id="consent" name="consent" type="checkbox" required', html)
+        self.assertIn("Cloudflare D1", privacy)
+        self.assertIn("access, correction, or deletion", privacy)
 
     def test_deployment_requires_secrets_and_wires_endpoint(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-intake-api.yml").read_text(encoding="utf-8")
