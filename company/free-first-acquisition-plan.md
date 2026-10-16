@@ -82,3 +82,11 @@ This plan authorizes research and drafting only. It does not authorize messages,
 - **Project Mela:** public gig pages are browseable, but individual entries need freshness and payment/eligibility checks. Keep it manual-only; no registration or bid was made. [Browse gigs](https://www.projectmela.com/gigs).
 
 These examples are research notes, not actionable or verified leads. No person was contacted, and no revenue is claimed.
+
+
+## Website-to-client workflow (updated 2026-10-16)
+
+- The public project form builds and downloads a structured brief in the visitor\u2019s browser; it does not upload to a server.
+- Visitors can copy the brief and open the connected public Instagram profile `@tradinglab03` to paste and send an enquiry manually. The site never claims the enquiry was submitted automatically.
+- The HQ links directly to the Instagram inbox and the manual-dispatch `Autonomous Client Execution` workflow. After a client sends an agreed brief, the operator can dispatch the workflow to create a review bundle. The workflow does not automatically read Instagram DMs, send replies, sign contracts, take payment, or deploy client production systems.
+- The model-based worker pass requires a valid, quota-available `OPENAI_API_KEY` in GitHub Actions secrets; otherwise the deterministic/template output remains available with limitations. Do not add secrets to repository files or workflow inputs.
