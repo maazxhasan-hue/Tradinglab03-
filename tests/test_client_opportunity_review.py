@@ -54,13 +54,16 @@ class ClientOpportunityReviewTests(unittest.TestCase):
                  "source_url": "https://example.com/job", "status": "new"},
             ]
             leads_file.write_text(json.dumps({"leads": leads}), encoding="utf-8")
+
             def fake_pack(lead_id, store_path):
                 return {"proposal_markdown": f"# Draft for {lead_id}"}
-            with patch.object(client_opportunity_review, "LEADS_FILE", leads_file), \\
-                 patch.object(client_opportunity_review, "OUT_DIR", out_dir), \\
-                 patch.object(client_opportunity_review, "build_pack_from_lead", side_effect=fake_pack) as builder, \\
+
+            with patch.object(client_opportunity_review, "LEADS_FILE", leads_file), \
+                 patch.object(client_opportunity_review, "OUT_DIR", out_dir), \
+                 patch.object(client_opportunity_review, "build_pack_from_lead", side_effect=fake_pack) as builder, \
                  patch.object(daily_company_review, "SOURCE_CONFIG", source_config):
                 self.assertEqual(client_opportunity_review.main(), 0)
+
             self.assertEqual(builder.call_count, 1)
             builder.assert_called_once_with("TL-1", store_path=leads_file)
             self.assertTrue((out_dir / "TL-1.md").exists())
@@ -73,7 +76,7 @@ class ClientOpportunityReviewTests(unittest.TestCase):
             self.assertIn("Excluded by source/status policy: 3", shortlist)
             self.assertIn("research only, not an actionable lead", report)
             self.assertIn("listing source is disabled or not configured", report)
-            self.assertIn('"sent": false', report.replace(" ", "").lower() if False else json.dumps({"sent": False}))
+            self.assertIn("No bids, messages, or proposals were sent", report)
 
     def test_invalid_lead_store_shape_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
