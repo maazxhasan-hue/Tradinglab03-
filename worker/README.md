@@ -20,12 +20,12 @@ This Cloudflare Worker is a separate business-intake service. It does not connec
    - `RESEND_API_KEY` (optional for storage; needed for email alerts).
 2. Add repository variables:
    - `TRADINGLAB03_NOTIFY_EMAIL` — the inbox that should receive new enquiries.
-   - `TRADINGLAB03_FROM_EMAIL` — a sender address verified by Resend, if email alerts are enabled.
+   - `TRADINGLAB03_FROM_EMAIL` — a sender address verified by Resend for production. For a no-domain test only, leave this variable unset; deployment uses Resend's `onboarding@resend.dev` test sender by default. Resend test mode is limited and may only deliver to the email address associated with your Resend account. For real client notifications, verify a domain you control and set this variable to that domain's sender address.
    - `TRADINGLAB03_SITE_ORIGIN` — the exact website origin, e.g. `https://maazxhasan-hue.github.io` (origin only; no path).
 3. Run **Deploy TradingLab03 Intake API** from GitHub Actions. It creates or reuses the D1 database, applies migrations, deploys the Worker, configures the owner key, and wires the deployed endpoint into the public website.
 4. Check the workflow output and visit the `/health` URL. Submit a test enquiry with your own test email and confirm it appears in the owner notification or the protected admin endpoint.
 
-If the Cloudflare credentials or owner key are missing, deployment intentionally fails instead of pretending the service is live. Without the optional Resend settings, submissions are still stored in D1 but no email alert is sent. The website only reports success after the API confirms the submission was saved.
+If the Cloudflare credentials or owner key are missing, deployment intentionally fails instead of pretending the service is live. Without `RESEND_API_KEY` or `TRADINGLAB03_NOTIFY_EMAIL`, submissions are still stored in D1 but no email alert is sent. The default `onboarding@resend.dev` sender is for testing only; it does not remove Resend's recipient restrictions or replace domain verification for production. The website only reports success after the API confirms the submission was saved.
 
 ## Owner inbox and private retrieval
 
