@@ -27,7 +27,8 @@
     "name": "Reddit r/forhire - public service requests",
     "url": "https://www.reddit.com/r/forhire/new/.rss?limit=25",
     "enabled": true,
-    "notes": "Public community feed to discover posts offering or requesting freelance services. Review subreddit rules, poster intent, eligibility, legitimacy, and payment before acting; not a verified client source."
+    "notes": "Public community feed to discover posts offering or requesting freelance services. Review subreddit rules, poster intent, eligibility, legitimacy, and payment before acting; not a verified client source. Human review is required before any contact or application.",
+    "action_policy": "review_allowed"
   },
   {
     "name": "Reddit r/DesignJobs - public design requests",
@@ -57,7 +58,8 @@
     "name": "Codeur - public freelance project requests",
     "url": "https://www.codeur.com/projects?format=rss",
     "enabled": true,
-    "notes": "Public RSS listing of client-posted freelance projects, mainly French-language web/design/marketing work. Preserve attribution and original listing links; assess language, location, budget, and eligibility manually. French buyer-intent classifier expanded to recognize direct paid-service requests such as Meta Ads/SEA campaign management; job-vacancy signals still disqualify employment roles."
+    "notes": "Public RSS listing of client-posted freelance projects, mainly French-language web/design/marketing work. Preserve attribution and original listing links; assess language, location, budget, and eligibility manually. French buyer-intent classifier expanded to recognize direct paid-service requests such as Meta Ads/SEA campaign management; job-vacancy signals still disqualify employment roles. Research-only for the free-first operation: current offer submission requires a paid subscription and commission; do not treat as an actionable free-first lead or buy a plan without explicit approval.",
+    "action_policy": "research_only"
   },
   {
     "name": "XPlace - website projects",
