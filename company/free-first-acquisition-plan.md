@@ -146,3 +146,34 @@ No individual RequestSignals listing has been verified in this update, so no lea
 | Contact status | Not contacted |
 
 **Current boundary:** public browsing and proposal drafting only. No account was created, no subscription purchased, and no one was contacted.
+
+## Agent-operated client pipeline — 2026-10-17
+
+The goal is for Nexora AI agents to handle repeatable internal work end to end, with explicit evidence at every stage.
+
+| Stage | Agent responsibility | Current capability / gate |
+|---|---|---|
+| Discover | Hourly Opportunity Scout checks enabled public feeds | Scheduled workflow exists; source failures and stale posts remain possible |
+| Qualify | Filter for real buyer intent, freshness, service fit, eligibility, fees, and platform rules | Automated ranking plus human/source verification; do not equate a listing with a client |
+| Prepare | Client Draft Queue creates tailored proposal packs for source-policy-eligible leads | Daily scheduled workflow exists; drafts are not sent |
+| Demonstrate | Website Builder prepares a scoped concept/demo from the public brief | House of Payal independent concept has been committed; use as a concept only |
+| Deliver | Client Execution agents decompose an agreed brief, create artifacts, run tests, and produce a handover bundle | Manual workflow dispatch after an agreed brief; model specialist steps require a configured, approved API key |
+| Contact / negotiate | Send a permitted message, track replies, agree scope and payment | BLOCKED: no authenticated, authorized outbound Reddit/marketplace messaging integration is connected |
+| Production / payment | Deploy to client-owned account, confirm acceptance, record verified receipt and costs | Requires client approval, credentials/ownership, and payment evidence; never mark complete based on a draft |
+
+### Current prospect state: House of Payal
+
+- Public request: silver jewellery catalogue, with a stated budget of ₹15,000; original post: https://www.reddit.com/r/FreelanceIndia/comments/1x51vf5/title_looking_for_a_freelance_web_developer_to/
+- Independent concept source: https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/dashboard/demos/house-of-payal-concept.html
+- Deployment workflow reported success for the commit that added the concept. The public page URL has not been independently confirmed accessible in this review.
+- Proposal draft is prepared in the current conversation. No DM/comment/email was sent, no client reply received, and no contract or revenue exists.
+- Because multiple freelancers have already replied, re-check the original post and buyer activity before investing more time in custom work.
+
+### Operating rules
+
+1. Let scheduled agents continue discovery and draft generation; inspect their latest artifacts rather than claiming a workflow ran when it did not.
+2. Never auto-send messages, submit bids, accept terms, quote a binding price, buy a service, or deploy to a client-owned domain without the required authorization and tested integration.
+3. Keep outbound integration disabled until the account is connected, permitted by platform rules, and tested with a safe, owner-reviewed action.
+4. Keep TradingLab03/MCX/Angel One trading systems separate; this client-acquisition pipeline must not change their configuration.
+5. Report measurable state only: qualified leads, drafts, sent messages (with evidence), replies, accepted scope, tested deliverables, verified receipts, and net costs.
+
