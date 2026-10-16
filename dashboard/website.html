@@ -68,7 +68,7 @@ form.addEventListener("submit",async e=>{
  if(endpoint){
   const submitButton=form.querySelector('button[type="submit"]');submitButton.disabled=true;statusBox.classList.remove("ok");statusBox.textContent="Submitting your enquiry securely…";
   try{
-   const resp=await fetch(endpoint.replace(/\\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",signal:AbortSignal.timeout(15000)});
+   const resp=await fetch(endpoint.replace(/\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",signal:AbortSignal.timeout(15000)});
    const result=await resp.json().catch(()=>({}));
    if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
