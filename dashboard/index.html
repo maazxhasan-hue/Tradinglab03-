@@ -139,7 +139,7 @@
 <section class="card" style="margin-top:1rem" id="leadReview">
 <h2>Lead review desk</h2>
 <p class="muted">Import a downloaded <code>leads.json</code> from this repository to review it in this browser. The file is not uploaded anywhere. The default filter shows potential client projects first; freelance roles and older unclassified listings stay separate. Every lead is unverified until a human checks that the listing is still open, the buyer intent is genuine, and the scope/payment terms are suitable.</p>
-<div class="row"><div><strong>Current lead register</strong><div class="muted">Open the repository's saved lead data or download it first.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">Open leads.json</a></div>
+<div class="row"><div><strong>Current lead register</strong><div class="muted">Open or download the latest public lead data, then choose the JSON file below. The dashboard stays standalone and does not make background network requests.</div></div><div style="display:flex;gap:.5rem;flex-wrap:wrap"><a href="https://raw.githubusercontent.com/maazxhasan-hue/Tradinglab03-/main/data/leads.json" target="_blank" rel="noopener">Open/download latest leads.json ↗</a><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">View on GitHub</a></div></div>
 <label for="leadFile">Choose downloaded leads.json</label><input id="leadFile" type="file" accept=".json,application/json">
 <label for="leadFilter">Filter lead review</label><select id="leadFilter"><option value="all">All imported leads</option><option value="client" selected>Potential client projects only (recommended)</option><option value="freelance">Freelance work opportunities</option><option value="review">Needs human review / unverified</option></select>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
@@ -147,7 +147,7 @@
 <div><div class="muted">Potential projects</div><div class="metric" id="leadClients">0</div></div>
 <div><div class="muted">Freelance work</div><div class="metric" id="leadFreelance">0</div></div>
 </div>
-<div class="row"><div><strong>Review tools</strong><div class="muted">Review marks stay in this browser. Export the filtered rows for offline follow-up.</div></div><button class="button secondary" type="button" id="exportLeads">Export filtered CSV</button></div><div id="leadFeedback" class="muted" aria-live="polite">No lead file loaded in this browser session.</div><div id="leadRows"></div>
+<div class="row"><div><strong>Review tools</strong><div class="muted">Review marks stay in this browser. Export the filtered rows for offline follow-up.</div></div><button class="button secondary" type="button" id="exportLeads">Export filtered CSV</button></div><div id="leadFeedback" class="muted" aria-live="polite">No lead file loaded in this browser session. Open/download the latest leads.json above, then select it here.</div><div id="leadRows"></div>
 </section>
 <section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
 <div class="foot">TradingLab03 AI Services · Demo dashboard · Connect APIs only after reviewing permissions, privacy, platform rules, and approval gates.</div></main>
