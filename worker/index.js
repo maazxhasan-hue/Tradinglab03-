@@ -34,6 +34,31 @@ function safeReference(value) {
     return null;
   }
 }
+async function readLimitedBody(request, maxBytes) {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const part = await reader.read();
+    if (part.done) break;
+    total += part.value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      const error = new Error("too_large");
+      error.code = "too_large";
+      throw error;
+    }
+    chunks.push(part.value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
 async function hashIp(ip, salt) {
   const bytes = new TextEncoder().encode(String(salt || "") + ":" + ip);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -88,11 +113,9 @@ async function createSubmission(request, env, cors) {
   }
   let raw;
   try {
-    raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
-      return response({ error: "Request is too large." }, 413, cors);
-    }
-  } catch {
+    raw = await readLimitedBody(request, MAX_BODY_BYTES);
+  } catch (error) {
+    if (error && error.code === "too_large") return response({ error: "Request is too large." }, 413, cors);
     return response({ error: "Could not read the request." }, 400, cors);
   }
   let payload;
