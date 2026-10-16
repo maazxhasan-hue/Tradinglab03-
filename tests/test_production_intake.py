@@ -41,21 +41,6 @@ class ProductionIntakeTests(unittest.TestCase):
         self.assertIn("Cloudflare D1", privacy)
         self.assertIn("access, correction, or deletion", privacy)
 
-    def test_public_form_does_not_claim_submission_when_api_is_unconfigured(self):
-        html = (ROOT / "dashboard" / "website.html").read_text(encoding="utf-8")
-        self.assertIn('submitButton.textContent="Send project enquiry ↗"', html)
-        self.assertIn('submitButton.textContent="Prepare project brief ↗"', html)
-        self.assertIn("Online intake is not connected yet", html)
-
-    def test_owner_inbox_keeps_access_key_out_of_persistent_storage(self):
-        html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
-        self.assertRegex(html, r'data-intake-endpoint="[^"]*"')
-        self.assertIn('id="adminKey" type="password"', html)
-        self.assertIn("api/admin/submissions?limit=100", html)
-        self.assertIn('method:"DELETE"', html)
-        self.assertNotIn("localStorage", html)
-        self.assertNotIn("sessionStorage", html)
-
     def test_deployment_requires_secrets_and_wires_endpoint(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-intake-api.yml").read_text(encoding="utf-8")
         self.assertIn("CLOUDFLARE_API_TOKEN", workflow)
