@@ -4,7 +4,9 @@ Standalone business automation starter for AI-assisted digital services. This re
 
 ## Start here
 - **Company dashboard:** [dashboard/index.html](dashboard/index.html)
-- **Public services website:** [dashboard/website.html](dashboard/website.html) — responsive landing page with a browser-only project brief builder; inbox submission is not connected until an approved public contact address is configured.
+- **Public services website:** [dashboard/website.html](dashboard/website.html) — responsive services page and project enquiry form. The form submits to the Cloudflare intake API once the one-time deployment workflow is configured; until then, it downloads a local brief and clearly says the enquiry was not sent.
+- **Privacy notice:** [dashboard/privacy.html](dashboard/privacy.html).
+- **Production enquiry API:** [worker/README.md](worker/README.md) — Cloudflare Worker + D1 persistence, spam controls, owner-only submission retrieval/deletion, and optional Resend email notifications. Deployment requires account credentials in GitHub Actions secrets; source code alone does not mean the API is live.
 - **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
 - **Agent roles:** [company/roles.json](company/roles.json)
 - **Hourly opportunity scout:** [company/opportunity_scout.py](company/opportunity_scout.py)
@@ -27,6 +29,10 @@ Course: Build Your Own AI Trading Bot; ₹999; 12 modules, practical project, wo
 
 ## Safety
 No brokerage credentials or private trading infrastructure access. No autonomous spending, purchases, refunds, price changes, unsolicited bulk calling, fake claims, or deletion of user data/infrastructure.
+
+## Production client intake
+
+The website includes an explicit consent checkbox and a production submission path. The intake Worker validates requests, stores submissions in Cloudflare D1, limits abuse, and can notify the configured inbox through Resend. Customer details are not copied into the public repository. Run [Deploy TradingLab03 Intake API](https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/deploy-intake-api.yml) only after following [worker/README.md](worker/README.md). Without the Cloudflare and owner-key secrets, the API cannot be deployed; without the optional Resend settings, enquiries are stored but email alerts are not sent.
 
 ## AI draft worker and website builder
 - **AI worker:** [Run manually in GitHub Actions](https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/agent-worker.yml). Add repository secret `OPENAI_API_KEY` first. It generates drafts only and uploads an artifact.
