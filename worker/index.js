@@ -128,7 +128,7 @@ async function createSubmission(request, env, cors) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipHash = await hashIp(ip, env.IP_HASH_SALT || "");
   const recent = await env.DB.prepare(
-    "SELECT COUNT(*) AS total FROM submissions WHERE ip_hash = ? AND created_at >= datetime('now', '-1 hour')"
+    "SELECT COUNT(*) AS total FROM submissions WHERE ip_hash = ? AND datetime(created_at) >= datetime('now', '-1 hour')"
   ).bind(ipHash).first();
   if (Number(recent && recent.total || 0) >= MAX_REQUESTS_PER_HOUR) {
     return response({ error: "Too many enquiries from this connection. Please try again later or contact us on Instagram." }, 429, { ...cors, "retry-after": "3600" });
@@ -156,7 +156,7 @@ async function createSubmission(request, env, cors) {
     ok: true,
     reference_id: item.id,
     message: "Your enquiry was received and saved. Keep this reference for follow-up.",
-    notification: notificationStatus === "sent" ? "owner_notified" : "saved"
+    notification: notificationStatus === "sent" ? "owner_notified" : notificationStatus === "failed" ? "saved_notification_failed" : "saved_no_email"
   }, 201, cors);
 }
 async function listSubmissions(request, env) {
