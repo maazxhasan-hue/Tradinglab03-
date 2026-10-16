@@ -115,3 +115,34 @@ These examples are research notes, not actionable or verified leads. No person w
 6. If no request passes these checks, keep the qualified-lead count at zero; improve the demo rather than inventing a lead.
 
 **Current outcome:** No specific RequestSignals entry has been verified as an actionable buyer during this check. No account was created, no fee paid, no message sent, and no proposal submitted.
+
+## RequestSignals manual lead review checklist — 2026-10-17
+
+RequestSignals advertises a free, no-signup public lead browser with categorized service requests and source links, refreshed about every two hours according to its homepage. This is a third-party claim, not an independent guarantee that every lead is genuine or current. See https://requestsignals.com/ and https://requestsignals.com/leads.
+
+### Run this review before creating a proposal
+1. Open the live leads page and choose **Web Development**, **Digital Marketing**, **Shopify & E-commerce**, or **Content Writing** only where the actual brief matches our deliverable.
+2. Open each original source post. Record the original URL, date/time checked (UTC), requested deliverable, budget if stated, deadline, and the exact evidence of buyer intent.
+3. Reject listings that are stale, closed, self-promotion, a normal employee vacancy, unpaid work, or require a paid platform/subscription we have not approved.
+4. Score fit: **3** = explicit buyer request and clear deliverable; **2** = plausible service need but scope unclear; **1** = weak or indirect signal; **0** = not a buyer. Only 3-point leads proceed to proposal drafting after freshness and platform-rule checks.
+5. Draft a tailored, truthful response that references the specific need and one relevant demo. Label demos as demos; never invent client results, experience, budget, or a deadline.
+6. Keep the draft unsent until the owner has reviewed it and a permitted contact method is available. Record sent/reply/status only when evidence exists.
+
+### Prospect review log
+No individual RequestSignals listing has been verified in this update, so no lead is recorded as qualified and no proposal is marked sent. Use this template when reviewing an actual listing:
+
+| Field | Value |
+|---|---|
+| Original post URL | |
+| Source and post date | |
+| Date checked (UTC) | |
+| Buyer intent evidence | |
+| Deliverable / scope | |
+| Budget / deadline | |
+| Platform eligibility and fees | |
+| Fit score (0–3) | |
+| Risks / unknowns | |
+| Next action | |
+| Contact status | Not contacted |
+
+**Current boundary:** public browsing and proposal drafting only. No account was created, no subscription purchased, and no one was contacted.
