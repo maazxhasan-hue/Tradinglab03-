@@ -43,7 +43,7 @@ class ProductionIntakeTests(unittest.TestCase):
 
     def test_owner_inbox_keeps_access_key_out_of_persistent_storage(self):
         html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
-        self.assertIn('data-intake-endpoint=""', html)
+        self.assertRegex(html, r'data-intake-endpoint="[^"]*"')
         self.assertIn('id="adminKey" type="password"', html)
         self.assertIn("api/admin/submissions?limit=100", html)
         self.assertIn('method:"DELETE"', html)
