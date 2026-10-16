@@ -106,6 +106,7 @@ async function createSubmission(request, env, cors) {
   const item = {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
+    consent_at: payload.consent === true ? new Date().toISOString() : "",
     name: clean(payload.name, 120),
     email: clean(payload.email, 180).toLowerCase(),
     company: clean(payload.company, 160),
@@ -121,7 +122,7 @@ async function createSubmission(request, env, cors) {
     "Business website", "Landing page", "Website cleanup / QA", "Short-form content kit",
     "Workflow automation", "Document / data workflow", "Not sure yet"
   ]);
-  if (!item.name || !validEmail(item.email) || !services.has(item.service) || item.goal.length < 10 || !validDeadline(item.deadline) || item.reference_url === null) {
+  if (payload.consent !== true || !item.name || !validEmail(item.email) || !services.has(item.service) || item.goal.length < 10 || !validDeadline(item.deadline) || item.reference_url === null) {
     return response({ error: "Please check your name, email, service, project goal, deadline, and HTTPS reference link." }, 422, cors);
   }
 
@@ -136,9 +137,9 @@ async function createSubmission(request, env, cors) {
 
   try {
     await env.DB.prepare(
-      "INSERT INTO submissions (id, created_at, name, email, company, service, budget, deadline, goal, reference_url, status, ip_hash, notification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO submissions (id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, ip_hash, notification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
-      item.id, item.created_at, item.name, item.email, item.company, item.service, item.budget,
+      item.id, item.created_at, item.consent_at, item.name, item.email, item.company, item.service, item.budget,
       item.deadline, item.goal, item.reference_url, item.status, ipHash, item.notification_status
     ).run();
   } catch {
@@ -179,11 +180,11 @@ async function listSubmissions(request, env) {
   let result;
   if (status) {
     result = await env.DB.prepare(
-      "SELECT id, created_at, name, email, company, service, budget, deadline, goal, reference_url, status, notification_status FROM submissions WHERE status = ? ORDER BY created_at DESC LIMIT ?"
+      "SELECT id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, notification_status FROM submissions WHERE status = ? ORDER BY created_at DESC LIMIT ?"
     ).bind(status, limit).all();
   } else {
     result = await env.DB.prepare(
-      "SELECT id, created_at, name, email, company, service, budget, deadline, goal, reference_url, status, notification_status FROM submissions ORDER BY created_at DESC LIMIT ?"
+      "SELECT id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, notification_status FROM submissions ORDER BY created_at DESC LIMIT ?"
     ).bind(limit).all();
   }
   return response({ submissions: result.results || [] }, 200, { "cache-control": "no-store" });
