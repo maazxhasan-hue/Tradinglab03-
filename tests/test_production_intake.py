@@ -9,7 +9,7 @@ class ProductionIntakeTests(unittest.TestCase):
     def test_worker_uses_persistent_storage_and_owner_auth(self):
         worker = (ROOT / "worker" / "index.js").read_text(encoding="utf-8")
         self.assertIn('INSERT INTO submissions', worker)
-        self.assertIn('SELECT id, created_at, name, email', worker)
+        self.assertIn('SELECT id, created_at, consent_at, name, email', worker)
         self.assertIn('auth !== "Bearer " + env.ADMIN_API_KEY', worker)
         self.assertIn("payload.consent !== true", worker)
         self.assertIn("DELETE FROM submissions WHERE id = ?", worker)
