@@ -10,7 +10,7 @@ function corsHeaders(request, env) {
   if (!env.ALLOWED_ORIGIN || origin !== env.ALLOWED_ORIGIN) return {};
   return {
     "access-control-allow-origin": origin,
-    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
     "access-control-allow-headers": "Content-Type, Authorization",
     "access-control-max-age": "86400",
     "vary": "Origin"
