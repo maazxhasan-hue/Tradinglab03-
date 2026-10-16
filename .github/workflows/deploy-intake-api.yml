@@ -21,9 +21,9 @@ jobs:
           ref: main
       - name: Validate required configuration
         env:
-          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          TRADINGLAB03_ADMIN_API_KEY: \${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
         run: |
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Add CLOUDFLARE_API_TOKEN in repository Actions secrets."; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Add CLOUDFLARE_ACCOUNT_ID in repository Actions secrets."; exit 1; }
@@ -35,8 +35,8 @@ jobs:
       - name: Create or reuse D1 database
         id: d1
         env:
-          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error
@@ -71,10 +71,10 @@ jobs:
           PY
       - name: Build Wrangler configuration
         env:
-          D1_DATABASE_ID: \${{ steps.d1.outputs.database_id }}
-          SITE_ORIGIN: \${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
-          NOTIFY_EMAIL: \${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
-          FROM_EMAIL: \${{ vars.TRADINGLAB03_FROM_EMAIL }}
+          D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
+          SITE_ORIGIN: ${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
+          NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
+          FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL }}
         run: |
           python - <<'PY'
           import json, os, pathlib, re
@@ -98,13 +98,17 @@ jobs:
         run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
       - name: Configure owner-only access key
         env:
-          TRADINGLAB03_ADMIN_API_KEY: \${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
+          TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
         run: printf '%s' "$TRADINGLAB03_ADMIN_API_KEY" | npx --yes wrangler@4 secret put ADMIN_API_KEY --config worker/wrangler.toml
       - name: Configure optional email notifications
-        if: \${{ secrets.RESEND_API_KEY != '' }}
         env:
-          RESEND_API_KEY: \${{ secrets.RESEND_API_KEY }}
-        run: printf '%s' "$RESEND_API_KEY" | npx --yes wrangler@4 secret put RESEND_API_KEY --config worker/wrangler.toml
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -n "$RESEND_API_KEY" ]; then
+            printf '%s' "$RESEND_API_KEY" | npx --yes wrangler@4 secret put RESEND_API_KEY --config worker/wrangler.toml
+          else
+            echo "RESEND_API_KEY is not configured; enquiries will still be saved but no email alert will be sent."
+          fi
       - name: Deploy Worker and capture endpoint
         id: worker
         run: |
@@ -123,7 +127,7 @@ jobs:
           PY
       - name: Wire endpoint into the public website
         env:
-          INTAKE_ENDPOINT: \${{ steps.worker.outputs.endpoint }}
+          INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
         run: |
           python - <<'PY'
           import os, pathlib, re
@@ -141,7 +145,7 @@ jobs:
           git diff --cached --quiet || { git commit -m "Connect public website to intake service"; git push origin HEAD:main; }
       - name: Verify intake health endpoint
         env:
-          INTAKE_ENDPOINT: \${{ steps.worker.outputs.endpoint }}
+          INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
         run: |
           python - <<'PY'
           import json, os, urllib.request
