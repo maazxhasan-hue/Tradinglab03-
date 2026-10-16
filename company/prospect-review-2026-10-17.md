@@ -51,3 +51,15 @@ The available evidence is a secondary delayed-public listing, not the original b
 - No account login, bid, message, or application was performed.
 - No money was spent.
 - No client, contract, or revenue is claimed.
+
+## Additional source screened — RequestSignals
+
+- Reviewed [RequestSignals — All Leads](https://requestsignals.com/leads) on 2026-10-17. The page displayed 79 results across web development, marketing, software, e-commerce, and related categories.
+- The site says it refreshes every two hours, but snippets contain mixed dates and aggregated source material. Its confidence scores do not prove buyer legitimacy or current availability.
+- **No additional RequestSignals entry is promoted to an actionable lead** from the listing page alone. Original post, freshness, buyer intent, eligibility, full requirements, and payment terms must be checked individually.
+- Keep RequestSignals manual-only until a permitted official feed/API and usage terms are verified. Do not scrape it or send automated messages.
+
+## Current outcome
+
+- Candidate listed above remains **unverified and not actionable** until the original Upwork brief and platform eligibility/costs are checked.
+- No prospect contacted, no proposal submitted, no paid subscription purchased, and no revenue claimed.
