@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#08101a">
+<title>Owner Inbox — TradingLab03</title>
+<style>
+:root{color-scheme:dark;--bg:#08101a;--panel:#101c2b;--line:#263b52;--text:#eff6ff;--muted:#a9b8ca;--teal:#63ead5;--red:#ff9b9b;--max:980px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}.wrap{width:min(var(--max),calc(100% - 28px));margin:auto}.nav{padding:20px 0;border-bottom:1px solid var(--line)}a{color:var(--teal);overflow-wrap:anywhere}h1{font-size:clamp(2rem,6vw,3.3rem);line-height:1.05;letter-spacing:-.05em;margin:28px 0 12px}.muted{color:var(--muted)}.panel,.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:18px;margin:16px 0}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:220px}label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}input{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#07111d;color:var(--text)}button{padding:11px 15px;border:1px solid var(--teal);border-radius:9px;background:var(--teal);color:#06151a;font-weight:800;cursor:pointer}button.secondary{background:transparent;color:var(--text);border-color:var(--line)}button.danger{background:transparent;color:var(--red);border-color:#7d3c49}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--teal);outline-offset:3px}.status{padding:12px 14px;border:1px solid var(--line);border-radius:10px;color:var(--muted);overflow-wrap:anywhere}.status.error{border-color:#7d3c49;color:var(--red)}.status.ok{border-color:#28665f;color:var(--teal)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field{overflow-wrap:anywhere}.field strong{display:block;font-size:.82rem;color:var(--muted)}.field span{white-space:pre-wrap;overflow-wrap:anywhere}.card h2{font-size:1.1rem;margin:0 0 8px}.goal{padding:12px;background:#091522;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}.empty{padding:30px 8px;text-align:center;color:var(--muted)}footer{border-top:1px solid var(--line);padding:24px 0 36px;margin-top:35px;color:var(--muted);font-size:.85rem}@media(max-width:560px){.grid{grid-template-columns:1fr}.panel,.card{padding:14px}.grow{min-width:100%}}
+</style></head>
+<body data-intake-endpoint="">
+<header class="wrap nav"><a href="website.html">← TradingLab03 website</a></header>
+<main class="wrap">
+<h1>Client enquiry inbox</h1>
+<p class="muted">Private owner view. The page never saves your access key to local storage or the repository. Use a trusted device, do not share screenshots containing client details, and clear the key before leaving.</p>
+<section class="panel">
+<label for="adminKey">Owner access key</label>
+<div class="row"><div class="grow"><input id="adminKey" type="password" autocomplete="current-password" spellcheck="false" placeholder="Paste the owner key you created in GitHub Secrets"></div><button id="loadBtn" type="button">Load enquiries</button><button id="clearBtn" class="secondary" type="button">Clear key</button></div>
+<p id="status" class="status" role="status" aria-live="polite">Checking intake configuration…</p>
+</section>
+<section id="results" aria-live="polite"><div class="empty">Enquiries will appear here after you authenticate.</div></section>
+</main>
+<footer><div class="wrap">Owner access is protected by the server-side key. Closing this page clears in-memory state; the browser field should also be cleared manually if needed. <a href="privacy.html">Privacy notice</a>.</div></footer>
+<script>
+"use strict";
+const endpoint=document.body.dataset.intakeEndpoint.trim();
+const keyField=document.getElementById("adminKey");
+const statusBox=document.getElementById("status");
+const results=document.getElementById("results");
+const loadBtn=document.getElementById("loadBtn");
+function setStatus(message,kind){statusBox.textContent=message;statusBox.className="status"+(kind?" "+kind:"");}
+function addField(parent,label,value){
+ const box=document.createElement("div");box.className="field";
+ const title=document.createElement("strong");title.textContent=label;
+ const val=document.createElement("span");val.textContent=value||"Not supplied";
+ box.append(title,val);parent.append(box);
+}
+function render(rows){
+ results.replaceChildren();
+ if(!rows.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="No enquiries found.";results.append(empty);return;}
+ rows.forEach(function(item){
+  const card=document.createElement("article");card.className="card";
+  const heading=document.createElement("h2");heading.textContent=(item.name||"Unknown sender")+" — "+(item.service||"Service not set");card.append(heading);
+  const meta=document.createElement("p");meta.className="muted";meta.textContent="Received "+(item.created_at||"date unknown")+" · Status: "+(item.status||"unknown")+" · Email alert: "+(item.notification_status||"unknown");card.append(meta);
+  const grid=document.createElement("div");grid.className="grid";
+  addField(grid,"Email",item.email);addField(grid,"Business / project",item.company);
+  addField(grid,"Budget",item.budget);addField(grid,"Deadline",item.deadline);
+  addField(grid,"Consent recorded",item.consent_at);addField(grid,"Reference URL",item.reference_url);
+  card.append(grid);
+  const goal=document.createElement("p");goal.className="goal";goal.textContent=item.goal||"No project goal supplied";card.append(goal);
+  const actions=document.createElement("div");actions.className="row";
+  if(item.email){const email=document.createElement("a");email.href="mailto:"+item.email;email.textContent="Draft email reply";actions.append(email);}
+  const del=document.createElement("button");del.className="danger";del.type="button";del.textContent="Delete enquiry";
+  del.addEventListener("click",async function(){
+   if(!window.confirm("Permanently delete this enquiry from the intake database? This does not delete any email copy already delivered."))return;
+   del.disabled=true;
+   try{
+    const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id),{method:"DELETE",headers:{Authorization:"Bearer "+keyField.value.trim(),Accept:"application/json"},mode:"cors",credentials:"omit"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||data.deleted!==true)throw new Error(data.error||"Delete failed.");
+    setStatus("Enquiry deleted from the database.","ok");await loadEnquiries();
+   }catch(err){setStatus("Could not delete: "+String(err.message||"request failed"),"error");del.disabled=false;}
+  });
+  actions.append(del);card.append(actions);results.append(card);
+ });
+}
+async function loadEnquiries(){
+ if(!endpoint){setStatus("The intake API has not been deployed yet. Follow worker/README.md and run the Deploy TradingLab03 Intake API workflow first.","error");return;}
+ const key=keyField.value.trim();
+ if(!key){setStatus("Enter the owner access key first.","error");return;}
+ loadBtn.disabled=true;setStatus("Loading private enquiries…","");
+ try{
+  const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions?limit=100",{headers:{Authorization:"Bearer "+key,Accept:"application/json"},mode:"cors",credentials:"omit"});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(res.status===401?"Access key rejected.":(data.error||"Could not load enquiries."));
+  render(Array.isArray(data.submissions)?data.submissions:[]);
+  setStatus("Loaded "+(data.submissions||[]).length+" private enquiries. The key remains in this page only.","ok");
+ }catch(err){results.replaceChildren();setStatus(String(err.message||"Request failed"),"error");}
+ finally{loadBtn.disabled=false;}
+}
+loadBtn.addEventListener("click",loadEnquiries);
+keyField.addEventListener("keydown",e=>{if(e.key==="Enter")loadEnquiries();});
+document.getElementById("clearBtn").addEventListener("click",()=>{keyField.value="";results.replaceChildren();const empty=document.createElement("div");empty.className="empty";empty.textContent="Enquiries hidden. Enter the owner key to load them again.";results.append(empty);setStatus("Owner key cleared from this page.","ok");});
+if(!endpoint)setStatus("The intake API has not been deployed yet. Follow worker/README.md and run the Deploy TradingLab03 Intake API workflow first.","error");
+else setStatus("Intake endpoint configured. Enter the owner access key to load enquiries.","");
+</script>
+</body></html>
