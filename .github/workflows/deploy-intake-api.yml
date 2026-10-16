@@ -1,13 +1,6 @@
 name: Deploy TradingLab03 Intake API
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "worker/**"
-      - "dashboard/website.html"
-      - "dashboard/inbox.html"
-      - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,36 +13,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check-config:
-    runs-on: ubuntu-latest
-    outputs:
-      configured: ${{ steps.detect.outputs.configured }}
-    steps:
-      - name: Detect deployment credentials without exposing them
-        id: detect
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$TRADINGLAB03_ADMIN_API_KEY" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "Private deployment credentials are configured."
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Intake deployment skipped. Add CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, and TRADINGLAB03_ADMIN_API_KEY to repository Actions secrets, then run this workflow again."
-          fi
   deploy:
-    needs: check-config
-    if: needs.check-config.outputs.configured == 'true'
     environment:
       name: github-pages
       url: ${{ steps.pages.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - name: Check out main
         uses: actions/checkout@v4
@@ -167,14 +136,13 @@ jobs:
         run: |
           python - <<'PY'
           import os, pathlib, re
+          path = pathlib.Path("dashboard/website.html")
+          html = path.read_text(encoding="utf-8")
           endpoint = os.environ["INTAKE_ENDPOINT"]
-          for filename in ("dashboard/website.html", "dashboard/inbox.html"):
-              path = pathlib.Path(filename)
-              html = path.read_text(encoding="utf-8")
-              updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
-              if count != 1:
-                  raise SystemExit("Could not find the intake endpoint setting in " + filename)
-              path.write_text(updated, encoding="utf-8")
+          updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
+          if count != 1:
+              raise SystemExit("Could not find the public intake endpoint setting.")
+          path.write_text(updated, encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
