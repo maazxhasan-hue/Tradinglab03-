@@ -1,0 +1,155 @@
+name: Deploy TradingLab03 Intake API
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tradinglab03-intake-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Validate required configuration
+        env:
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TRADINGLAB03_ADMIN_API_KEY: \${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Add CLOUDFLARE_API_TOKEN in repository Actions secrets."; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Add CLOUDFLARE_ACCOUNT_ID in repository Actions secrets."; exit 1; }
+          test -n "$TRADINGLAB03_ADMIN_API_KEY" || { echo "::error::Add TRADINGLAB03_ADMIN_API_KEY in repository Actions secrets."; exit 1; }
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create or reuse D1 database
+        id: d1
+        env:
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          base = "https://api.cloudflare.com/client/v4"
+          token = os.environ["CLOUDFLARE_API_TOKEN"]
+          account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+          def call(method, path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(base + path, data=data, method=method, headers={
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json"
+              })
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as res:
+                      result = json.load(res)
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", "replace")[:600]
+                  raise SystemExit("Cloudflare API " + method + " failed (" + str(exc.code) + "): " + detail)
+              if not result.get("success"):
+                  raise SystemExit("Cloudflare API returned an unsuccessful result: " + json.dumps(result.get("errors", [])))
+              return result.get("result")
+          rows = call("GET", "/accounts/" + account + "/d1/database") or []
+          db = next((item for item in rows if item.get("name") == "tradinglab03-intake"), None)
+          if db is None:
+              db = call("POST", "/accounts/" + account + "/d1/database", {"name": "tradinglab03-intake"})
+          database_id = db.get("uuid") or db.get("id")
+          if not database_id:
+              raise SystemExit("Cloudflare created/found the database but did not return an ID.")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("database_id=" + database_id + "\n")
+          print("D1 database ready: tradinglab03-intake")
+          PY
+      - name: Build Wrangler configuration
+        env:
+          D1_DATABASE_ID: \${{ steps.d1.outputs.database_id }}
+          SITE_ORIGIN: \${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
+          NOTIFY_EMAIL: \${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
+          FROM_EMAIL: \${{ vars.TRADINGLAB03_FROM_EMAIL }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, re
+          template = pathlib.Path("worker/wrangler.template.toml").read_text(encoding="utf-8")
+          values = {
+              "__D1_DATABASE_ID__": os.environ["D1_DATABASE_ID"],
+              "__SITE_ORIGIN__": os.environ["SITE_ORIGIN"].rstrip("/"),
+              "__NOTIFY_EMAIL__": os.environ.get("NOTIFY_EMAIL", ""),
+              "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", "")
+          }
+          for marker, value in values.items():
+              template = template.replace('"' + marker + '"', json.dumps(value))
+          pathlib.Path("worker/wrangler.toml").write_text(template, encoding="utf-8")
+          print("Generated deployment config for the configured site origin.")
+          PY
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Apply database migrations
+        run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
+      - name: Configure owner-only access key
+        env:
+          TRADINGLAB03_ADMIN_API_KEY: \${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
+        run: printf '%s' "$TRADINGLAB03_ADMIN_API_KEY" | npx --yes wrangler@4 secret put ADMIN_API_KEY --config worker/wrangler.toml
+      - name: Configure optional email notifications
+        if: \${{ secrets.RESEND_API_KEY != '' }}
+        env:
+          RESEND_API_KEY: \${{ secrets.RESEND_API_KEY }}
+        run: printf '%s' "$RESEND_API_KEY" | npx --yes wrangler@4 secret put RESEND_API_KEY --config worker/wrangler.toml
+      - name: Deploy Worker and capture endpoint
+        id: worker
+        run: |
+          set -o pipefail
+          npx --yes wrangler@4 deploy --config worker/wrangler.toml 2>&1 | tee /tmp/tradinglab03-worker-deploy.log
+          python - <<'PY'
+          import os, pathlib, re
+          log = pathlib.Path("/tmp/tradinglab03-worker-deploy.log").read_text(encoding="utf-8", errors="replace")
+          urls = re.findall(r"https://[a-zA-Z0-9.-]+\.workers\.dev", log)
+          if not urls:
+              raise SystemExit("Worker deploy succeeded but no workers.dev URL was detected. Check the Wrangler output and set the endpoint manually.")
+          endpoint = urls[-1].rstrip("/")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("endpoint=" + endpoint + "\n")
+          print("Worker endpoint detected.")
+          PY
+      - name: Wire endpoint into the public website
+        env:
+          INTAKE_ENDPOINT: \${{ steps.worker.outputs.endpoint }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, re
+          path = pathlib.Path("dashboard/website.html")
+          html = path.read_text(encoding="utf-8")
+          endpoint = os.environ["INTAKE_ENDPOINT"]
+          updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
+          if count != 1:
+              raise SystemExit("Could not find the public intake endpoint setting.")
+          path.write_text(updated, encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dashboard/website.html
+          git diff --cached --quiet || { git commit -m "Connect public website to intake service"; git push origin HEAD:main; }
+      - name: Verify intake health endpoint
+        env:
+          INTAKE_ENDPOINT: \${{ steps.worker.outputs.endpoint }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          url = os.environ["INTAKE_ENDPOINT"].rstrip("/") + "/health"
+          req = urllib.request.Request(url, headers={"Accept": "application/json"})
+          with urllib.request.urlopen(req, timeout=20) as res:
+              body = json.load(res)
+              if res.status != 200 or body.get("ok") is not True or body.get("storage") != "ready":
+                  raise SystemExit("Intake health check did not confirm storage readiness.")
+          print("Intake API and D1 health check passed.")
+          PY
