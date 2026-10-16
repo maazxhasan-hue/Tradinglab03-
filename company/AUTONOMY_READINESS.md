@@ -53,3 +53,50 @@ Do not call the company fully autonomous until every required stage has repeatab
 - [Opportunity source policy](OPPORTUNITY_SOURCE_POLICY.md)
 - [Free-first acquisition plan](free-first-acquisition-plan.md)
 - [Client delivery playbook](CLIENT_DELIVERY_PLAYBOOK.md)
+
+## Expanded agent capability audit — 17 October 2026
+
+The operating target is an agent-run service business, with evidence-based checkpoints and a clear record of what is and is not autonomous. Agents should complete all permitted internal work without repeatedly asking the owner to do manual research; external side effects still require a connected, authorized integration.
+
+### Work agents should handle automatically
+
+1. **Discovery and source health:** poll only enabled, permitted feeds on the configured schedule; record fetch errors, last-success time, duplicates, and source coverage. Keep RequestSignals and Project Mela manual-only until their official feeds/APIs and terms are verified.
+2. **Qualification:** separate direct buyers from employee vacancies, freelancers advertising services, stale/closed requests, AI-prohibited briefs, scams, and paid-platform-only leads. Preserve original URL and evidence; never infer a client exists from a search snippet.
+3. **Service matching:** map each suitable request to an available offer (business website, landing page, website audit, SEO/content, short-form content, or business automation) and list capability gaps.
+4. **Proposal pack:** draft a specific, truthful response, suggested scope, questions, exclusions, and estimate assumptions. Never invent case studies, client results, price approval, or delivery dates.
+5. **Demo and delivery:** create a concept/demo in a separate workspace; wait for a written client brief and agreed scope before production work. Run automated checks and a separate QA pass, document limitations, and produce handover notes.
+6. **Client success:** once a permitted inbound message/reply connector is connected, classify the reply, summarize needs, draft a response, and update the pipeline. No authenticated outbound messaging connector is verified today.
+7. **Marketing:** prepare post drafts, assets, and a schedule; use a connected publishing service only after the correct brand/account and publishing authorization are confirmed. Posting must respect platform rules and avoid fabricated claims.
+8. **Finance and learning:** track agreed quotes, expenses, fees, verified receipts, refunds, and net margin. Draft invoices/retrospectives only from confirmed data; do not treat leads, views, or sent proposals as revenue.
+9. **Supervisor:** report workflow failures, stale source data, missing credentials, and blocked steps; never silently mark a failed step complete.
+
+### Acceptance criteria for claiming autonomy
+
+- Every stage writes a durable record with timestamp, source/brief reference, status, and error or evidence.
+- Re-runs are idempotent: no duplicate leads, duplicate messages, or repeated deployments.
+- External actions are disabled by default unless a specific integration is authenticated, allowed by platform terms, and explicitly enabled for that action.
+- No secrets are written to the repository, logs, artifacts, prompts, or client deliverables.
+- The end-to-end synthetic test passes without claiming a real client; live tests separately verify real account access and delivery.
+- A failure stops dependent stages, preserves artifacts, and surfaces the exact blocker.
+- Only owner-approved scope, price, terms, production deployment, and irreversible business actions may cross their respective gates.
+
+### Current verified blockers and next actions
+
+| Blocker | Action |
+|---|---|
+| Narrow discovery coverage | Keep the hourly scout, review disabled sources only after their access and terms are checked, and manually inspect approved public lead indexes |
+| Source quality / stale listings | Require original-post verification before a lead becomes actionable |
+| No authenticated outbound DM / marketplace integration | Do not claim autonomous outreach. Connect a supported account and verify its permitted write actions before enabling messages |
+| Model-based work depends on OPENAI_API_KEY and quota | Use deterministic templates when unavailable; run model work only when an approved key and budget are available |
+| Client production access is project-specific | Obtain written scope, client-owned credentials, and release approval per project |
+| Payments not reconciled automatically | Record revenue only from a trusted payment record and track fees/refunds |
+| Workflow schedules can be delayed | Check latest run state and artifact timestamps; a configured cron is not proof of a successful execution |
+
+### Current prospect — House of Payal
+
+- The concept file is committed at `dashboard/demos/house-of-payal-concept.html`; it is an independent demo and not an approved brand site.
+- The deploy workflow for the concept commit reported success at https://github.com/maazxhasan-hue/Tradinglab03-/actions/runs/38957491074. The exact published URL was not independently confirmed here.
+- A tailored outreach draft exists in the conversation; no outbound message, reply, signed scope, or revenue is recorded.
+- The next permissible steps are to verify that the request remains open, send only through a connected and authorized channel, then create the production brief after the buyer agrees.
+
+**Truthful current state:** discovery, qualification logic, proposal generation, demo creation, delivery workflows, and scheduled health checks exist in code. Fully autonomous client contact, negotiation, payment, and general production deployment are not yet verified.
