@@ -1,46 +1,49 @@
 # Nexora AI — Startup Website Prospect Review
-**Prepared:** 2026-10-17  
-**Status:** Research-only; no contact or application made.
+**Updated:** 2026-10-17  
+**Status:** Original public post verified; outreach still not sent. Lead is a plausible prospect, not a confirmed client.
 
 ## Candidate signal
 
-- **Title reported by public index:** “Need Webdeveloper for my startup”
-- **Reported date:** 2026-10-15
-- **Reported budget:** ₹15,000 per project
-- **Evidence page:** https://onlyhiring.hassandev.me/jobs/1x6qugb
-- **Original Reddit destination (not independently fetched in this review):** https://www.reddit.com/r/devjobs/comments/1x6qugb/need_webdeveloper_for_my_startup/
-- **Signal quality:** Low to medium. The indexed summary says a startup founder needs a website, but the complete original brief, current availability, exact deliverables, buyer identity, payment terms, and eligibility are not verified.
+- **Original post:** https://www.reddit.com/r/devjobs/comments/1x6qugb/need_webdeveloper_for_my_startup/
+- **Title:** “Need Webdeveloper for my startup”
+- **Posted:** 2026-10-15 in r/devjobs; public search result shows the post and its comments.
+- **Buyer-stated need:** “i am about to start my business so i need one website”
+- **Buyer-stated budget:** “budget 15000 indian rupees”
+- **Independent index:** https://onlyhiring.hassandev.me/jobs/1x6qugb
+- **Public status:** Post is visible in search results, but the buyer has not confirmed that they are still accepting proposals. Public comments already include other replies, so competition exists.
+- **Evidence confidence:** Medium. The original post and stated budget are now independently visible; business type, actual scope, timeline, payment terms, and current availability remain unknown.
 
 ## Qualification decision
 
-**Do not treat as an actionable lead yet.** A third-party index is not enough to verify a real buyer or an open project. First open the original Reddit post manually and check:
-- [ ] The post exists and remains open for applications.
-- [ ] The author is the actual buyer or authorized representative.
-- [ ] The full scope fits the available implementation team.
-- [ ] The ₹15,000 budget and payment milestones are actually stated by the buyer.
-- [ ] The subreddit permits this type of response and the account meets its rules.
-- [ ] No paid platform, subscription, deposit, or application fee is required.
+**Conditional opportunity — ask scope questions before quoting or building.** The brief is too vague to promise a complete site at the stated budget. Avoid unsolicited production work and do not claim experience or results that have not been verified.
 
-## Draft reply — only if the original post checks out
+Before committing, clarify:
+- [ ] Business type, audience, and primary goal of the website.
+- [ ] Required pages/sections and whether copy, logo, and images are ready.
+- [ ] Whether it needs only enquiry/contact links or also payments, booking, login, catalogue, or a backend.
+- [ ] Domain/hosting status, ownership, and launch access.
+- [ ] Required launch date, revision count, acceptance criteria, and ongoing maintenance.
+- [ ] Written payment milestones and ownership of source files.
+- [ ] The subreddit’s current rules and whether the buyer is still accepting responses.
 
-Hi! I saw your post about needing a website for your startup. Before suggesting a build, could you share the type of business, the pages/features you need for launch, any reference websites you like, and whether you already have a domain and hosting?
+## Tailored draft reply — not sent
 
-Once the scope is clear, I can outline a practical first version with mobile-friendly pages, a clear enquiry path, and basic technical SEO, plus the assumptions and exclusions so the budget stays predictable.
+Hi! I saw your r/devjobs post about needing a website for your startup and the ₹15,000 budget. I can help scope a lean, mobile-friendly first version, but I’d like to understand the business before suggesting the right build.
 
-## Scope to clarify before quoting
+What does the business do, which pages or features are essential for launch, and do you already have the domain, hosting, logo, copy, and images? Is the goal mainly to explain the business and collect enquiries, or do you need payments/bookings or other backend features too?
 
-- Business type, target audience, and primary conversion goal
-- Number of pages and who supplies copy/images
-- Contact form, WhatsApp, booking, catalogue, or other integrations
-- Domain/hosting ownership and launch access
-- Content, accessibility, mobile, performance, and SEO expectations
-- Acceptance criteria, revisions, timeline, payment milestones, and ownership
+With those details, I can propose a clear first-release scope, timeline, revision limit, and what would be excluded so there are no surprises.
 
-No price or delivery date is promised in this draft. Do not begin production work without a written scope and agreed milestones.
+## Recommended offer shape (internal planning only)
+
+- Offer a defined first release: responsive landing page or small brochure site, agreed sections/pages, clear contact/enquiry route, basic metadata/SEO, and mobile QA.
+- Treat payment integrations, booking systems, authentication, complex catalogue/admin tools, copywriting, paid hosting/domain, and ongoing maintenance as separate scope unless explicitly included.
+- Do not quote a fixed price or delivery date until requirements and assets are known. The buyer’s ₹15,000 is a reported budget, not an accepted contract.
+- Use a written scope and milestone/payment agreement before production work. Never pay a fee or deposit to access the job.
 
 ## Action log
 
-- Public index reviewed on 2026-10-17.
-- Original post could not be independently fetched during this review; status remains unverified.
+- 2026-10-17: Verified original Reddit post via public search result; post text and stated ₹15,000 budget are visible.
+- 2026-10-17: Confirmed public comments show other people have already replied; no claim that the lead is exclusive.
 - No DM, comment, email, bid, or application sent.
 - No money spent; no client, contract, or revenue claimed.
