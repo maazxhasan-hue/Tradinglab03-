@@ -46,6 +46,7 @@ jobs:
     timeout-minutes: 15
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
       - name: Check out main
         uses: actions/checkout@v4
         with:
