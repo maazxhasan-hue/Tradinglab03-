@@ -34,6 +34,10 @@ jobs:
           cat > data/nexora_synthetic_brief.json <<'JSON'
           {
             "business_name": "Nexora Synthetic Demo",
+            "tagline": "Synthetic demo tagline",
+            "contact_email": "demo@example.invalid",
+            "budget_range": "Synthetic-only; no quote",
+            "target_deadline": "Synthetic test run only",
             "service": "landing_page",
             "services": ["responsive landing page concept"],
             "observed_need": "Synthetic test: demonstrate a clear service offer and a contact route.",
