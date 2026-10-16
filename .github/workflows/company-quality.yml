@@ -8,8 +8,6 @@ on:
       - "tests/**"
       - "config/**"
       - "dashboard/**"
-      - "worker/**"
-      - ".github/workflows/deploy-intake-api.yml"
       - ".github/workflows/company-quality.yml"
   pull_request:
     branches: [main]
