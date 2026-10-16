@@ -1,0 +1,63 @@
+name: Nexora Live Smoke Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/website.html"
+      - "index.html"
+      - ".github/workflows/nexora-live-smoke.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-live-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check public website and intake health
+        run: |
+          python - <<'PY'
+          import time
+          import urllib.error
+          import urllib.request
+
+          checks = {
+              "Nexora landing page": "https://maazxhasan-hue.github.io/Tradinglab03-/dashboard/website.html",
+              "Intake API health": "https://tradinglab03-intake.maazxhasan.workers.dev/health",
+          }
+          failures = []
+          for label, url in checks.items():
+              last = "not checked"
+              for attempt in range(8):
+                  try:
+                      req = urllib.request.Request(url, headers={"User-Agent": "Nexora-Live-Smoke/1.0", "Accept": "text/html,application/json"})
+                      with urllib.request.urlopen(req, timeout=15) as response:
+                          body = response.read(1_000_000).decode("utf-8", "replace")
+                          status = response.status
+                      if status != 200:
+                          last = f"HTTP {status}"
+                      elif label == "Nexora landing page" and ("Nexora AI" not in body or "projectForm" not in body):
+                          last = "HTTP 200, but expected Nexora/form markers are missing (possibly stale deployment)"
+                      elif label == "Intake API health" and ('"ok":true' not in body or '"storage":"ready"' not in body):
+                          last = "HTTP 200, but API/storage health response is not ready: " + body[:250]
+                      else:
+                          print(f"PASS: {label} — HTTP {status}; expected markers present")
+                          last = None
+                          break
+                  except Exception as exc:
+                      last = f"{type(exc).__name__}: {exc}"
+                  time.sleep(10)
+              if last:
+                  print(f"FAIL: {label} — {last}")
+                  failures.append(label)
+          if failures:
+              raise SystemExit("Live smoke check failed: " + ", ".join(failures))
+          print("All live endpoint smoke checks passed. No real enquiry was submitted.")
+          PY
