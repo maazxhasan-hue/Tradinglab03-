@@ -142,4 +142,19 @@ class OpportunityImporterTests(unittest.TestCase):
         self.assertEqual(result["imported_count"],0)
         self.assertEqual(store["leads"],[])
 
+    def test_research_only_source_is_not_allowed_for_lead_import(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from company.opportunity_importer import enabled_source_names
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sources.json"
+            path.write_text(json.dumps([
+                {"name": "Reddit", "enabled": True, "action_policy": "review_allowed"},
+                {"name": "Codeur", "enabled": True, "action_policy": "research_only"},
+                {"name": "Freelancer", "enabled": False, "action_policy": "review_allowed"},
+            ]), encoding="utf-8")
+            self.assertEqual(enabled_source_names(path), {"Reddit"})
+
 if __name__ == "__main__": unittest.main()
