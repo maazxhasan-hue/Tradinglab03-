@@ -8,6 +8,7 @@ on:
       - "dashboard/**"
       - "portfolio-sample/**"
       - ".github/workflows/deploy-nexora-pages.yml"
+      - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
 
 permissions:
