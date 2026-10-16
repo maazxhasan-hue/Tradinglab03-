@@ -14,7 +14,7 @@ DEFAULT_STORE = ROOT / "data" / "leads.json"
 SOURCE_CONFIG = ROOT / "config" / "opportunity_sources.json"
 
 def enabled_source_names(config_path: str | Path = SOURCE_CONFIG) -> set[str]:
-    """Fail closed: only import listings from sources currently enabled in config."""
+    """Return sources allowed for lead import, excluding research-only feeds."""
     try:
         sources = json.loads(Path(config_path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -24,7 +24,9 @@ def enabled_source_names(config_path: str | Path = SOURCE_CONFIG) -> set[str]:
     return {
         str(source.get("name", "")).strip()
         for source in sources
-        if isinstance(source, dict) and source.get("enabled", True)
+        if isinstance(source, dict)
+        and source.get("enabled", True)
+        and str(source.get("action_policy", "review_allowed")).strip() == "review_allowed"
         and str(source.get("name", "")).strip()
     }
 
