@@ -97,7 +97,7 @@ form.addEventListener("submit",async e=>{
  if(endpoint){
   const submitButton=form.querySelector('button[type="submit"]');submitButton.disabled=true;statusBox.classList.remove("ok");statusBox.textContent="Submitting your enquiry securely…";
   try{
-   const resp=await fetch(endpoint.replace(/\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",signal:AbortSignal.timeout(15000)});
+   const resp=await fetch(endpoint.replace(/\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",...(typeof AbortSignal!=="undefined"&&typeof AbortSignal.timeout==="function"?{signal:AbortSignal.timeout(15000)}:{})});
    const result=await resp.json().catch(()=>({}));
    if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
@@ -105,7 +105,7 @@ form.addEventListener("submit",async e=>{
    statusBox.classList.add("ok");
   }catch(err){
    latestBrief.status="submission_unconfirmed";downloadBrief();
-   statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please use the Instagram contact button and send the brief manually.";
+   statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please use the Instagram contact button and send the brief manually.";statusBox.scrollIntoView({behavior:"smooth",block:"nearest"});
    statusBox.classList.add("ok");
   }finally{submitButton.disabled=false;}
   return;
