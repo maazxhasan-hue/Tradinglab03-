@@ -75,9 +75,12 @@ jobs:
               "requirement_traceability.csv",
               "delivery_bundle/project_brief.md",
               "delivery_bundle/acceptance_checklist.md",
-              "delivery_bundle/handover_plan.md",
+              "delivery_bundle/handover_and_next_steps.md",
               "delivery_bundle/website/index.html",
-              "landing_page_implementation_notes.md",
+              "delivery_bundle/website/quality_report.json",
+              "delivery_bundle/proposal.md",
+              "delivery_bundle/delivery_report.json",
+              "website_implementation_notes.md",
           ]:
               path = root / relative
               assert path.is_file() and path.stat().st_size > 0, f"Missing or empty artifact: {relative}"
