@@ -73,3 +73,12 @@ Track qualified buyer-intent leads, owner-approved proposals, replies, accepted 
 ## Approval boundaries
 
 This plan authorizes research and drafting only. It does not authorize messages, bids, applications, purchases, subscriptions, public posts, price commitments, client-domain deployment, or changes to unrelated trading/brokerage systems.
+
+## Current manual source check — 2026-10-16
+
+- **RequestSignals:** the public page advertises free browsing without signup and links each item to an original post. It is useful for manual discovery, but no official RSS/API or reuse terms have been verified here, so it remains manual-only. [Browse all leads](https://requestsignals.com/leads).
+- **Example checked, not qualified for action:** [“Looking for a Freelance Digital Marketer In India – Healthcare”](https://www.reddit.com/r/InstagramMarketing/comments/1vvycqn/looking-for-a-freelance-digital-marketer-in-india/) asks for paid ads, SEO, and Instagram marketing, but the post is roughly two months old and requires healthcare-marketing experience. Treat it as stale and do not contact without a fresh status check and evidence of fit.
+- **Example checked, not qualified for action:** [“Web developer to write me a small presentation web page”](https://www.reddit.com/r/forhire/comments/1whtgg3/hiring_web_developer_to_write_me_a_small/) mentions €100+ but explicitly asks that AI not be used for development. TradingLab03 must not offer AI-built delivery for this request; it is excluded unless the work can genuinely meet that condition.
+- **Project Mela:** public gig pages are browseable, but individual entries need freshness and payment/eligibility checks. Keep it manual-only; no registration or bid was made. [Browse gigs](https://www.projectmela.com/gigs).
+
+These examples are research notes, not actionable or verified leads. No person was contacted, and no revenue is claimed.
