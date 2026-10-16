@@ -1,0 +1,94 @@
+name: Nexora AI Synthetic End-to-End Delivery Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "tests/**"
+      - ".github/workflows/nexora-synthetic-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run regression suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Create synthetic-only brief
+        run: |
+          mkdir -p data
+          cat > data/nexora_synthetic_brief.json <<'JSON'
+          {
+            "business_name": "Nexora Synthetic Demo",
+            "service": "landing_page",
+            "services": ["responsive landing page concept"],
+            "observed_need": "Synthetic test: demonstrate a clear service offer and a contact route.",
+            "target_audience": "Small business owners (synthetic test data)",
+            "pages_screens_deliverables": ["Home", "Services", "Contact"],
+            "version_1_must_have_features": ["Responsive navigation", "Contact section"],
+            "design_direction_and_references": "Clean, accessible, mobile-first demo",
+            "content_and_assets": "Synthetic placeholder content only",
+            "constraints_dependencies_exclusions": "No external APIs, no real customer data, no production deployment",
+            "acceptance_criteria": ["Required draft files exist", "Limitations are explicit"],
+            "future_features_backlog": ["Real form integration requires a separate approved task"],
+            "approval_status": "synthetic_test_only"
+          }
+          JSON
+
+      - name: Execute supported delivery pipeline
+        run: |
+          python -m company.autonomous_delivery \
+            --brief data/nexora_synthetic_brief.json \
+            --output data/nexora_synthetic_execution
+
+      - name: Assert deliverable evidence and side-effect boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/nexora_synthetic_execution")
+          report_path = root / "agent_execution_report.json"
+          assert report_path.is_file(), "Missing execution report"
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          assert report["status"] == "completed_with_limitations", report["status"]
+          assert report["external_actions_performed"] == [], report["external_actions_performed"]
+          assert report["production_deployment_enabled"] is False
+          assert report["sent"] is False
+          assert report["verified_revenue"] == 0
+          assert report["counts"]["requirements_tracked"] >= 3
+          for relative in [
+              "agent_task_plan.md",
+              "requirement_traceability.csv",
+              "delivery_bundle/project_brief.md",
+              "delivery_bundle/acceptance_checklist.md",
+              "delivery_bundle/handover_plan.md",
+              "delivery_bundle/website/index.html",
+              "landing_page_implementation_notes.md",
+          ]:
+              path = root / relative
+              assert path.is_file() and path.stat().st_size > 0, f"Missing or empty artifact: {relative}"
+          print("Synthetic end-to-end delivery passed: artifacts present, requirements traced, no external side effects.")
+          PY
+
+      - name: Upload synthetic review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-synthetic-e2e-${{ github.run_id }}
+          path: data/nexora_synthetic_execution/
+          if-no-files-found: warn
+          retention-days: 14
