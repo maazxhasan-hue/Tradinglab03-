@@ -1,0 +1,15 @@
+name = "tradinglab03-intake"
+main = "index.js"
+compatibility_date = "2026-10-16"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "__SITE_ORIGIN__"
+NOTIFY_EMAIL = "__NOTIFY_EMAIL__"
+FROM_EMAIL = "__FROM_EMAIL__"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tradinglab03-intake"
+database_id = "__D1_DATABASE_ID__"
+migrations_dir = "migrations"

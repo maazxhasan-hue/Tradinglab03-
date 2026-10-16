@@ -10,7 +10,7 @@
 @media(max-width:820px){.hero,.split{grid-template-columns:1fr}.hero{padding:55px 0 42px}.grid3{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.navlinks{gap:12px}.navlinks a:not(.navcta){display:none}}
 @media(max-width:560px){.grid3,.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.wrap{width:min(var(--max),calc(100% - 26px))}.nav{padding:15px 0}.navlinks .navcta{padding:9px 11px;font-size:.85rem}.panel,.card{padding:19px}.section{padding:38px 0 48px}.hero h1{font-size:clamp(2.7rem,14vw,4rem)}}
 </style></head>
-<body data-contact-email="">
+<body data-contact-email="" data-intake-endpoint="">
 <header class="wrap nav"><a class="brand" href="#top" aria-label="TradingLab03 home">TRADINGLAB<span>03</span></a>
 <nav class="navlinks" aria-label="Main navigation"><a href="#services">Services</a><a href="#process">Process</a><a href="#agents">AI workflow</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
 <main id="top">
@@ -32,7 +32,7 @@
 <section class="wrap section" id="agents"><div class="split"><div><div class="eyebrow">AI-assisted operations</div><h2>Agents help with the work—not fake the results.</h2><p class="intro">TradingLab03 runs scheduled public-opportunity discovery and maintains a lead register. Drafting and delivery workflows can prepare reviewable project packs and test deliverables.</p><a class="btn alt" href="https://maazxhasan-hue.github.io/Tradinglab03-/" rel="noopener">Open company HQ ↗</a></div>
 <div class="card"><h3>Current operating limits</h3><ul class="list"><li>Public listings are leads to verify, not confirmed customers.</li><li>Outbound messaging and replies require a connected, permitted contact channel.</li><li>AI model calls depend on available API quota; free template mode remains available.</li><li>Prices, contracts, production deployments, and payment claims are never invented.</li></ul><p class="fine">The HQ provides workflow access and reports. It does not claim a live messaging integration or verified revenue where none is connected.</p></div></div></section>
 <section class="wrap section" id="project"><div class="split"><div><div class="eyebrow">Project intake</div><h2>Tell us the outcome you need.</h2><p class="intro">Share a few details. This form prepares a structured project brief that can be downloaded and copied. It does not upload your information to a server.</p><div class="callout"><strong>What helps us scope well?</strong><p>One goal, an example or reference, must-have deliverables, deadline, budget range, and any access or privacy constraints.</p></div></div>
-<div class="card"><form id="projectForm"><div class="formgrid">
+<div class="card"><form id="projectForm"><div class="field" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div><div class="formgrid">
 <div class="field"><label for="name">Your name</label><input id="name" name="name" autocomplete="name" required maxlength="120" placeholder="Name"></div>
 <div class="field"><label for="email">Your email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="180" placeholder="you@company.com"></div>
 <div class="field"><label for="company">Business / project name</label><input id="company" name="company" maxlength="160" placeholder="Business name"></div>
@@ -41,11 +41,12 @@
 <div class="field"><label for="deadline">Target deadline (optional)</label><input id="deadline" name="deadline" type="date"></div>
 <div class="field full"><label for="goal">What should the finished work do?</label><textarea id="goal" name="goal" required maxlength="5000" placeholder="Describe the problem, audience, key requirements, and how you'll judge success."></textarea></div>
 <div class="field full"><label for="reference">Website / reference links (optional)</label><input id="reference" name="reference" type="url" maxlength="500" placeholder="https://..."></div>
-</div><div class="actions"><button class="btn" type="submit">Prepare project brief ↗</button><button class="btn alt" type="button" id="copyBtn" disabled>Copy brief</button><button class="btn alt" type="button" id="copyContactBtn" disabled>Copy brief & open Instagram ↗</button></div><p class="fine">For a real enquiry, use the Instagram button after preparing your brief. It copies your brief and opens @tradinglab03; you must paste and send the message yourself. Never include passwords, API keys, or sensitive customer data.</p>
-<div id="formStatus" class="statusbox" role="status" aria-live="polite">Your details stay in this browser until you choose to download or copy the brief. Nothing is sent automatically.</div></form></div></div></section>
+</div><div class="field full"><label style="display:flex;gap:10px;align-items:flex-start;color:var(--muted)"><input id="consent" name="consent" type="checkbox" required style="width:auto;margin-top:6px"><span>I agree that TradingLab03 may use these details to respond to this project enquiry. Read the <a class="textlink" href="privacy.html" target="_blank" rel="noopener noreferrer">privacy notice</a>.</span></label></div>
+<div class="actions"><button class="btn" type="submit">Send project enquiry ↗</button><button class="btn alt" type="button" id="copyBtn" disabled>Copy brief</button><button class="btn alt" type="button" id="copyContactBtn" disabled>Copy brief & open Instagram ↗</button></div><p class="fine">When online intake is active, Send project enquiry submits your brief and returns a reference. If the service is unavailable, use the Instagram button to copy your brief and send it manually. Never include passwords, API keys, or sensitive customer data.</p>
+<div id="formStatus" class="statusbox" role="status" aria-live="polite">Submitting sends the brief only to the configured TradingLab03 intake service. If that service is not configured, a local copy is downloaded and no enquiry is sent automatically.</div></form></div></div></section>
 <section class="wrap section"><div class="callout"><div class="eyebrow" style="color:#0d5550">See the build process</div><h2 style="margin-top:10px">A concept sample, not a claimed client project.</h2><p>Explore a fictional small-business website concept to see the style and structure we can build from an approved brief.</p><a class="btn" href="https://maazxhasan-hue.github.io/Tradinglab03-/portfolio-sample/northline-small-business-website-concept.html" rel="noopener">View concept sample ↗</a></div></section>
 </main>
-<footer class="wrap footer"><div class="footerrow"><span>© <span id="year"></span> TradingLab03</span><span>Clear scope · Reviewable work · Honest delivery</span><a class="textlink" href="https://www.instagram.com/tradinglab03/" target="_blank" rel="noopener noreferrer">Contact @tradinglab03 ↗</a><a class="textlink" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions" rel="noopener">Operations status ↗</a></div><p class="fine">TradingLab03 does not guarantee sales, search rankings, views, or financial returns. Project terms and contact method must be agreed before work starts.</p></footer>
+<footer class="wrap footer"><div class="footerrow"><span>© <span id="year"></span> TradingLab03</span><span>Clear scope · Reviewable work · Honest delivery</span><a class="textlink" href="https://www.instagram.com/tradinglab03/" target="_blank" rel="noopener noreferrer">Contact @tradinglab03 ↗</a><a class="textlink" href="privacy.html">Privacy ↗</a><a class="textlink" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions" rel="noopener">Operations status ↗</a></div><p class="fine">TradingLab03 does not guarantee sales, search rankings, views, or financial returns. Project terms and contact method must be agreed before work starts.</p></footer>
 <script>
 "use strict";
 const form=document.getElementById("projectForm");
@@ -54,16 +55,37 @@ const copyBtn=document.getElementById("copyBtn");
 const copyContactBtn=document.getElementById("copyContactBtn");
 let latestBrief=null;
 document.getElementById("year").textContent=String(new Date().getFullYear());
-function briefText(b){return ["TRADINGLAB03 — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Prepared in browser; not submitted."].join("\n")}
-form.addEventListener("submit",e=>{
+function briefText(b){return ["TRADINGLAB03 — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Status: "+(b.status==="submitted"?"Submitted to TradingLab03; reference: "+(b.submission_id||"received"):"Prepared in browser; not submitted.")].join("\n")}
+function downloadBrief(){
+ const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\n"],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+form.addEventListener("submit",async e=>{
  e.preventDefault();if(!form.reportValidity())return;
  const fd=new FormData(form);
- latestBrief={schema_version:1,source:"TradingLab03 public project brief form",created_at:new Date().toISOString(),name:String(fd.get("name")).trim(),email:String(fd.get("email")).trim(),company:String(fd.get("company")).trim(),service:String(fd.get("service")).trim(),budget:String(fd.get("budget")).trim(),deadline:String(fd.get("deadline")).trim(),goal:String(fd.get("goal")).trim(),reference:String(fd.get("reference")).trim(),status:"not_submitted"};
- const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\n"],{type:"application/json"});
- const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);copyBtn.disabled=false;copyContactBtn.disabled=false;
+ latestBrief={schema_version:1,source:"TradingLab03 public project brief form",created_at:new Date().toISOString(),name:String(fd.get("name")).trim(),email:String(fd.get("email")).trim(),company:String(fd.get("company")).trim(),service:String(fd.get("service")).trim(),budget:String(fd.get("budget")).trim(),deadline:String(fd.get("deadline")).trim(),goal:String(fd.get("goal")).trim(),reference:String(fd.get("reference")).trim(),website:String(fd.get("website")||"").trim(),consent:fd.get("consent")==="on",status:"not_submitted"};
+ copyBtn.disabled=false;copyContactBtn.disabled=false;
+ const endpoint=document.body.dataset.intakeEndpoint.trim();
+ if(endpoint){
+  const submitButton=form.querySelector('button[type="submit"]');submitButton.disabled=true;statusBox.classList.remove("ok");statusBox.textContent="Submitting your enquiry securely…";
+  try{
+   const resp=await fetch(endpoint.replace(/\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",signal:AbortSignal.timeout(15000)});
+   const result=await resp.json().catch(()=>({}));
+   if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
+   latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
+   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"TradingLab03 has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please contact @tradinglab03 for follow-up.":"The enquiry is saved. Email notification is not confirmed, so contact @tradinglab03 if you need a prompt reply.");
+   statusBox.classList.add("ok");
+  }catch(err){
+   latestBrief.status="submission_unconfirmed";downloadBrief();
+   statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please use the Instagram contact button and send the brief manually.";
+   statusBox.classList.add("ok");
+  }finally{submitButton.disabled=false;}
+  return;
+ }
+ downloadBrief();
  const email=document.body.dataset.contactEmail.trim();
- if(email){const subject=encodeURIComponent("TradingLab03 project enquiry — "+latestBrief.service);const body=encodeURIComponent(briefText(latestBrief));statusBox.textContent="Brief downloaded. Your email app will open with a draft; review it and press Send to contact TradingLab03.";statusBox.classList.add("ok");window.location.href="mailto:"+email+"?subject="+subject+"&body="+body;}
- else{statusBox.textContent="Brief downloaded successfully. It has NOT been sent to TradingLab03 because a public contact inbox is not configured yet. Use Copy brief to keep the details, and do not assume your enquiry was received.";statusBox.classList.add("ok");}
+ if(email){const subject=encodeURIComponent("TradingLab03 project enquiry — "+latestBrief.service);const body=encodeURIComponent(briefText(latestBrief));statusBox.textContent="No online intake endpoint is configured. A brief was downloaded and your email app will open with a draft; review it and press Send.";statusBox.classList.add("ok");window.location.href="mailto:"+email+"?subject="+subject+"&body="+body;}
+ else{statusBox.textContent="A project brief was downloaded, but this website is not yet connected to online intake. It has NOT been sent to TradingLab03. Use the Instagram contact button to send it manually.";statusBox.classList.add("ok");}
 });
 copyBtn.addEventListener("click",async()=>{if(!latestBrief)return;try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent="Project brief copied. It has not been submitted to TradingLab03.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; downloaded a text copy instead. It has not been submitted.";}}
 );

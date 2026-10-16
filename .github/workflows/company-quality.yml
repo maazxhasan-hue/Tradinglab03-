@@ -29,6 +29,30 @@ jobs:
           python-version: "3.11"
       - name: Compile Python modules
         run: python -m compileall -q company tests
+      - name: Set up Node.js for browser and Worker syntax checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check browser scripts and intake Worker
+        run: |
+          python - <<'PY'
+          import pathlib, re, subprocess
+          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("dashboard/index.html")]
+          for page in pages:
+              html = page.read_text(encoding="utf-8")
+              scripts = re.findall(r"<script[^>]*>(.*?)</script>", html, re.I | re.S)
+              if not scripts:
+                  raise SystemExit("No inline scripts found in " + str(page))
+              for index, script in enumerate(scripts):
+                  path = pathlib.Path("/tmp") / (page.stem + "-" + str(index) + ".js")
+                  path.write_text(script, encoding="utf-8")
+                  subprocess.run(["node", "--check", str(path)], check=True)
+          worker = pathlib.Path("worker/index.js").read_text(encoding="utf-8")
+          subprocess.run(["node", "--input-type=module", "--check"], input=worker, text=True, check=True)
+          print("Browser JavaScript and Worker module syntax passed.")
+          PY
+      - name: Run intake Worker behavior tests
+        run: node --test worker/test_worker.mjs
       - name: Run complete unit test suite
         run: python -m unittest discover -s tests -v
       - name: Build sample website and enforce quality gate
