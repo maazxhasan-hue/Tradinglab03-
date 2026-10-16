@@ -57,7 +57,7 @@ let latestBrief=null;
 document.getElementById("year").textContent=String(new Date().getFullYear());
 function briefText(b){return ["TRADINGLAB03 — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Status: "+(b.status==="submitted"?"Submitted to TradingLab03; reference: "+(b.submission_id||"received"):"Prepared in browser; not submitted.")].join("\n")}
 function downloadBrief(){
- const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\\n"],{type:"application/json"});
+ const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\n"],{type:"application/json"});
  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
 form.addEventListener("submit",async e=>{
