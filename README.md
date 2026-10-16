@@ -6,7 +6,6 @@ Standalone business automation starter for AI-assisted digital services. This re
 - **Company dashboard:** [dashboard/index.html](dashboard/index.html)
 - **Public services website:** [dashboard/website.html](dashboard/website.html) — responsive services page and project enquiry form. The form submits to the Cloudflare intake API once the one-time deployment workflow is configured; until then, it downloads a local brief and clearly says the enquiry was not sent.
 - **Privacy notice:** [dashboard/privacy.html](dashboard/privacy.html).
-- **Owner inbox:** [dashboard/inbox.html](dashboard/inbox.html) — after API activation, enter the private owner key to review, reply to, or delete enquiries. The key is not saved by the page.
 - **Production enquiry API:** [worker/README.md](worker/README.md) — Cloudflare Worker + D1 persistence, spam controls, owner-only submission retrieval/deletion, and optional Resend email notifications. Deployment requires account credentials in GitHub Actions secrets; source code alone does not mean the API is live.
 - **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
 - **Agent roles:** [company/roles.json](company/roles.json)
