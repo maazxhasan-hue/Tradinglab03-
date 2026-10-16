@@ -4,6 +4,7 @@ Standalone business automation starter for AI-assisted digital services. This re
 
 ## Start here
 - **Company dashboard:** [dashboard/index.html](dashboard/index.html)
+- **Public services website:** [dashboard/website.html](dashboard/website.html) — responsive landing page with a browser-only project brief builder; inbox submission is not connected until an approved public contact address is configured.
 - **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
 - **Agent roles:** [company/roles.json](company/roles.json)
 - **Hourly opportunity scout:** [company/opportunity_scout.py](company/opportunity_scout.py)
