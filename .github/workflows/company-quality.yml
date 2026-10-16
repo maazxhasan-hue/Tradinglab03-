@@ -51,6 +51,8 @@ jobs:
           subprocess.run(["node", "--input-type=module", "--check"], input=worker, text=True, check=True)
           print("Browser JavaScript and Worker module syntax passed.")
           PY
+      - name: Run intake Worker behavior tests
+        run: node --test worker/test_worker.mjs
       - name: Run complete unit test suite
         run: python -m unittest discover -s tests -v
       - name: Build sample website and enforce quality gate
