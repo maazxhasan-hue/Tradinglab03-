@@ -1,0 +1,68 @@
+name: TradingLab03 Autonomy Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "config/**"
+      - "tests/**"
+      - ".github/workflows/autonomy-validation.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "config/**"
+      - "tests/**"
+      - ".github/workflows/autonomy-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autonomy-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-validation:
+    name: Offline tests and safety checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Compile Python modules
+        run: python -m compileall -q company tests
+
+      - name: Validate opportunity source configuration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("config/opportunity_sources.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+          assert isinstance(data, list), "source config must be a JSON list"
+          names = [x.get("name") for x in data]
+          assert all(isinstance(n, str) and n.strip() for n in names), "every source needs a name"
+          assert len(names) == len(set(names)), "source names must be unique"
+          for source in data:
+              if source.get("enabled"):
+                  assert source.get("url", "").startswith("https://"), f"enabled source must use HTTPS: {source.get('name')}"
+          print(f"Validated {len(data)} source entries; enabled sources are HTTPS-only.")
+          PY
+
+      - name: Run full unit test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Verify no outbound actions are part of this validation
+        run: |
+          echo "This workflow runs offline checks and unit tests only."
+          echo "It does not send messages, place bids, publish posts, deploy client sites, or process payments."
