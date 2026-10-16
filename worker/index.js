@@ -199,7 +199,7 @@ async function listSubmissions(request, env, cors) {
   if (origin && origin !== env.ALLOWED_ORIGIN) return response({ error: "This origin is not allowed." }, 403);
   const auth = request.headers.get("Authorization") || "";
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
-    return response({ error: "Unauthorized." }, 401, { "www-authenticate": "Bearer" });
+    return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
   const url = new URL(request.url);
   const limit = Math.min(100, Math.max(1, Number.parseInt(url.searchParams.get("limit") || "50", 10) || 50));
