@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS submissions (
   id TEXT PRIMARY KEY,
   created_at TEXT NOT NULL,
+  consent_at TEXT NOT NULL,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   company TEXT NOT NULL DEFAULT '',
