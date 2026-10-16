@@ -6,6 +6,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/website.html"
+      - "dashboard/inbox.html"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
 
@@ -166,13 +167,14 @@ jobs:
         run: |
           python - <<'PY'
           import os, pathlib, re
-          path = pathlib.Path("dashboard/website.html")
-          html = path.read_text(encoding="utf-8")
           endpoint = os.environ["INTAKE_ENDPOINT"]
-          updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
-          if count != 1:
-              raise SystemExit("Could not find the public intake endpoint setting.")
-          path.write_text(updated, encoding="utf-8")
+          for filename in ("dashboard/website.html", "dashboard/inbox.html"):
+              path = pathlib.Path(filename)
+              html = path.read_text(encoding="utf-8")
+              updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
+              if count != 1:
+                  raise SystemExit("Could not find the intake endpoint setting in " + filename)
+              path.write_text(updated, encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
