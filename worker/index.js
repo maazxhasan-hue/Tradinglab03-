@@ -29,7 +29,7 @@ function safeReference(value) {
   if (!value) return "";
   try {
     const url = new URL(value);
-    return url.protocol === "https:" ? url.toString().slice(0, 500) : null;
+    return url.protocol === "https:" && !url.username && !url.password ? url.toString().slice(0, 500) : null;
   } catch {
     return null;
   }
