@@ -208,3 +208,54 @@ jobs:
           else:
               raise SystemExit("Intake health check failed after 3 attempts: " + str(last_error))
           PY
+      - name: End-to-end synthetic enquiry save and cleanup
+        env:
+          INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
+          TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
+          SITE_ORIGIN: ${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error, uuid
+          endpoint = os.environ["INTAKE_ENDPOINT"].rstrip("/")
+          origin = os.environ["SITE_ORIGIN"].rstrip("/")
+          admin_key = os.environ["TRADINGLAB03_ADMIN_API_KEY"]
+          tag = uuid.uuid4().hex[:12]
+          payload = {
+              "schema_version": 1,
+              "source": "Nexora automated synthetic end-to-end test",
+              "created_at": "2026-01-01T00:00:00Z",
+              "name": "Nexora Synthetic QA",
+              "email": "nexora-qa-" + tag + "@example.invalid",
+              "company": "Automated Test — Not a Real Client",
+              "service": "Business website",
+              "budget": "Synthetic test only",
+              "deadline": "",
+              "goal": "Automated end-to-end test to verify enquiry storage and private inbox retrieval.",
+              "reference": "",
+              "website": "",
+              "consent": True
+          }
+          def request(method, path, body=None, headers=None):
+              merged = {"Accept": "application/json", "Origin": origin, "User-Agent": "Nexora-E2E-Test/1.0"}
+              if headers: merged.update(headers)
+              data = None if body is None else json.dumps(body).encode()
+              if data is not None: merged["Content-Type"] = "application/json"
+              req = urllib.request.Request(endpoint + path, data=data, headers=merged, method=method)
+              with urllib.request.urlopen(req, timeout=20) as res:
+                  return res.status, json.load(res)
+          status, saved = request("POST", "/api/intake", payload)
+          if status != 201 or saved.get("ok") is not True or not saved.get("reference_id"):
+              raise SystemExit("Synthetic enquiry was not confirmed saved.")
+          submission_id = saved["reference_id"]
+          try:
+              status, inbox = request("GET", "/api/admin/submissions?limit=100", headers={"Authorization": "Bearer " + admin_key})
+              rows = inbox.get("submissions", [])
+              if status != 200 or not any(row.get("id") == submission_id for row in rows):
+                  raise SystemExit("Synthetic enquiry was saved but not found in the private inbox.")
+              print("PASS: synthetic enquiry saved and visible in private inbox.")
+          finally:
+              status, deleted = request("DELETE", "/api/admin/submissions/" + submission_id, headers={"Authorization": "Bearer " + admin_key})
+              if status != 200 or deleted.get("deleted") is not True:
+                  raise SystemExit("Cleanup failed for synthetic test enquiry " + submission_id + ". Remove it from the private inbox.")
+          print("PASS: synthetic enquiry removed after verification. No real client data was used.")
+          PY
