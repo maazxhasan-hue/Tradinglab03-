@@ -55,6 +55,25 @@ const copyBtn=document.getElementById("copyBtn");
 const copyContactBtn=document.getElementById("copyContactBtn");
 let latestBrief=null;
 const submitButton=document.querySelector('#projectForm button[type="submit"]');
+form.addEventListener("invalid",e=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="Please complete the highlighted required fields and tick the consent checkbox. The browser may scroll to the first missing field.";
+},true);
+window.addEventListener("error",()=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+});
+window.addEventListener("unhandledrejection",()=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+});
+submitButton.addEventListener("click",()=>{
+ if(!form.checkValidity()){
+  statusBox.classList.remove("ok");
+  statusBox.textContent="Please complete the highlighted required fields and tick the consent checkbox.";
+  form.reportValidity();
+ }
+});
 const configuredEndpoint=document.body.dataset.intakeEndpoint.trim();
 if(configuredEndpoint){
  submitButton.textContent="Send project enquiry ↗";
