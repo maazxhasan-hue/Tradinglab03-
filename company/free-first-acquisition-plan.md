@@ -90,3 +90,12 @@ These examples are research notes, not actionable or verified leads. No person w
 - Visitors can copy the brief and open the connected public Instagram profile `@tradinglab03` to paste and send an enquiry manually. The site never claims the enquiry was submitted automatically.
 - The HQ links directly to the Instagram inbox and the manual-dispatch `Autonomous Client Execution` workflow. After a client sends an agreed brief, the operator can dispatch the workflow to create a review bundle. The workflow does not automatically read Instagram DMs, send replies, sign contracts, take payment, or deploy client production systems.
 - The model-based worker pass requires a valid, quota-available `OPENAI_API_KEY` in GitHub Actions secrets; otherwise the deterministic/template output remains available with limitations. Do not add secrets to repository files or workflow inputs.
+
+## Fresh prospecting check — 2026-10-17
+
+- A fresh public-web search did **not** produce a clearly current, verified buyer request that Nexora AI can safely pursue today. Search results that looked relevant were mostly developers advertising their own services or stale posts; those are not buyer leads.
+- The scout's most recent known successful hourly run is documented in GitHub Actions, but a successful scan is not proof of a qualified client. Review its artifact and the current daily review before treating any record as actionable.
+- **Immediate next action:** open the latest [Hourly Opportunity Scout run](https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml), download the newest `tradinglab03-opportunities-…` artifact, then open the original listing for each candidate. Keep only fresh buyer requests from sources whose policy is `review_allowed`.
+- **Do not pursue Codeur leads yet:** the source remains `research_only` because proposals require paid access and commission. No purchase or application was made.
+- **No outreach was sent:** the connected tools available to this workflow do not provide an authenticated Reddit/marketplace account or an authorized outbound messaging action. Do not claim a client was contacted, a proposal was submitted, or revenue was earned until there is evidence.
+- The public portfolio can be shared as capability proof: https://maazxhasan-hue.github.io/Tradinglab03-/dashboard/website.html. Describe demo work as a demo, not a paid client result.
