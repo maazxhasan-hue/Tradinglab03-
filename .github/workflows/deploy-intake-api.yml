@@ -5,6 +5,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: tradinglab03-intake-deploy
@@ -12,6 +14,9 @@ concurrency:
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -157,3 +162,10 @@ jobs:
                   raise SystemExit("Intake health check did not confirm storage readiness.")
           print("Intake API and D1 health check passed.")
           PY
+      - name: Upload website with the connected intake endpoint
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard
+      - name: Deploy connected website
+        id: pages
+        uses: actions/deploy-pages@v4
