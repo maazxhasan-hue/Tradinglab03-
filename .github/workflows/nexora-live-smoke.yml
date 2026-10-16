@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "dashboard/website.html"
+      - "worker/index.js"
       - "index.html"
       - ".github/workflows/nexora-live-smoke.yml"
 
@@ -60,4 +61,29 @@ jobs:
           if failures:
               raise SystemExit("Live smoke check failed: " + ", ".join(failures))
           print("All live endpoint smoke checks passed. No real enquiry was submitted.")
+          PY
+
+      - name: Verify private inbox DELETE preflight
+        run: |
+          python - <<'PY'
+          import urllib.request
+
+          endpoint = "https://tradinglab03-intake.maazxhasan.workers.dev"
+          origin = "https://maazxhasan-hue.github.io"
+          req = urllib.request.Request(
+              endpoint + "/api/admin/submissions/00000000-0000-4000-8000-000000000000",
+              method="OPTIONS",
+              headers={
+                  "Origin": origin,
+                  "Access-Control-Request-Method": "DELETE",
+                  "Access-Control-Request-Headers": "authorization",
+                  "User-Agent": "Nexora-Live-Smoke/1.0",
+              },
+          )
+          with urllib.request.urlopen(req, timeout=15) as response:
+              allowed_methods = response.headers.get("Access-Control-Allow-Methods", "")
+              allowed_headers = response.headers.get("Access-Control-Allow-Headers", "")
+              if response.status != 204 or "DELETE" not in allowed_methods or "authorization" not in allowed_headers.lower():
+                  raise SystemExit("Private inbox DELETE preflight failed: expected HTTP 204 and DELETE/Authorization CORS permissions.")
+          print("PASS: private inbox DELETE preflight permits DELETE and Authorization.")
           PY
