@@ -127,7 +127,7 @@ async function createSubmission(request, env, cors) {
   }
 
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const ipHash = await hashIp(ip, env.IP_HASH_SALT || "");
+  const ipHash = await hashIp(ip, env.IP_HASH_SALT || env.ADMIN_API_KEY || "");
   const recent = await env.DB.prepare(
     "SELECT COUNT(*) AS total FROM submissions WHERE ip_hash = ? AND datetime(created_at) >= datetime('now', '-1 hour')"
   ).bind(ipHash).first();
