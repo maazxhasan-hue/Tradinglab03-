@@ -1,4 +1,4 @@
-# BotLab Business Universe
+# Nexora AI — Digital Services & Automation
 
 Standalone business automation starter for AI-assisted digital services. This repository is separate from any trading-engine repository and must not connect to private trading infrastructure.
 
