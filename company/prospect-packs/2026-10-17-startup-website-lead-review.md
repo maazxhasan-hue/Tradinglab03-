@@ -190,3 +190,23 @@ Nexora AI
 4. Keep earlier EdTech and music-school applications as drafts unless the owner confirms they were actually submitted in Upwork.
 
 All statuses above are based on public search snapshots; recheck the actual listing and account before applying. No new application or client contact was made through this workflow.
+
+
+---
+
+## Follow-up after owner says "Done" — 2026-10-17
+
+The owner said "Done" after being asked to submit proposals manually. Interpret this as a user-reported action, **not independent proof** that Upwork accepted or recorded either proposal. Verify inside Upwork's Proposals / Active tab before describing an application as submitted.
+
+### Relevant portfolio concept
+
+- Existing EdTech website concept in repository: `dashboard/demos/northstar-learning-edtech-concept.html`
+- GitHub source: https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/dashboard/demos/northstar-learning-edtech-concept.html
+- Potential GitHub Pages preview: https://maazxhasan-hue.github.io/Tradinglab03-/dashboard/demos/northstar-learning-edtech-concept.html
+- It is explicitly a concept/demo, not a client delivery. Check the preview URL in a browser before sharing it with a buyer; don't claim it is deployed or client-approved unless verified.
+
+### Follow-up policy
+
+- If either proposal appears in Upwork's submitted/active proposals, record the job URL, submission date, bid, and any follow-up deadline.
+- If neither appears, treat it as an unsent draft and do not resubmit repeatedly; resolve the account/apply issue first.
+- Do not contact the client outside Upwork or pay a client for access to work.
