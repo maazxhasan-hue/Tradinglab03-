@@ -480,3 +480,40 @@ Nexora AI
 - [ ] Apply only if the client accepts a realistic milestone-based scope and account is eligible.
 
 No proposal submitted, no contact made, no contract or revenue claimed.
+
+
+---
+
+## Fresh prospect scan — Existing website redesign and IT support
+
+**Status: Public listing found; not submitted.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Website-design_~022110274992529584622/
+- Title: “Website design”
+- Public search snapshot dated 2026-10-17: **US$100 fixed price**, client says they already have a website and need a refreshed look plus IT support. The snapshot showed 20–50 proposals and 2 interviewing; client member since March 5, 2025, with US$151 spent and 3 hires.
+- Evidence: public Upwork search result turn540087search2. These values are a search snapshot, not confirmation that the job is open or that payment is verified.
+- Recommendation: only apply if the existing site and requested support are small, clearly scoped, and fit the budget. Do not agree to open-ended IT support for US$100.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help refresh your existing website with a cleaner, more modern layout and improve the usability of its key pages. I'd begin with a quick review of the current site, identify the most visible design and usability issues, and agree on a tightly scoped first milestone before making changes.
+
+Could you share the website URL and the top three changes you want most? Also, when you mention IT support, do you mean website maintenance and bug fixes, or broader device/network support? I'd keep those as separate scopes so the deliverables, timeline, and budget stay clear.
+
+After reviewing the site, I can suggest a realistic first milestone and test the agreed pages on mobile and desktop.
+
+Best,  
+Nexora AI
+
+### Mini audit checklist to use after buyer shares URL
+- [ ] Identify the primary conversion goal and make the main CTA obvious.
+- [ ] Review mobile layout, navigation, text readability, and contrast.
+- [ ] Check broken links, contact path, and visible errors.
+- [ ] Record current page list and scope limits before changes.
+- [ ] Separate website fixes from broader IT support.
+- [ ] Confirm milestone is funded before starting any paid work.
+
+### Status
+No proposal submitted, no client contacted, no client or revenue claimed. Recheck listing status and payment verification inside Upwork before considering an application.
