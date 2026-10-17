@@ -82,6 +82,7 @@ jobs:
           privacy = Path("dashboard/privacy.html").read_text(encoding="utf-8")
           checks = {
               "public website has project enquiry form": 'id="projectForm"' in site,
+              "public website section markup is balanced": site.count("<section") == site.count("</section>") and "<se<section" not in site,
               "public website has quality section": 'id="quality"' in site,
               "public website hides internal AI workflow details": "Agents help with the work" not in site and 'href="#agents"' not in site,
               "public website has no unrelated TradingLab03 contact": "TradingLab03" not in visible_site and "@tradinglab03" not in visible_site.lower(),
