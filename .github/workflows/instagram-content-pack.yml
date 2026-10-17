@@ -1,6 +1,6 @@
 name: Instagram Content Pack (Approval Required)
 
-on:
+"on":
   workflow_dispatch:
     inputs:
       account:
