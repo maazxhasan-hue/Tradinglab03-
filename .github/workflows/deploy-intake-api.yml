@@ -104,7 +104,7 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGIN: ${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
         run: |
@@ -113,7 +113,7 @@ jobs:
           template = pathlib.Path("worker/wrangler.template.toml").read_text(encoding="utf-8")
           values = {
               "__D1_DATABASE_ID__": os.environ["D1_DATABASE_ID"],
-              "__SITE_ORIGIN__": os.environ["SITE_ORIGIN"].rstrip("/"),
+              "__SITE_ORIGINS__": ",".join(origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()),
               "__NOTIFY_EMAIL__": os.environ.get("NOTIFY_EMAIL", ""),
               "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", "")
           }
@@ -217,7 +217,7 @@ jobs:
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
           endpoint = os.environ["INTAKE_ENDPOINT"].rstrip("/")
-          origin = os.environ["SITE_ORIGIN"].rstrip("/")
+          origin = os.environ["SITE_ORIGINS"].split(",")[0].strip().rstrip("/")
           admin_key = os.environ["TRADINGLAB03_ADMIN_API_KEY"]
           tag = uuid.uuid4().hex[:12]
           payload = {
