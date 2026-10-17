@@ -157,4 +157,39 @@ class OpportunityImporterTests(unittest.TestCase):
             ]), encoding="utf-8")
             self.assertEqual(enabled_source_names(path), {"Reddit"})
 
+
+    def test_reclassifies_legacy_job_postings_without_deleting_or_changing_status(self):
+        store={"schema_version":1,"leads":[{
+            "id":"legacy1","business_name":"Sanctuary Computer: Senior Shopify Developer",
+            "need":"We are hiring a contract-based Senior Shopify Developer to contribute to our Design and Development Team. Full-time position with salary and benefits.",
+            "source_url":"https://example.org/job/legacy1","source_type":"public_opportunity_listing",
+            "source_name":"Old job feed","opportunity_type":"client_project","client_fit":True,
+            "freelance_work_fit":False,"opportunity_score":20,"opportunity_priority":"high",
+            "status":"new","notes":"Imported before stricter classification."
+        }]}
+        result=import_report({"opportunities":[]},store,allowed_sources=set())
+        lead=store["leads"][0]
+        self.assertEqual(result["reclassified_existing_listings"],1)
+        self.assertFalse(lead["client_fit"])
+        self.assertEqual(lead["opportunity_type"],"employment_role")
+        self.assertEqual(lead["opportunity_priority"],"low")
+        self.assertEqual(lead["status"],"new")
+        self.assertIn("Do not treat as an actionable client lead",lead["next_action"])
+        self.assertEqual(len(store["leads"]),1)
+
+    def test_reclassifies_legacy_buyer_request_as_client_project(self):
+        store={"schema_version":1,"leads":[{
+            "id":"legacy2","business_name":"Need a website for my business",
+            "need":"I need a new website for my business and can pay for the project.",
+            "source_url":"https://example.org/project/legacy2","source_type":"public_opportunity_listing",
+            "source_name":"Old project feed","opportunity_type":"unqualified","client_fit":False,
+            "status":"new","notes":"Legacy lead."
+        }]}
+        result=import_report({"opportunities":[]},store,allowed_sources=set())
+        lead=store["leads"][0]
+        self.assertEqual(result["reclassified_existing_listings"],1)
+        self.assertTrue(lead["client_fit"])
+        self.assertEqual(lead["opportunity_type"],"client_project")
+        self.assertEqual(lead["status"],"new")
+
 if __name__ == "__main__": unittest.main()
