@@ -1,6 +1,6 @@
 # TradingLab03 enquiry service
 
-This Cloudflare Worker is a separate business-intake service. It does not connect to trading, brokerage, MCX, or Azure trading infrastructure.
+This Cloudflare Worker is the Nexora AI public enquiry intake service (the repository retains the legacy TradingLab03 name). It does not connect to trading, brokerage, MCX, or Azure trading infrastructure.
 
 ## What it does
 
@@ -21,7 +21,7 @@ This Cloudflare Worker is a separate business-intake service. It does not connec
 2. Add repository variables:
    - `TRADINGLAB03_NOTIFY_EMAIL` — the inbox that should receive new enquiries.
    - `TRADINGLAB03_FROM_EMAIL` — a sender address verified by Resend for production. For a no-domain test only, leave this variable unset; deployment uses Resend's `onboarding@resend.dev` test sender by default. Resend test mode is limited and may only deliver to the email address associated with your Resend account. For real client notifications, verify a domain you control and set this variable to that domain's sender address.
-   - `TRADINGLAB03_SITE_ORIGIN` — the exact website origin, e.g. `https://maazxhasan-hue.github.io` (origin only; no path).
+   - `TRADINGLAB03_SITE_ORIGINS` — comma-separated exact website origins (no paths), e.g. `https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io`. Keep this list limited to domains you control; the deploy workflow uses the Vercel site and GitHub Pages as defaults if this variable is unset.
 3. Run **Deploy TradingLab03 Intake API** from GitHub Actions. It creates or reuses the D1 database, applies migrations, deploys the Worker, configures the owner key, and wires the deployed endpoint into the public website.
 4. Check the workflow output and visit the `/health` URL. Submit a test enquiry with your own test email and confirm it appears in the owner notification or the protected admin endpoint.
 
@@ -29,7 +29,7 @@ If the Cloudflare credentials or owner key are missing, deployment intentionally
 
 ## Owner inbox and private retrieval
 
-After deployment, open the public Pages path `inbox.html` on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
+After deployment, open the owner inbox at `https://nexora-ai-sooty-two.vercel.app/dashboard/inbox.html` (or the matching `/dashboard/inbox.html` path on your configured site) on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
 
 For command-line retrieval, use the deployed worker URL and owner key privately:
 
