@@ -243,3 +243,38 @@ Nexora AI
 - [ ] Submit only through the authorized Upwork account and only with truthful portfolio claims.
 
 No application submitted and no client contacted by this workflow.
+
+
+---
+
+## Additional lead — Real estate business website
+
+**Status: Research-qualified; proposal draft only.** Public search result accessed 2026-10-17. Confirm the job is still open and read its full terms in Upwork before applying.
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Real-Estate-Website-Developer_~022105597130665898821/
+- Search snapshot title: “Real Estate Website Developer”
+- Fixed-price budget shown: **US$200**
+- Client location shown: Bangalore, India
+- Listing description: clean, professional site with property listings, contact, and about sections; ongoing updates may be needed.
+- Search snapshot showed 15–20 proposals and zero interviews at the time indexed. This may have changed.
+- Source: public search result turn797896search5, accessed 2026-10-17.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help create a clean, mobile-friendly website for your real estate business, with a clear property-listing layout, About section, and prominent enquiry/contact options. I'd focus on making it easy for visitors to browse properties and reach you quickly from their phones.
+
+For the first milestone, I'd suggest a responsive homepage, property listing cards/detail layout, About, and Contact/enquiry section. Before finalizing the fixed price, I'd confirm whether you need an admin panel to add/edit properties, search filters, map integration, or just a curated set of listings. Those features change the scope significantly.
+
+If you share a few example sites and the number of properties to launch with, I can recommend a practical first release and handover plan.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+
+- [ ] Confirm listing is currently open and inspect client profile/payment signals.
+- [ ] Clarify whether property data is static or requires an admin panel/search.
+- [ ] Confirm the US$200 budget matches the agreed first-release scope.
+- [ ] Submit only through an authorized Upwork account; no proposal submitted and no client contacted by this workflow.
