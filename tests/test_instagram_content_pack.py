@@ -35,6 +35,7 @@ class InstagramContentPackTests(unittest.TestCase):
             self.assertIn(post["cta"], post["caption"])
             self.assertTrue(post["caption"].endswith("#learnonthego #smallbusiness #digitalskills"))
             self.assertEqual(post["caption"].count("\n\n"), 3)
+            self.assertEqual(post["hashtags"], ["#learnonthego", "#smallbusiness", "#digitalskills"])
 
     def test_generation_never_publishes_and_requires_review(self):
         pack = self.make_pack()
