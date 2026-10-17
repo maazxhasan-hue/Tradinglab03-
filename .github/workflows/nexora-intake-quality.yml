@@ -6,6 +6,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/inbox.html"
+      - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
       - ".github/workflows/nexora-intake-quality.yml"
@@ -48,6 +49,8 @@ jobs:
           worker = Path("worker/index.js").read_text(encoding="utf-8")
           inbox = Path("dashboard/inbox.html").read_text(encoding="utf-8")
           readme = Path("worker/README.md").read_text(encoding="utf-8")
+          public_site = Path("dashboard/website.html").read_text(encoding="utf-8")
+          login_page = Path("dashboard/login.html").read_text(encoding="utf-8")
           deploy_workflow = Path(".github/workflows/deploy-intake-api.yml").read_text(encoding="utf-8")
           required_worker = [
               'url.pathname.match(/^\\/api\\/admin\\/submissions\\/([^/]+)\\/status$/)',
@@ -55,6 +58,8 @@ jobs:
               'auth !== "Bearer " + env.ADMIN_API_KEY',
               '"access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS"',
               '"proposal_ready"', '"in_progress"', '"delivered"', '"won"', '"lost"',
+              '/api/auth/', '"client_accounts"', '"client_sessions"',
+              '"Sign in before submitting a project request."',
           ]
           required_inbox = [
               'method:"PATCH"',
@@ -68,6 +73,10 @@ jobs:
               missing.append("deployment workflow invalid-status end-to-end check")
           if "Payment reconciliation remains a separate" not in readme:
               missing.append("README payment-evidence disclaimer")
+          if 'href="login.html?mode=signup&next=website.html%23project">Sign up to build' not in public_site or 'href="login.html?next=website.html%23project">Log in' not in public_site:
+              missing.append("public login and signup links")
+          if 'id="authForm"' not in login_page or '/api/auth/' not in login_page or "nexora_client_token" not in login_page:
+              missing.append("client authentication page wiring")
           if missing:
               raise SystemExit("Missing intake safety/pipeline requirements: " + ", ".join(missing))
           print("PASS: status endpoint, owner authentication, CORS, inbox controls, and payment caveat are present.")
