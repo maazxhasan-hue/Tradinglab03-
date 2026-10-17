@@ -123,7 +123,7 @@ async function sha256Hex(value) {
 }
 async function passwordHash(password, saltHex) {
   const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({name:"PBKDF2", salt:hexToBytes(saltHex), iterations:150000, hash:"SHA-256"}, material, 256);
+  const bits = await crypto.subtle.deriveBits({name:"PBKDF2", salt:hexToBytes(saltHex), iterations:100000, hash:"SHA-256"}, material, 256);
   return bytesToHex(bits);
 }
 function randomHex(size = 32) {
@@ -356,7 +356,7 @@ export default {
     const authMatch = url.pathname.match(/^\/api\/auth\/(register|login|me|logout)$/);
     if (authMatch) {
       try { return await handleAuth(request, env, cors, authMatch[1]); }
-      catch (error) { console.error("Nexora client authentication failed:", error && error.message ? error.message : "unknown error"); return response({error:"Authentication service temporarily unavailable.", diagnostic: String(error && error.message || "unknown").slice(0,180)}, 503, cors); }
+      catch (error) { console.error("Nexora client authentication failed:", error && error.message ? error.message : "unknown error"); return response({error:"Authentication service temporarily unavailable."}, 503, cors); }
     }
     if (url.pathname === "/api/intake" && request.method === "POST") {
       try { return await createSubmission(request, env, cors); }
