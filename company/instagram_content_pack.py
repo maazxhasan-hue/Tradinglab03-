@@ -43,7 +43,7 @@ def build(args):
             f"{cta}\n\n"
             "#learnonthego #smallbusiness #digitalskills"
         )
-        caption = clean(caption).replace(".\n\n", ".\n\n")
+        caption = caption.strip()
         items.append({
             "day": i, "pillar": pillar, "format": "Reel (25–35 seconds)",
             "hook": hook, "on_screen_text": hook,
