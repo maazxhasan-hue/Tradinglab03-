@@ -76,8 +76,8 @@ jobs:
           import re
           from pathlib import Path
           site = Path("dashboard/website.html").read_text(encoding="utf-8")
-          visible_site = re.sub(r"<script\\b[^>]*>.*?</script>", " ", site, flags=re.I | re.S)
-          visible_site = re.sub(r"<style\\b[^>]*>.*?</style>", " ", visible_site, flags=re.I | re.S)
+          visible_site = re.sub(r"<script[^>]*>.*?</script>", " ", site, flags=re.I | re.S)
+          visible_site = re.sub(r"<style[^>]*>.*?</style>", " ", visible_site, flags=re.I | re.S)
           visible_site = re.sub(r"<[^>]+>", " ", visible_site)
           privacy = Path("dashboard/privacy.html").read_text(encoding="utf-8")
           checks = {
