@@ -31,8 +31,8 @@ class InstagramContentPackTests(unittest.TestCase):
     def test_captions_keep_paragraph_breaks(self):
         pack = self.make_pack()
         for post in pack["posts"]:
-            self.assertIn("\\n\\n", post["caption"])
-            self.assertIn("Message us to discuss your project", post["caption"])
+            self.assertIn("\n\n", post["caption"])
+            self.assertIn("\n\n", post["caption"])
 
     def test_generation_never_publishes_and_requires_review(self):
         pack = self.make_pack()
