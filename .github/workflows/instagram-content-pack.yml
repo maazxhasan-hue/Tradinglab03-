@@ -1,0 +1,66 @@
+name: Instagram Content Pack (Approval Required)
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: Which content brand to draft for
+        required: true
+        type: choice
+        options:
+          - tradinglab03
+          - nexora_ai
+      topic:
+        description: Topic / content theme
+        required: true
+        type: string
+      offer:
+        description: Real offer or service (no invented outcomes)
+        required: true
+        type: string
+      audience:
+        description: Intended audience
+        required: true
+        type: string
+        default: beginners and small-business owners
+      cta:
+        description: Call to action
+        required: true
+        type: string
+        default: Save this for later and ask a question in the comments.
+
+permissions:
+  contents: read
+
+jobs:
+  draft-content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out company repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate seven-post draft pack
+        env:
+          ACCOUNT: ${{ inputs.account }}
+          TOPIC: ${{ inputs.topic }}
+          OFFER: ${{ inputs.offer }}
+          AUDIENCE: ${{ inputs.audience }}
+          CTA: ${{ inputs.cta }}
+        run: |
+          python company/instagram_content_pack.py \
+            --account "$ACCOUNT" \
+            --topic "$TOPIC" \
+            --offer "$OFFER" \
+            --audience "$AUDIENCE" \
+            --cta "$CTA"
+      - name: Upload draft pack for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-content-pack-${{ github.run_id }}
+          path: data/instagram_content_packs/
+          if-no-files-found: error
+          retention-days: 14
