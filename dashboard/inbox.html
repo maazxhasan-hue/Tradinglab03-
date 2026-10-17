@@ -82,7 +82,7 @@ function render(rows){
   saveStatus.addEventListener("click",async function(){
    saveStatus.disabled=true;
    try{
-    const res=await fetch(endpoint.replace(/\\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id)+"/status",{method:"PATCH",headers:{Authorization:"Bearer "+keyField.value.trim(),"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:statusSelect.value}),mode:"cors",credentials:"omit"});
+    const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id)+"/status",{method:"PATCH",headers:{Authorization:"Bearer "+keyField.value.trim(),"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:statusSelect.value}),mode:"cors",credentials:"omit"});
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.updated!==true)throw new Error(data.error||"Status update failed.");
     item.status=data.status;meta.textContent="Received "+(item.created_at||"date unknown")+" · Status: "+item.status+" · Email alert: "+(item.notification_status||"unknown");
