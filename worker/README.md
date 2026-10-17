@@ -4,8 +4,9 @@ This Cloudflare Worker is the Nexora AI public enquiry intake service (the repos
 
 ## What it does
 
-- Receives real website enquiries at `POST /api/intake` and saves them to Cloudflare D1.
-- Validates input, enforces a strict allowed-origin check, caps request size, uses a honeypot, and rate-limits by a one-way IP hash.
+- Requires a client account for project submissions. `POST /api/auth/register` and `/api/auth/login` issue a random bearer session token after password verification; `GET /api/auth/me` validates the session and `POST /api/auth/logout` revokes it. Passwords are PBKDF2-SHA-256 hashed with per-account random salts; session tokens are hashed before D1 storage and expire after seven days.
+- Receives authenticated website project enquiries at `POST /api/intake` and saves them to Cloudflare D1, associated with the signed-in account.
+- Validates input, enforces a strict allowed-origin check, caps request size, uses a honeypot, rate-limits enquiry submission and authentication attempts by a one-way IP hash, and rejects anonymous project submissions.
 - Sends an email notification through Resend only when all three settings are configured: `RESEND_API_KEY`, `NOTIFY_EMAIL`, and `FROM_EMAIL`. The sender address must be verified with Resend.
 - Exposes `GET /health` for a non-sensitive health check.
 - Exposes `GET /api/admin/submissions` only with an `Authorization: Bearer ...` owner key; supports owner-authenticated `PATCH /api/admin/submissions/{id}/status` to set a validated pipeline status (`new`, `reviewing`, `qualified`, `proposal_ready`, `in_progress`, `delivered`, `won`, `lost`); and supports owner-authenticated `DELETE /api/admin/submissions/{id}` for deletion requests. The owner key must never be placed in the public website. A `won` label is an operator-entered sales status, not payment evidence.
@@ -58,3 +59,8 @@ Content-Type: application/json
 Only the eight documented status values are accepted. The endpoint rejects unauthenticated requests, validates the UUID, limits the request body, and returns whether a matching record was updated. Do not store the owner key in browser storage, source control, or a public URL.
 
 The status field is operational bookkeeping only. A lead marked `won` is not proof of a signed contract, invoice, payment, or revenue. Payment reconciliation remains a separate, unimplemented production integration.
+
+
+## Client sign-in
+
+The public website links to `dashboard/login.html`. New clients can register with a valid email and a unique password of at least 12 characters, then return to the project brief. The browser stores the short-lived bearer token in local storage; the Worker validates it server-side on every project submission. Tokens expire after seven days, and logout revokes the current session. Authentication attempts are rate-limited. The current account flow does not yet verify email ownership or provide password-reset/recovery; do not describe it as email-verified identity. Keep the Worker endpoint and account data private, and add verified email recovery before relying on accounts for sensitive client documents.
