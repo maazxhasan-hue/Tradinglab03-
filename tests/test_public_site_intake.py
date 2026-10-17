@@ -10,7 +10,7 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn('href="login.html?next=website.html%23project">Log in', html)
         self.assertIn('href="login.html?mode=signup&next=website.html%23project">Sign up to build', html)
         self.assertIn('localStorage.getItem("nexora_client_token")', html)
-        self.assertIn('/api/auth/register', (ROOT / "dashboard" / "login.html").read_text(encoding="utf-8"))
+        self.assertIn('"/api/auth/"+(mode==="login"?"login":"register")', (ROOT / "dashboard" / "login.html").read_text(encoding="utf-8"))
         self.assertIn("Never include passwords, API keys, or sensitive customer data.", html)
 
     def test_hq_exposes_delivery_workflow_and_inbox(self):
