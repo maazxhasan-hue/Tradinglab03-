@@ -8,7 +8,7 @@ This Cloudflare Worker is the Nexora AI public enquiry intake service (the repos
 - Validates input, enforces a strict allowed-origin check, caps request size, uses a honeypot, and rate-limits by a one-way IP hash.
 - Sends an email notification through Resend only when all three settings are configured: `RESEND_API_KEY`, `NOTIFY_EMAIL`, and `FROM_EMAIL`. The sender address must be verified with Resend.
 - Exposes `GET /health` for a non-sensitive health check.
-- Exposes `GET /api/admin/submissions` only with an `Authorization: Bearer ...` owner key, and supports owner-authenticated `DELETE /api/admin/submissions/{id}` for deletion requests. The owner key must never be placed in the public website.
+- Exposes `GET /api/admin/submissions` only with an `Authorization: Bearer ...` owner key; supports owner-authenticated `PATCH /api/admin/submissions/{id}/status` to set a validated pipeline status (`new`, `reviewing`, `qualified`, `proposal_ready`, `in_progress`, `delivered`, `won`, `lost`); and supports owner-authenticated `DELETE /api/admin/submissions/{id}` for deletion requests. The owner key must never be placed in the public website. A `won` label is an operator-entered sales status, not payment evidence.
 - Stores the enquiry even if optional email notification is not configured or fails.
 
 ## One-time activation
@@ -41,3 +41,20 @@ curl -H "Authorization: Bearer $TRADINGLAB03_ADMIN_API_KEY" \
 Delete a single submission privately with `curl -X DELETE -H "Authorization: Bearer $TRADINGLAB03_ADMIN_API_KEY" "https://YOUR-WORKER-URL/api/admin/submissions/SUBMISSION-UUID"`. Treat the owner key and returned customer details as confidential.
 
 Do not paste real client data into public issues, public workflow inputs, public artifacts, or committed files.
+
+
+## Lead pipeline status updates
+
+The private inbox uses the status endpoint with the owner bearer key:
+
+```http
+PATCH /api/admin/submissions/{submission-id}/status
+Authorization: Bearer YOUR_OWNER_KEY
+Content-Type: application/json
+
+{"status":"qualified"}
+```
+
+Only the eight documented status values are accepted. The endpoint rejects unauthenticated requests, validates the UUID, limits the request body, and returns whether a matching record was updated. Do not store the owner key in browser storage, source control, or a public URL.
+
+The status field is operational bookkeeping only. A lead marked `won` is not proof of a signed contract, invoice, payment, or revenue. Payment reconciliation remains a separate, unimplemented production integration.
