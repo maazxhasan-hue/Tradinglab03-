@@ -253,7 +253,21 @@ jobs:
               rows = inbox.get("submissions", [])
               if status != 200 or not any(row.get("id") == submission_id for row in rows):
                   raise SystemExit("Synthetic enquiry was saved but not found in the private inbox.")
-                  print("PASS: synthetic enquiry saved and visible in private inbox.")
+              print("PASS: synthetic enquiry saved and visible in private inbox.")
+              status, updated = request(
+                  "PATCH",
+                  "/api/admin/submissions/" + submission_id + "/status",
+                  {"status": "qualified"},
+                  headers={"Authorization": "Bearer " + admin_key}
+              )
+              if status != 200 or updated.get("updated") is not True or updated.get("status") != "qualified":
+                  raise SystemExit("Authenticated pipeline status update did not return the expected result.")
+              status, inbox = request("GET", "/api/admin/submissions?limit=100", headers={"Authorization": "Bearer " + admin_key})
+              rows = inbox.get("submissions", [])
+              matching = next((row for row in rows if row.get("id") == submission_id), None)
+              if status != 200 or not matching or matching.get("status") != "qualified":
+                  raise SystemExit("Updated pipeline status was not persisted in the private inbox.")
+              print("PASS: authenticated status update persisted and was visible in the inbox.")
               notification = saved.get("notification", "unknown")
               print("EMAIL_NOTIFICATION_STATUS=" + str(notification))
               if notification != "owner_notified":
