@@ -1,163 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cast &amp; Render — 3D Object Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f5f7">
+<meta name="description" content="Nexora AI builds practical business websites, landing pages, content systems, and lightweight workflow automation.">
+<title>Nexora AI — Thoughtful digital work, delivered clearly</title>
 <style>
-:root{
- --fg:#0d0c0b;--fg-soft:rgba(13,12,11,.64);--fg-faint:rgba(13,12,11,.42);
- --shade:#f2f0ec;--rule:rgba(13,12,11,.16);--ease:cubic-bezier(.22,.61,.36,1);
- --pill-bg:#0a0908;--pill-fg:#ffffff;
+:root{color-scheme:dark;--bg:#08101a;--panel:#101c2b;--panel2:#14263a;--line:#263b52;--text:#eff6ff;--muted:#a9b8ca;--teal:#63ead5;--blue:#8bb7ff;--max:1160px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 85% 0%,#15394a 0,transparent 36%),var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit}button,input,select,textarea{font:inherit}.wrap{width:min(var(--max),calc(100% - 36px));margin:auto}.nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 0;border-bottom:1px solid var(--line)}.brand{font-weight:950;letter-spacing:.06em;text-decoration:none}.brand span{color:var(--teal)}.navlinks{display:flex;gap:22px;align-items:center}.navlinks a{text-decoration:none;color:var(--muted);font-size:.92rem}.navlinks a:hover,.textlink:hover{color:var(--teal)}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--teal);border-radius:12px;padding:12px 17px;background:var(--teal);color:#07131a;font-weight:850;text-decoration:none;cursor:pointer}.btn.alt{background:transparent;color:var(--text);border-color:var(--line)}.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--blue);outline-offset:3px}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;padding:82px 0 68px}.eyebrow{color:var(--teal);text-transform:uppercase;font-size:.75rem;letter-spacing:.16em;font-weight:900}.hero h1{font-size:clamp(2.7rem,6vw,5.3rem);letter-spacing:-.065em;line-height:.99;margin:16px 0 24px;max-width:760px}.hero p,.intro{color:var(--muted);font-size:1.08rem;max-width:690px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.tag{border:1px solid #28665f;border-radius:99px;padding:5px 10px;font-size:.8rem;color:var(--teal)}.panel,.card{background:linear-gradient(150deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:22px;padding:25px}.panel .big{font-size:2.25rem;font-weight:950;letter-spacing:-.055em;line-height:1.08;margin:12px 0}.muted{color:var(--muted)}.rule{height:1px;background:var(--line);margin:20px 0}.section{padding:54px 0 66px}.section h2{font-size:clamp(2rem,4vw,3.1rem);line-height:1.08;letter-spacing:-.05em;margin:10px 0 14px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}.card h3{margin:8px 0;font-size:1.13rem}.card p{color:var(--muted);margin-bottom:0}.n{color:var(--teal);font-size:.78rem;font-weight:900;letter-spacing:.1em}.split{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}.list{padding-left:20px;color:var(--muted)}.list li{padding:5px 0}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}.step{border-top:2px solid #2c8076;padding:15px 6px}.step strong{display:block;margin-bottom:7px}.callout{background:#dffbf5;color:#0b1b22;border-radius:22px;padding:30px}.callout p{color:#3c555a}.callout .btn{background:#0d3435;color:#effffa;border-color:#0d3435}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#07111d;color:var(--text);padding:12px}.field textarea{min-height:120px;resize:vertical}.field.full{grid-column:1/-1}.statusbox{margin-top:14px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;color:var(--muted);overflow-wrap:anywhere}.statusbox.ok{border-color:#2d7c70;color:#c7fff2}.fine{font-size:.82rem;color:var(--muted)}.footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:.85rem}.footerrow{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.textlink{color:var(--teal)}
+@media(max-width:820px){.hero,.split{grid-template-columns:1fr}.hero{padding:55px 0 42px}.grid3{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.navlinks{gap:12px}.navlinks a:not(.navcta){display:none}}
+@media(max-width:560px){.grid3,.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.wrap{width:min(var(--max),calc(100% - 26px))}.nav{padding:15px 0}.navlinks .navcta{padding:9px 11px;font-size:.85rem}.panel,.card{padding:19px}.section{padding:38px 0 48px}.hero h1{font-size:clamp(2.7rem,14vw,4rem)}}
+
+/* Nexora AI design system — clarity, calm hierarchy, accessible controls, restrained motion. */
+:root{color-scheme:light;--bg:#f5f5f7;--panel:#ffffff;--panel2:#ffffff;--line:#dedee3;--text:#1d1d1f;--muted:#6e6e73;--teal:#0071e3;--blue:#0071e3;--max:1120px}
+html{scroll-padding-top:88px}
+body{background:linear-gradient(180deg,#fbfbfd 0%,#f5f5f7 54%,#fbfbfd 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif;letter-spacing:-.012em;line-height:1.58}
+.wrap{width:min(var(--max),calc(100% - 48px))}
+.nav{position:sticky;top:0;z-index:20;padding:15px 0;background:rgba(251,251,253,.86);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid rgba(29,29,31,.08)}
+.brand{font-size:1.02rem;letter-spacing:-.035em;font-weight:750;color:#1d1d1f}.brand span{color:#0071e3}
+.navlinks a{color:#424245}.navlinks a:hover,.textlink:hover{color:#0071e3}
+.btn{border:1px solid #0071e3;border-radius:999px;padding:12px 20px;background:#0071e3;color:white;font-weight:650;box-shadow:none;transition:background .22s ease,border-color .22s ease,transform .22s cubic-bezier(.2,.7,.2,1)}
+.btn:hover{background:#0077ed;border-color:#0077ed;transform:translateY(-1px)}
+.btn.alt{background:rgba(255,255,255,.65);color:#0071e3;border-color:#b8cde6}
+.btn.alt:hover{background:#edf5ff}
+.btn:disabled,button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.hero{grid-template-columns:1.1fr .9fr;gap:64px;padding:96px 0 84px}
+.eyebrow{color:#0071e3;letter-spacing:.08em;font-size:.76rem;font-weight:700}
+.hero h1{font-size:clamp(3.2rem,7.4vw,6.4rem);letter-spacing:-.075em;line-height:.96;font-weight:720;margin:18px 0 25px}
+.hero p,.intro{color:#515154;font-size:clamp(1.02rem,1.5vw,1.16rem);line-height:1.7}
+.tags{gap:9px}.tag{background:#fff;border:1px solid #e5e5ea;color:#424245;border-radius:999px;padding:6px 12px}
+.panel,.card{background:rgba(255,255,255,.88);border:1px solid rgba(29,29,31,.09);border-radius:26px;padding:28px;box-shadow:0 8px 32px rgba(29,29,31,.035)}
+.panel .big{font-size:clamp(2rem,3.8vw,3rem);letter-spacing:-.06em;font-weight:720;line-height:1.04}
+.muted,.card p,.list{color:#6e6e73}
+.rule{background:#e5e5ea}
+.section{padding:76px 0 82px}
+.section h2{font-size:clamp(2.3rem,5vw,4rem);letter-spacing:-.065em;line-height:1.03;font-weight:720;max-width:850px}
+.grid3{gap:16px;margin-top:34px}
+.card{transition:transform .24s cubic-bezier(.2,.7,.2,1),box-shadow .24s ease,border-color .24s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(29,29,31,.065);border-color:#d5d5dc}
+.card h3{font-size:1.2rem;letter-spacing:-.025em;font-weight:680}
+.n{color:#0071e3;font-size:.74rem;letter-spacing:.08em}
+.steps{gap:18px;margin-top:34px}
+.step{border-top:2px solid #0071e3;padding:17px 7px}
+.callout{background:linear-gradient(135deg,#eaf4ff,#f4f8ff 55%,#f5f5f7);border:1px solid #dce9f8;border-radius:28px;color:#1d1d1f;padding:36px}
+.callout p{color:#515154}
+.callout .btn{background:#0071e3;color:white;border-color:#0071e3}
+.field label{color:#515154}
+.field input,.field select,.field textarea{border:1px solid #d2d2d7;border-radius:13px;background:#fff;color:#1d1d1f;padding:13px 14px;transition:border-color .15s ease,box-shadow .15s ease}
+.field input::placeholder,.field textarea::placeholder{color:#86868b}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#0071e3;box-shadow:0 0 0 4px rgba(0,113,227,.13);outline:none}
+.statusbox{background:#f5f5f7;border-color:#e5e5ea;color:#515154;border-radius:14px}
+.statusbox.ok{background:#edf8f1;border-color:#b8dfc5;color:#176b37}
+.footer{border-top:1px solid #dedee3;color:#6e6e73}
+.textlink,a.textlink{color:#0071e3}
+.fine{color:#6e6e73}
+:focus-visible{outline:3px solid #0071e3!important;outline-offset:4px!important}
+@media(max-width:820px){.wrap{width:min(var(--max),calc(100% - 32px))}.hero{gap:30px;padding:64px 0 50px}.section{padding:54px 0 60px}.panel,.card{border-radius:22px}}
+@media(max-width:560px){.wrap{width:calc(100% - 28px)}.nav{padding:12px 0}.hero{padding:48px 0 38px}.hero h1{font-size:clamp(3rem,15vw,4.3rem)}.grid3,.formgrid{grid-template-columns:1fr}.panel,.card{padding:20px;border-radius:20px}.section{padding:42px 0 48px}.callout{padding:24px;border-radius:22px}.steps{gap:8px}.step{padding:13px 4px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+
+/* Motion layer: subtle, purposeful, and reduced-motion aware. */
+@keyframes nx-fade-up{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes nx-soft-glow{0%,100%{box-shadow:0 8px 32px rgba(0,113,227,.045)}50%{box-shadow:0 14px 42px rgba(0,113,227,.12)}}
+@keyframes nx-orbit{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes nx-gradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero>div,.hero>.panel{animation:nx-fade-up .65s cubic-bezier(.2,.7,.2,1) both}
+.hero>.panel{animation-delay:.08s}
+.hero .eyebrow{animation:nx-fade-up .6s ease both}
+.hero h1{background:linear-gradient(105deg,#1d1d1f 0%,#1d1d1f 55%,#0071e3 78%,#1d1d1f 100%);background-size:220% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:nx-fade-up .65s ease both}
+.tags .tag{transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.tags .tag:hover{transform:translateY(-2px);border-color:#9bc7f5;background:#f1f7ff}
+.reveal-ready .reveal{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.2,1)}
+.reveal-ready .reveal.is-visible{opacity:1;transform:translateY(0)}
+.reveal-ready .grid3 .card:nth-child(3n+2){transition-delay:80ms}
+.reveal-ready .grid3 .card:nth-child(3n){transition-delay:150ms}
+.reveal-ready .steps .step:nth-child(2){transition-delay:70ms}
+.reveal-ready .steps .step:nth-child(3){transition-delay:140ms}
+.reveal-ready .steps .step:nth-child(4){transition-delay:210ms}
+@media(prefers-reduced-motion:reduce){
+ .hero>div,.hero>.panel,.hero .eyebrow,.hero h1{animation:none!important}
+ .reveal-ready .reveal,.reveal-ready .reveal.is-visible{opacity:1!important;transform:none!important;transition:none!important}
+ .hero .panel{animation:none!important}
+ .tags .tag,.card,.btn{transition:none!important}
 }
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--shade);color:var(--fg);font-family:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
-.stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--shade)}
-.stage video{position:absolute;top:50%;left:50%;width:100%;height:100%;transform:translate(-50%,-50%) scale(1.02);object-fit:cover;filter:contrast(1.02);will-change:transform}
-.veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(242,240,236,.62) 0%,rgba(242,240,236,.12) 22%,rgba(242,240,236,.12) 78%,rgba(242,240,236,.66) 100%),radial-gradient(100% 80% at 50% 48%,rgba(242,240,236,0) 0%,rgba(242,240,236,.34) 100%),rgba(242,240,236,.20)}
-.grain{position:absolute;inset:-50%;opacity:.13;mix-blend-mode:multiply;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>")}
-.chrome{position:fixed;left:0;right:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:max(14px,calc(env(safe-area-inset-top,0px) + 12px)) clamp(16px,3.4vw,44px) 14px;background:linear-gradient(to bottom,rgba(242,240,236,.94) 0%,rgba(242,240,236,.78) 72%,rgba(242,240,236,0) 100%)}
-.mark{display:flex;align-items:center;gap:9px;font-size:15px;letter-spacing:-.012em;color:var(--fg);min-width:0;flex-shrink:1}
-.mark-star{opacity:.85}
-.nav{display:flex;align-items:center;gap:clamp(14px,2.4vw,32px);flex-shrink:0}
-.nav a:not(.pill){color:var(--fg);text-decoration:none;font-size:14.5px;letter-spacing:-.008em;opacity:.88;transition:opacity .3s var(--ease)}
-.nav a:not(.pill):hover{opacity:1}
-.pill{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 21px;border-radius:999px;background:var(--pill-bg);color:var(--pill-fg);font-size:14.5px;font-weight:500;letter-spacing:-.008em;text-decoration:none;white-space:nowrap;opacity:1;border:1px solid rgba(10,9,8,.12);box-shadow:0 1px 0 rgba(255,255,255,.10) inset;-webkit-text-fill-color:var(--pill-fg);transition:transform .4s var(--ease),background .3s var(--ease),color .3s var(--ease)}
-.nav .pill{color:#fff;-webkit-text-fill-color:#fff}
-.pill:hover,.pill:focus-visible{transform:translateY(-2px);background:#000;color:#fff;-webkit-text-fill-color:#fff}
-.pill:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.foot{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:center;padding:14px clamp(16px,4vw,24px) max(16px,calc(env(safe-area-inset-bottom,0px) + 12px));font-size:12px;line-height:1.45;letter-spacing:.02em;color:var(--fg-faint);text-align:center;pointer-events:none;background:linear-gradient(to top,rgba(242,240,236,.92) 0%,rgba(242,240,236,.72) 72%,rgba(242,240,236,0) 100%)}
-.meter{position:fixed;top:0;left:0;z-index:50;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:var(--fg);opacity:.55}
-.panels{position:fixed;inset:0;z-index:20;pointer-events:none}
-.panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:max(104px,calc(env(safe-area-inset-top,0px) + 88px)) clamp(20px,5vw,60px) max(96px,calc(env(safe-area-inset-bottom,0px) + 80px));opacity:0;will-change:opacity,transform}
-.eyebrow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;letter-spacing:.045em;color:var(--fg-soft);margin-bottom:clamp(16px,2vw,22px);max-width:min(46ch,100%);text-align:center}
-h1{font-weight:400;font-size:clamp(34px,7.1vw,104px);line-height:.98;letter-spacing:-.036em;max-width:15ch;text-wrap:balance;margin:0}
-.sub{margin-top:clamp(18px,2.2vw,28px);font-size:clamp(15px,1.28vw,19px);line-height:1.5;letter-spacing:-.008em;color:var(--fg-soft);max-width:min(46ch,100%);text-wrap:pretty}
-.cta{margin-top:clamp(28px,3.4vw,44px);pointer-events:auto;width:100%;display:flex;justify-content:center}
-.cta .pill{height:48px;padding:0 27px;font-size:15px;max-width:min(100%,320px)}
-.boot{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--shade);transition:opacity .7s var(--ease),visibility .7s}
-.boot.done{opacity:0;visibility:hidden}
-.boot p{font-size:12.5px;letter-spacing:.05em;color:var(--fg-faint)}
-.bar{width:150px;height:1px;background:var(--rule);overflow:hidden}
-.bar i{display:block;height:100%;width:100%;background:var(--fg);transform:scaleX(0);transform-origin:0 50%}
-.track{position:relative;z-index:1;height:560vh;min-height:3200px}
-@media(max-width:900px){.veil{background:linear-gradient(to bottom,rgba(242,240,236,.72) 0%,rgba(242,240,236,.18) 24%,rgba(242,240,236,.18) 76%,rgba(242,240,236,.74) 100%),radial-gradient(100% 80% at 50% 48%,rgba(242,240,236,0) 0%,rgba(242,240,236,.40) 100%),rgba(242,240,236,.24)}}
-@media(max-width:720px){.nav a:not(.pill){display:none}.mark{font-size:14px}.nav .pill{height:38px;padding:0 16px;font-size:13.5px}h1{max-width:12ch;font-size:clamp(30px,9.8vw,52px)}.sub{font-size:15px;max-width:34ch}.panel{padding:max(92px,calc(env(safe-area-inset-top,0px) + 76px)) 18px max(88px,calc(env(safe-area-inset-bottom,0px) + 72px))}.foot{font-size:11px;max-width:34ch;margin-inline:auto}}
-@media(max-width:420px){.mark-star{display:none}.nav .pill{height:36px;padding:0 14px;font-size:13px}h1{max-width:11ch;font-size:clamp(28px,10.5vw,40px)}.eyebrow{font-size:11px;letter-spacing:.04em;max-width:28ch}.cta .pill{width:100%;max-width:280px;height:44px;padding:0 20px;font-size:14px}}
-@media(max-height:520px) and (orientation:landscape){.panel{padding:max(72px,calc(env(safe-area-inset-top,0px) + 56px)) 24px max(64px,calc(env(safe-area-inset-bottom,0px) + 48px))}h1{font-size:clamp(28px,8vh,44px)}.sub{margin-top:12px;font-size:14px}.cta{margin-top:16px}}
-@media(prefers-reduced-motion:reduce){.nav a:not(.pill),.pill{transition:none}}
-</style>
-</head>
-<body>
-<div class="boot" id="boot"><div class="bar"><i id="bootBar"></i></div><p id="bootPct">LOADING 0%</p></div>
-<div class="stage"><video id="clip" muted playsinline preload="auto" disablepictureinpicture></video><div class="veil"></div><div class="grain"></div></div>
-<i class="meter" id="meter"></i>
-<header class="chrome">
- <div class="mark"><span class="mark-star" aria-hidden="true">&#10037;</span>&nbsp;Cast &amp; Render</div>
- <nav class="nav" aria-label="Main navigation"><a href="#board">Works</a><a href="#visit">About</a><a class="pill" href="#order">Start a brief</a></nav>
-</header>
-<main class="panels">
- <section class="panel" data-panel><div class="eyebrow">Objects studio <span>&middot;</span> No. 112 Render Lane</div><h1>Built at four.<br />Out by seven.</h1><div class="sub">Six kinds of mesh, one render farm, and a queue that starts before the sun does.</div><div class="cta"><a class="pill" href="#board">View the reel</a></div></section>
- <section class="panel" data-panel><div class="eyebrow">Across the studio</div><h1>Flat, never bent.</h1><div class="sub">The mesh should still be clean when it reaches the viewport. We export to order, never before.</div><div class="cta"><a class="pill" href="#visit">Tour our space</a></div></section>
- <section class="panel" data-panel><div class="eyebrow">The surface</div><h1>Smooth enough to<br />hold a light pass.</h1><div class="sub">Custom surface shaders whipped every morning, spread to the edge and weighed by the quarter pound.</div><div class="cta"><a class="pill" href="#order">Start a brief</a></div></section>
+
+</style></head>
+<body data-contact-email="" data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev">
+<header class="wrap nav"><a class="brand" href="#top" aria-label="Nexora AI home">NEXORA<span> AI</span></a>
+<nav class="navlinks" aria-label="Main navigation"><a href="#services">Services</a><a href="#process">Process</a><a href="#agents">AI workflow</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
+<main id="top">
+<section class="wrap hero"><div><div class="eyebrow">Digital services for growing businesses</div><h1>Good work.<br>Clear process.<br>Built to ship.</h1>
+<p>Nexora AI helps turn a business need into a practical website, landing page, content system, or lightweight automation—with a clear scope and quality checks before handover.</p>
+<div class="actions"><a class="btn" href="#project">Tell us what you need ↘</a><a class="btn alt" href="#services">Explore services</a></div><div class="tags"><span class="tag">Mobile-first</span><span class="tag">Scope-led</span><span class="tag">QA before handover</span></div></div>
+<aside class="panel"><div class="eyebrow">Our operating principle</div><div class="big">Useful first.<br>Reliable always.</div><p class="muted">Start with the outcome, build the smallest useful version, test the details, and hand over the work clearly.</p><div class="rule"></div><strong>What clients can expect</strong><ul class="list"><li>Written scope and acceptance checklist</li><li>Honest limits and realistic commitments</li><li>Reviewable deliverables and handover notes</li></ul></aside></section>
+<section class="wrap section" id="services"><div class="eyebrow">Services</div><h2>Small, useful digital improvements.</h2><p class="intro">Start with one concrete problem. We confirm requirements, scope, timing, and price before work begins.</p>
+<div class="grid3">
+<article class="card"><div class="n">01 / WEB</div><h3>Business websites</h3><p>Responsive multi-section websites, service pages, clear navigation, and practical contact paths.</p></article>
+<article class="card"><div class="n">02 / LANDING PAGES</div><h3>Launch & campaign pages</h3><p>Focused landing pages with a clear message, strong call to action, mobile layouts, and basic accessibility checks.</p></article>
+<article class="card"><div class="n">03 / WEBSITE QA</div><h3>Website cleanup</h3><p>Review a specific site issue, fix agreed problems, and provide a short before/after verification note.</p></article>
+<article class="card"><div class="n">04 / CONTENT</div><h3>Short-form content kits</h3><p>Video hooks, scripts, captions, and editing briefs based on approved facts and client-supplied assets.</p></article>
+<article class="card"><div class="n">05 / AUTOMATION</div><h3>Workflow helpers</h3><p>Small repeatable workflows with clear inputs, error handling, and a human-readable handover.</p></article>
+<article class="card"><div class="n">06 / DOCUMENTS</div><h3>Data & document workflows</h3><p>Structured extraction and formatting prototypes, with uncertain OCR or data mappings flagged for review.</p></article>
+</div></section>
+<section class="wrap section" id="process"><div class="eyebrow">A process you can follow</div><h2>From brief to handover.</h2><p class="intro">No surprise scope changes. No invented guarantees. We agree what “done” means before delivery.</p>
+<div class="steps"><div class="step"><strong>1. Understand</strong><span class="muted">Goals, audience, inputs, constraints, and success criteria.</span></div><div class="step"><strong>2. Scope</strong><span class="muted">Deliverables, exclusions, milestones, and agreed price.</span></div><div class="step"><strong>3. Build & test</strong><span class="muted">Create the agreed version and check functionality, mobile use, and quality.</span></div><div class="step"><strong>4. Review & hand over</strong><span class="muted">Share the work, note limitations, and resolve agreed fixes.</span></div></div></section>
+<section class="wrap section" id="agents"><div class="split"><div><div class="eyebrow">AI-assisted operations</div><h2>Agents help with the work—not fake the results.</h2><p class="intro">TradingLab03 runs scheduled public-opportunity discovery and maintains a lead register. Drafting and delivery workflows can prepare reviewable project packs and test deliverables.</p><a class="btn alt" href="https://maazxhasan-hue.github.io/Tradinglab03-/" rel="noopener">Open company HQ ↗</a></div>
+<div class="card"><h3>Current operating limits</h3><ul class="list"><li>Public listings are leads to verify, not confirmed customers.</li><li>Outbound messaging and replies require a connected, permitted contact channel.</li><li>AI model calls depend on available API quota; free template mode remains available.</li><li>Prices, contracts, production deployments, and payment claims are never invented.</li></ul><p class="fine">The HQ provides workflow access and reports. It does not claim a live messaging integration or verified revenue where none is connected.</p></div></div></section>
+<section class="wrap section" id="project"><div class="split"><div><div class="eyebrow">Project intake</div><h2>Tell us the outcome you need.</h2><p class="intro">Share a few details. This form prepares a structured project brief that can be downloaded and copied. It does not upload your information to a server.</p><div class="callout"><strong>What helps us scope well?</strong><p>One goal, an example or reference, must-have deliverables, deadline, budget range, and any access or privacy constraints.</p></div></div>
+<div class="card"><form id="projectForm"><div class="field" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div><div class="formgrid">
+<div class="field"><label for="name">Your name</label><input id="name" name="name" autocomplete="name" required maxlength="120" placeholder="Name"></div>
+<div class="field"><label for="email">Your email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="180" placeholder="you@company.com"></div>
+<div class="field"><label for="company">Business / project name</label><input id="company" name="company" maxlength="160" placeholder="Business name"></div>
+<div class="field"><label for="service">What do you need?</label><select id="service" name="service" required><option value="">Choose a service</option><option>Business website</option><option>Landing page</option><option>Website cleanup / QA</option><option>Short-form content kit</option><option>Workflow automation</option><option>Document / data workflow</option><option>Not sure yet</option></select></div>
+<div class="field"><label for="budget">Budget range (optional)</label><select id="budget" name="budget"><option value="">Not decided</option><option>Under ₹5,000</option><option>₹5,000–₹15,000</option><option>₹15,000–₹40,000</option><option>₹40,000+</option><option>Other / discuss</option></select></div>
+<div class="field"><label for="deadline">Target deadline (optional)</label><input id="deadline" name="deadline" type="date"></div>
+<div class="field full"><label for="goal">What should the finished work do?</label><textarea id="goal" name="goal" required maxlength="5000" placeholder="Describe the problem, audience, key requirements, and how you'll judge success."></textarea></div>
+<div class="field full"><label for="reference">Website / reference links (optional)</label><input id="reference" name="reference" type="url" maxlength="500" placeholder="https://..."></div>
+</div><div class="field full"><label style="display:flex;gap:10px;align-items:flex-start;color:var(--muted)"><input id="consent" name="consent" type="checkbox" required style="width:auto;margin-top:6px"><span>I agree that Nexora AI may use these details to respond to this project enquiry. Read the <a class="textlink" href="privacy.html" target="_blank" rel="noopener noreferrer">privacy notice</a>.</span></label></div>
+<div class="actions"><button class="btn" type="submit" id="submitProjectBtn" onclick="document.getElementById('formStatus').textContent='Validating your enquiry…';">Send project enquiry ↗</button><button class="btn alt" type="button" id="copyBtn" disabled>Copy brief</button><button class="btn alt" type="button" id="copyContactBtn" disabled>Copy brief & open Instagram ↗</button></div><p class="fine">When online intake is active, Send project enquiry submits your brief and returns a reference. If the service is unavailable, use the Instagram button to copy your brief and send it manually. Never include passwords, API keys, or sensitive customer data.</p>
+<div id="formStatus" class="statusbox" role="status" aria-live="polite">Submitting sends the brief only to the configured TradingLab03 intake service. If that service is not configured, a local copy is downloaded and no enquiry is sent automatically.</div></form></div></div></section>
+<section class="wrap section"><div class="callout"><div class="eyebrow" style="color:#0d5550">See the build process</div><h2 style="margin-top:10px">A concept sample, not a claimed client project.</h2><p>Explore a fictional small-business website concept to see the style and structure we can build from an approved brief.</p><a class="btn" href="https://maazxhasan-hue.github.io/Tradinglab03-/portfolio-sample/northline-small-business-website-concept.html" rel="noopener">View concept sample ↗</a></div></section>
 </main>
-<footer class="foot">112 Render Lane &nbsp;&middot;&nbsp; Tue–Sun, 9am till sold out</footer>
-<div class="track"></div>
+<footer class="wrap footer"><div class="footerrow"><span>© <span id="year"></span> Nexora AI</span><span>Clear scope · Reviewable work · Honest delivery</span><a class="textlink" href="https://www.instagram.com/tradinglab03/" target="_blank" rel="noopener noreferrer">Contact @tradinglab03 ↗</a><a class="textlink" href="privacy.html">Privacy ↗</a><a class="textlink" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions" rel="noopener">Operations status ↗</a></div><p class="fine">TradingLab03 does not guarantee sales, search rankings, views, or financial returns. Project terms and contact method must be agreed before work starts.</p></footer>
 <script>
-(function(){
 "use strict";
-// All-intra footage: every frame is a keyframe, so seeks can land on exact frames.
-var VIDEO_URL = "https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/45567745-d826-44a2-a5ce-7ef670944e60.mp4";
-var clip=document.getElementById("clip");
-var boot=document.getElementById("boot");
-var bootBar=document.getElementById("bootBar");
-var bootPct=document.getElementById("bootPct");
-var meter=document.getElementById("meter");
-var panels=[].slice.call(document.querySelectorAll("[data-panel]"));
-// Cue gaps are deliberate video-only dead zones; two text panels are never readable at once.
-var CUES=[[0.00,0.00,0.15,0.23],[0.35,0.43,0.57,0.65],[0.77,0.85,1.10,1.20]];
-var DRIFT=22;
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function smooth(t){return t*t*(3-2*t);}
-function ramp(p,a,b){if(b<=a)return p>=b?1:0;return smooth(clamp((p-a)/(b-a),0,1));}
-var progress=0,seekTo=0,seekAt=0,duration=0,ready=false,started=false,attached=false;
-function readScroll(){
- var max=document.documentElement.scrollHeight-window.innerHeight;
- progress=max>0?clamp(window.pageYOffset/max,0,1):0;
- if(duration)seekTo=progress*duration;
-}
-function paint(){
- meter.style.transform="scaleX("+progress+")";
- for(var i=0;i<panels.length;i++){
-  var el=panels[i],c=CUES[i];
-  var enter=ramp(progress,c[0],c[1]),leave=ramp(progress,c[2],c[3]);
-  var o=enter*(1-leave),y=(1-enter)*DRIFT-leave*DRIFT;
-  el.style.opacity=o;
-  el.style.transform="translate3d(0,"+y+"px,0)";
-  el.style.pointerEvents=o>0.6?"auto":"none";
+const form=document.getElementById("projectForm");
+const statusBox=document.getElementById("formStatus");
+const copyBtn=document.getElementById("copyBtn");
+const copyContactBtn=document.getElementById("copyContactBtn");
+let latestBrief=null;
+const submitButton=document.querySelector('#projectForm button[type="submit"]');
+form.addEventListener("invalid",e=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="Please complete the highlighted required fields and tick the consent checkbox. The browser may scroll to the first missing field.";
+},true);
+window.addEventListener("error",()=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+});
+window.addEventListener("unhandledrejection",()=>{
+ statusBox.classList.remove("ok");
+ statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+});
+submitButton.addEventListener("click",()=>{
+ if(!form.checkValidity()){
+  statusBox.classList.remove("ok");
+  statusBox.textContent="Please complete the highlighted required fields and tick the consent checkbox.";
+  form.reportValidity();
  }
+});
+const configuredEndpoint=document.body.dataset.intakeEndpoint.trim();
+if(configuredEndpoint){
+ submitButton.textContent="Send project enquiry ↗";
+ statusBox.textContent="Online intake is connected. Submitting will save your enquiry and return a reference.";
+}else{
+ submitButton.textContent="Prepare project brief ↗";
+ statusBox.textContent="Online intake is not connected yet. This button only prepares a local brief; use the Instagram contact button to send it manually.";
 }
-function frame(){
- if(ready&&duration){
-  var gap=seekTo-seekAt;
-  if(Math.abs(gap)>0.0008){
-   seekAt+=gap*0.115; // Smoothly ease the seek target rather than snapping to scroll position.
-   if(clip.readyState>=2&&!clip.seeking){try{clip.currentTime=seekAt;}catch(e){}}
-  }
+document.getElementById("year").textContent=String(new Date().getFullYear());
+function briefText(b){return ["NEXORA AI — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Status: "+(b.status==="submitted"?"Submitted to TradingLab03; reference: "+(b.submission_id||"received"):"Prepared in browser; not submitted.")].join("\n")}
+function downloadBrief(){
+ const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\n"],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+form.addEventListener("submit",async e=>{
+ e.preventDefault();if(!form.reportValidity())return;
+ const fd=new FormData(form);
+ latestBrief={schema_version:1,source:"Nexora AI public project brief form",created_at:new Date().toISOString(),name:String(fd.get("name")).trim(),email:String(fd.get("email")).trim(),company:String(fd.get("company")).trim(),service:String(fd.get("service")).trim(),budget:String(fd.get("budget")).trim(),deadline:String(fd.get("deadline")).trim(),goal:String(fd.get("goal")).trim(),reference:String(fd.get("reference")).trim(),website:String(fd.get("website")||"").trim(),consent:fd.get("consent")==="on",status:"not_submitted"};
+ copyBtn.disabled=false;copyContactBtn.disabled=false;
+ const endpoint=document.body.dataset.intakeEndpoint.trim();
+ if(endpoint){
+  const submitButton=form.querySelector('button[type="submit"]');submitButton.disabled=true;statusBox.classList.remove("ok");statusBox.textContent="Submitting your enquiry securely…";
+  try{
+   const resp=await fetch(endpoint.replace(/\/+$/,"")+"/api/intake",{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify(latestBrief),mode:"cors",credentials:"omit",...(typeof AbortSignal!=="undefined"&&typeof AbortSignal.timeout==="function"?{signal:AbortSignal.timeout(15000)}:{})});
+   const result=await resp.json().catch(()=>({}));
+   if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
+   latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
+   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"TradingLab03 has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please contact @tradinglab03 for follow-up.":"The enquiry is saved. Email notification is not confirmed, so contact @tradinglab03 if you need a prompt reply.");
+   statusBox.classList.add("ok");
+  }catch(err){
+   latestBrief.status="submission_unconfirmed";downloadBrief();
+   statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please use the Instagram contact button and send the brief manually.";statusBox.scrollIntoView({behavior:"smooth",block:"nearest"});
+   statusBox.classList.add("ok");
+  }finally{submitButton.disabled=false;}
+  return;
  }
- paint();
- requestAnimationFrame(frame);
-}
-function setProgress(f){bootBar.style.transform="scaleX("+f+")";bootPct.textContent="LOADING "+Math.round(f*100)+"%";}
-function start(){
- if(started)return;started=true;ready=true;boot.classList.add("done");readScroll();seekAt=seekTo;
-}
-function attach(src){
- if(attached)return;attached=true;
- clip.addEventListener("loadedmetadata",function(){duration=clip.duration||0;clip.pause();readScroll();seekAt=seekTo;try{clip.currentTime=seekAt;}catch(e){}});
- clip.addEventListener("loadeddata",start);
- clip.addEventListener("canplaythrough",start);
- clip.addEventListener("error",start);
- clip.src=src;clip.load();
- setTimeout(start,12000);
-}
-function preload(){
- var controller=typeof AbortController!=="undefined"?new AbortController():null;
- var signal=controller?controller.signal:undefined;
- var bailed=false;
- var bail=setTimeout(function(){
-  if(!attached){bailed=true;if(controller)controller.abort();setProgress(1);attach(VIDEO_URL);}
- },15000);
- // Buffer as a Blob first: range-request seeking can stutter, while a local blob is usually much faster.
- fetch(VIDEO_URL,signal?{signal:signal}:{})
- .then(function(res){if(!res.ok||!res.body)throw new Error("Video fetch unavailable");var total=Number(res.headers.get("content-length"))||0;var reader=res.body.getReader();var chunks=[],got=0;
-  return new Promise(function(resolve,reject){
-   function pump(){reader.read().then(function(r){if(r.done){resolve(new Blob(chunks,{type:"video/mp4"}));return;}chunks.push(r.value);got+=r.value.byteLength;setProgress(total?got/total:Math.min(got/11e6,0.95));pump();}).catch(reject);}
-   pump();
-  });
- })
- .then(function(blob){if(bailed||attached)return;clearTimeout(bail);setProgress(1);attach(URL.createObjectURL(blob));})
- .catch(function(){if(bailed||attached)return;clearTimeout(bail);setProgress(1);attach(VIDEO_URL);});
-}
-function unlock(){
- // iOS may not paint a frame until playback has been unlocked once; play then immediately pause.
- var p=clip.play();
- if(p&&p.then)p.then(function(){clip.pause();}).catch(function(){});
- else clip.pause();
-}
-["touchstart","pointerdown","wheel","keydown"].forEach(function(ev){window.addEventListener(ev,unlock,{once:true,passive:true});});
-window.addEventListener("scroll",readScroll,{passive:true});
-window.addEventListener("resize",readScroll);
-readScroll();
-paint();
-preload();
-requestAnimationFrame(frame);
+ downloadBrief();
+ const email=document.body.dataset.contactEmail.trim();
+ if(email){const subject=encodeURIComponent("Nexora AI project enquiry — "+latestBrief.service);const body=encodeURIComponent(briefText(latestBrief));statusBox.textContent="No online intake endpoint is configured. A brief was downloaded and your email app will open with a draft; review it and press Send.";statusBox.classList.add("ok");window.location.href="mailto:"+email+"?subject="+subject+"&body="+body;}
+ else{statusBox.textContent="A project brief was downloaded, but this website is not yet connected to online intake. It has NOT been sent to TradingLab03. Use the Instagram contact button to send it manually.";statusBox.classList.add("ok");}
+});
+copyBtn.addEventListener("click",async()=>{if(!latestBrief)return;try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent="Project brief copied. It has not been submitted to TradingLab03.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; downloaded a text copy instead. It has not been submitted.";}}
+);
+copyContactBtn.addEventListener("click",async()=>{if(!latestBrief)return;const instagram=window.open("https://www.instagram.com/tradinglab03/","_blank","noopener,noreferrer");try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent=instagram?"Brief copied and Instagram opened. Paste the brief into a DM and send it yourself; nothing was sent automatically.":"Brief copied. A popup may have been blocked; open @tradinglab03 from the Contact link, then paste the brief into a DM.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; a text copy was downloaded. Open @tradinglab03 and paste it into a DM yourself. Nothing was sent automatically.";statusBox.classList.add("ok");}});
+
+/* Progressive reveal: content remains visible if JavaScript or IntersectionObserver is unavailable. */
+(function(){
+ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(reduce||!('IntersectionObserver' in window))return;
+ const targets=document.querySelectorAll('.hero>div,.hero>.panel,.section>.eyebrow,.section>h2,.section>.intro,.grid3 .card,.steps .step,.split>div,.callout');
+ targets.forEach((el,i)=>{el.classList.add('reveal'); if(el.matches('.hero>div,.hero>.panel'))el.classList.add('is-visible');});
+ document.documentElement.classList.add('reveal-ready');
+ const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -28px 0px'});
+ targets.forEach(el=>{if(!el.classList.contains('is-visible'))observer.observe(el);});
 })();
-</script>
-</body>
-</html>
+
+</script></body></html>
