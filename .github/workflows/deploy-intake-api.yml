@@ -261,6 +261,18 @@ jobs:
                   if exc.code != 401:
                       raise SystemExit("Security check failed: unauthenticated status update returned HTTP " + str(exc.code))
               print("PASS: unauthenticated status update was rejected.")
+              try:
+                  request(
+                      "PATCH",
+                      "/api/admin/submissions/" + submission_id + "/status",
+                      {"status": "paid"},
+                      headers={"Authorization": "Bearer " + admin_key}
+                  )
+                  raise SystemExit("Validation check failed: unsupported status was accepted.")
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 422:
+                      raise SystemExit("Validation check failed: unsupported status returned HTTP " + str(exc.code))
+              print("PASS: unsupported status was rejected.")
               status, updated = request(
                   "PATCH",
                   "/api/admin/submissions/" + submission_id + "/status",
