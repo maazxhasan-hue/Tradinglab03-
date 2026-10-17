@@ -18,7 +18,7 @@ function corsHeaders(request, env) {
   if (!originAllowed(request, env)) return {};
   return {
     "access-control-allow-origin": origin,
-    "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
+    "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "access-control-allow-headers": "Content-Type, Authorization",
     "access-control-max-age": "86400",
     "vary": "Origin"
@@ -202,6 +202,28 @@ async function deleteSubmission(request, env, id, cors) {
   const result = await env.DB.prepare("DELETE FROM submissions WHERE id = ?").bind(id).run();
   return response({ deleted: Number(result.meta && result.meta.changes || 0) > 0 }, 200, { ...cors, "cache-control": "no-store" });
 }
+async function updateSubmissionStatus(request, env, id, cors) {
+  const origin = request.headers.get("Origin") || "";
+  if (origin && !originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
+  const auth = request.headers.get("Authorization") || "";
+  if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
+    return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({ error: "Invalid submission ID." }, 400, cors);
+  let payload;
+  try {
+    const raw = await readLimitedBody(request, 1000);
+    payload = JSON.parse(raw);
+  } catch {
+    return response({ error: "Send a valid JSON status update." }, 400, cors);
+  }
+  const allowedStatuses = new Set(["new", "reviewing", "qualified", "proposal_ready", "in_progress", "delivered", "won", "lost"]);
+  const status = clean(payload && payload.status, 30);
+  if (!allowedStatuses.has(status)) return response({ error: "Unsupported status." , allowed_statuses: Array.from(allowedStatuses) }, 422, cors);
+  const result = await env.DB.prepare("UPDATE submissions SET status = ? WHERE id = ?").bind(status, id).run();
+  const changed = Number(result.meta && result.meta.changes || 0) > 0;
+  return response({ updated: changed, status: changed ? status : null }, 200, { ...cors, "cache-control": "no-store" });
+}
 async function listSubmissions(request, env, cors) {
   const origin = request.headers.get("Origin") || "";
   if (origin && !originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
@@ -247,6 +269,11 @@ export default {
     if (url.pathname === "/api/admin/submissions" && request.method === "GET") {
       try { return await listSubmissions(request, env, cors); }
       catch { return response({ error: "Could not load submissions." }, 503, cors); }
+    }
+    const statusMatch = url.pathname.match(/^\/api\/admin\/submissions\/([^/]+)\/status$/);
+    if (statusMatch && request.method === "PATCH") {
+      try { return await updateSubmissionStatus(request, env, statusMatch[1], cors); }
+      catch { return response({ error: "Could not update submission status." }, 503, cors); }
     }
     const deleteMatch = url.pathname.match(/^\/api\/admin\/submissions\/([^/]+)$/);
     if (deleteMatch && request.method === "DELETE") {
