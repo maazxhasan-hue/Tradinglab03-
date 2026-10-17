@@ -212,7 +212,7 @@ jobs:
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-          SITE_ORIGIN: ${{ vars.TRADINGLAB03_SITE_ORIGIN || 'https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
