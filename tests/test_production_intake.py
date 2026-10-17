@@ -23,7 +23,7 @@ class ProductionIntakeTests(unittest.TestCase):
         self.assertIn("function allowedOrigins(env)", worker)
         self.assertIn("env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN", worker)
         self.assertIn("allowedOrigins(env).includes(origin)", worker)
-        self.assertIn("ALLOWED_ORIGINS = \\\"__SITE_ORIGINS__\\\"", (ROOT / "worker" / "wrangler.template.toml").read_text(encoding="utf-8"))
+        self.assertIn('ALLOWED_ORIGINS = "__SITE_ORIGINS__"', (ROOT / "worker" / "wrangler.template.toml").read_text(encoding="utf-8"))
         migration = (ROOT / "worker" / "migrations" / "0001_init.sql").read_text(encoding="utf-8")
         self.assertIn("CREATE TABLE IF NOT EXISTS submissions", migration)
         self.assertIn("idx_submissions_ip_created", migration)
