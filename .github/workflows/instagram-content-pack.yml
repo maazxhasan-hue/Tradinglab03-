@@ -19,7 +19,7 @@ name: Instagram Content Pack (Approval Required)
         description: Real offer or service (no invented outcomes)
         required: true
         type: string
-        default: Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees
+        default: "Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees"
       audience:
         description: Intended audience
         required: true
