@@ -204,7 +204,7 @@ async function deleteSubmission(request, env, id, cors) {
 }
 async function listSubmissions(request, env, cors) {
   const origin = request.headers.get("Origin") || "";
-  if (origin && origin !== env.ALLOWED_ORIGIN) return response({ error: "This origin is not allowed." }, 403);
+  if (origin && !originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
   const auth = request.headers.get("Authorization") || "";
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
     return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
