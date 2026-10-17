@@ -36,3 +36,44 @@ Hi! I saw your post about needing a website for your startup. Before suggesting 
 - 2026-10-17: Openhandle lookup returned synthetic content, not the claimed target post. Excluded as evidence.
 - No comment, DM, email, bid, or application sent.
 - No demo built against this unverified brief; no money spent; no client, contract, or revenue claimed.
+
+
+---
+
+## Additional prospect found — EdTech startup website
+
+**Status: Public listing located; application not submitted.** This is a stronger prospect signal than the held Reddit lead, but the buyer's full identity, requirements, and current acceptance status still need checking inside the marketplace account.
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Web-Developer-for-EdTech-Startup_~022109894386449693782/
+- Public listing title: “Web Developer for EdTech Startup”
+- Public listing snapshot: fixed price **US$600**, worldwide/remote; described as a responsive website with key pages and easy navigation.
+- Public listing snapshot says posted around 2026-10-13 and last viewed by client around two days before the search result; the listing showed 20–50 proposals. These are search-index details, not a guarantee the job is still open.
+- Source snapshot: public web search result on 2026-10-17. Open the actual Upwork listing and verify current status, client history, full scope, payment verification, and proposal rules before applying.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help turn your EdTech startup's requirements into a clean, responsive website with clear navigation and a polished mobile experience. I'd start by confirming the target users, required pages, branding/content readiness, and any integrations, then agree on a milestone-based scope before implementation.
+
+For a first release, I would focus on:
+- A clear homepage and product/value proposition
+- About/program or course information pages as needed
+- Strong calls to action and an enquiry/contact path
+- Responsive layouts and basic accessibility/SEO checks
+- A final QA pass across common mobile and desktop sizes
+
+Before committing to the full fixed-price scope, could you share the required page list, any reference sites/design files, and whether you need accounts, course delivery, payments, or an admin dashboard? Those features can materially change the effort, so I'd confirm them before promising a delivery date.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+
+- [ ] Confirm listing is still open in Upwork.
+- [ ] Review the full brief and client payment/history signals.
+- [ ] Check the account is eligible to submit and whether Connects or fees are required.
+- [ ] Confirm scope fits our actual delivery capacity before making commitments.
+- [ ] Submit only through the authorized Upwork account after approval.
+
+No proposal submitted, no client contacted, and no contract or revenue claimed.
