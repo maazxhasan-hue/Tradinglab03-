@@ -517,3 +517,36 @@ Nexora AI
 
 ### Status
 No proposal submitted, no client contacted, no client or revenue claimed. Recheck listing status and payment verification inside Upwork before considering an application.
+
+
+---
+
+## Fresh lead — Website revamp (US$200)
+
+**Status: Recent public listing found; application not submitted.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Complete-Website-Revamp-Needed_~022111042469225224565/
+- Public listing title: “Complete Website Revamp Needed”
+- Search snapshot accessed 2026-10-17: US$200 fixed price; WordPress, web design, graphic design; asks for a modern redesign, improved navigation, updated key pages, and responsive UX.
+- Activity snapshot: posted about 8 hours before search; 5–10 proposals, 2 interviews, 4 invites sent, 1 unanswered invite. This is less crowded than several other leads, but competition is active and the buyer may already be interviewing.
+- Source: https://www.upwork.com/freelance-jobs/apply/Complete-Website-Revamp-Needed_~022111042469225224565/ (public index result turn847839search14). Check actual page for current status, site URL, scope, payment verification, and eligibility before applying.
+- Priority: medium-high for quick review, but only if the scope is genuinely limited enough for US$200.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help refresh your website with a cleaner visual direction, clearer navigation, and responsive page layouts that make the key information easier to find. I'd start by reviewing the current site and identifying the highest-impact improvements, then agree on a defined list of pages and acceptance criteria before implementation.
+
+Could you share the current website URL, the pages that need updating, and any brand references you want to preserve? I'd also like to confirm whether this is a visual/layout refresh or whether you expect new functionality, copywriting, or integrations. That distinction will help keep the US$200 scope realistic and avoid surprises.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+- [ ] Verify the job is still open and inspect the complete brief/current website.
+- [ ] Check payment verification and client history.
+- [ ] Confirm a limited, achievable scope for the budget before committing.
+- [ ] Submit only through the authorized Upwork account; never pay off-platform fees.
+
+No proposal submitted, no buyer contacted, no contract or revenue claimed.
