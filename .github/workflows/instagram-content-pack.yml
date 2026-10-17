@@ -1,6 +1,11 @@
 name: Instagram Content Pack (Approval Required)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/instagram-content-pack.yml"
+      - "company/instagram_content_pack.py"
   workflow_dispatch:
     inputs:
       account:
@@ -47,17 +52,17 @@ jobs:
           python-version: "3.11"
       - name: Generate seven-post draft pack
         env:
-          ACCOUNT: ${{ inputs.account }}
-          TOPIC: ${{ inputs.topic }}
-          OFFER: ${{ inputs.offer }}
-          AUDIENCE: ${{ inputs.audience }}
-          CTA: ${{ inputs.cta }}
+          ACCOUNT: ${{ inputs.account || 'tradinglab03' }}
+          TOPIC: ${{ inputs.topic || 'AI trading education for beginners' }}
+          OFFER: ${{ inputs.offer || 'Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees' }}
+          AUDIENCE: ${{ inputs.audience || 'beginners and small-business owners' }}
+          CTA: ${{ inputs.cta || 'Save this for later and ask a question in the comments.' }}
         run: |
-          python company/instagram_content_pack.py \
-            --account "$ACCOUNT" \
-            --topic "$TOPIC" \
-            --offer "$OFFER" \
-            --audience "$AUDIENCE" \
+          python company/instagram_content_pack.py \\
+            --account "$ACCOUNT" \\
+            --topic "$TOPIC" \\
+            --offer "$OFFER" \\
+            --audience "$AUDIENCE" \\
             --cta "$CTA"
       - name: Upload draft pack for review
         uses: actions/upload-artifact@v4
