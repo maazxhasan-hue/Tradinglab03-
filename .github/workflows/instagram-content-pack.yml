@@ -1,11 +1,6 @@
 name: Instagram Content Pack (Approval Required)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/instagram-content-pack.yml"
-      - "company/instagram_content_pack.py"
   workflow_dispatch:
     inputs:
       account:
