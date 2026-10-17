@@ -1,57 +1,58 @@
 name: Instagram Content Pack (Approval Required)
 
-"on":
+on:
   workflow_dispatch:
     inputs:
       account:
-        description: Which content brand to draft for
+        description: Content brand
         required: true
         type: choice
         options:
           - tradinglab03
           - nexora_ai
       topic:
-        description: Topic / content theme
+        description: Topic or content theme
         required: true
         type: string
-        default: AI trading education for beginners
+        default: "AI services for small businesses"
       offer:
-        description: Real offer or service (no invented outcomes)
+        description: Real offer or service
         required: true
         type: string
-        default: "Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees"
+        default: "Website and automation services; educational only, no outcome guarantees"
       audience:
         description: Intended audience
         required: true
         type: string
-        default: beginners and small-business owners
+        default: "Beginners and small-business owners"
       cta:
         description: Call to action
         required: true
         type: string
-        default: Save this for later and ask a question in the comments.
+        default: "Save this for later and ask a question in the comments."
 
 permissions:
   contents: read
 
 jobs:
   draft-content:
+    name: Generate reviewable drafts
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check out company repo
+      - name: Check out repository
         uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Generate seven-post draft pack
+      - name: Generate seven-post pack
         env:
-          ACCOUNT: ${{ github.event.inputs.account || 'tradinglab03' }}
-          TOPIC: ${{ github.event.inputs.topic || 'AI trading education for beginners' }}
-          OFFER: ${{ github.event.inputs.offer || 'Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees' }}
-          AUDIENCE: ${{ github.event.inputs.audience || 'beginners and small-business owners' }}
-          CTA: ${{ github.event.inputs.cta || 'Save this for later and ask a question in the comments.' }}
+          ACCOUNT: ${{ inputs.account }}
+          TOPIC: ${{ inputs.topic }}
+          OFFER: ${{ inputs.offer }}
+          AUDIENCE: ${{ inputs.audience }}
+          CTA: ${{ inputs.cta }}
         run: |
           python company/instagram_content_pack.py \
             --account "$ACCOUNT" \
@@ -59,7 +60,7 @@ jobs:
             --offer "$OFFER" \
             --audience "$AUDIENCE" \
             --cta "$CTA"
-      - name: Upload draft pack for review
+      - name: Upload drafts for review
         uses: actions/upload-artifact@v4
         with:
           name: instagram-content-pack-${{ github.run_id }}
