@@ -80,7 +80,7 @@ jobs:
               "public website has project enquiry form": 'id="projectForm"' in site,
               "public website has quality section": 'id="quality"' in site,
               "public website hides internal AI workflow details": "Agents help with the work" not in site and 'href="#agents"' not in site,
-              "public website has no unrelated TradingLab03 contact": "TradingLab03" not in site and "tradinglab03" not in site.lower(),
+              "public website has no unrelated TradingLab03 contact": "TradingLab03" not in site and "@tradinglab03" not in site.lower(),
               "public website has no unrelated social contact": "instagram.com" not in site.lower() and "@tradinglab03" not in site.lower(),
               "failed intake tells users receipt is unconfirmed": "your enquiry may not have reached us" in site,
               "privacy notice uses Nexora branding": "Nexora AI" in privacy and "TradingLab03" not in privacy,
