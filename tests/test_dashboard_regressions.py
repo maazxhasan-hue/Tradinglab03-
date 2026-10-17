@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DASHBOARD = ROOT / "dashboard" / "index.html"
+DASHBOARD = ROOT / "private-hq" / "index.html"
 
 
 class DashboardRegressionTests(unittest.TestCase):
