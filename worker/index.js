@@ -163,7 +163,7 @@ async function createSubmission(request, env, cors) {
     "SELECT COUNT(*) AS total FROM submissions WHERE ip_hash = ? AND datetime(created_at) >= datetime('now', '-1 hour')"
   ).bind(ipHash).first();
   if (Number(recent && recent.total || 0) >= MAX_REQUESTS_PER_HOUR) {
-    return response({ error: "Too many enquiries from this connection. Please try again later or contact us on Instagram." }, 429, { ...cors, "retry-after": "3600" });
+    return response({ error: "Too many enquiries from this connection. Please try again later." }, 429, { ...cors, "retry-after": "3600" });
   }
 
   try {
@@ -174,7 +174,7 @@ async function createSubmission(request, env, cors) {
       item.deadline, item.goal, item.reference_url, item.status, ipHash, item.notification_status
     ).run();
   } catch {
-    return response({ error: "We could not save this enquiry right now. Please retry or contact us on Instagram." }, 503, cors);
+    return response({ error: "We could not save this enquiry right now. Please retry later." }, 503, cors);
   }
 
   const notificationStatus = await notifyOwner(env, item);
@@ -264,7 +264,7 @@ export default {
     }
     if (url.pathname === "/api/intake" && request.method === "POST") {
       try { return await createSubmission(request, env, cors); }
-      catch { return response({ error: "The enquiry service is temporarily unavailable. Please retry or use the contact link." }, 503, cors); }
+      catch { return response({ error: "The enquiry service is temporarily unavailable. Please retry later." }, 503, cors); }
     }
     if (url.pathname === "/api/admin/submissions" && request.method === "GET") {
       try { return await listSubmissions(request, env, cors); }
