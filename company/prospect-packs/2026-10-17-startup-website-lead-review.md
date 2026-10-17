@@ -77,3 +77,39 @@ Nexora AI
 - [ ] Submit only through the authorized Upwork account after approval.
 
 No proposal submitted, no client contacted, and no contract or revenue claimed.
+
+
+---
+
+## Fresh public lead check — Music school website
+
+**Status: New lead signal; not submitted.** Public search on 2026-10-17 surfaced this India-based listing as a smaller, clearer scope than the EdTech lead. Current availability and full terms still need checking on the actual marketplace page.
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Website_~022110325777669838463/
+- Title: “Website”
+- Search snapshot: **US$50 fixed-price**, India-based client, listed roughly 3 days ago; about 15–20 proposals; client last viewed around 1 hour before the search snapshot.
+- Stated need: website for a new music school to collect contacts, schedule classes, collect feedback, and possibly accept online payments.
+- Evidence source: public search result turn645168search2, accessed 2026-10-17. These are index snapshot details, not a guarantee that the job remains open or that all requirements are visible.
+- Fit note: budget appears low for scheduling plus payments. Do not promise all requested features for US$50; offer a narrow first milestone or decline if the client expects a complete booking/payment system at that price.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help you launch a simple, mobile-friendly website for your music school so prospective students can learn about classes and contact you easily. I'd suggest starting with a clear homepage, class information, enquiry form, and a straightforward way to request a lesson slot.
+
+To keep the first release within budget, I'd treat automated scheduling, feedback collection, and online payments as separate options until we confirm the tools and workflow you need. Could you share the number of classes/teachers, whether students need to book specific time slots, and which payment method you want to use?
+
+Once the scope is clear, I can suggest a realistic first milestone rather than overpromise on features.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+
+- [ ] Verify the listing is open and read the full brief.
+- [ ] Check client/payment signals and application requirements.
+- [ ] Confirm the expected feature scope matches the budget.
+- [ ] Submit only via an authorized marketplace account; do not pay any off-platform fee.
+
+No proposal submitted and no contact made.
