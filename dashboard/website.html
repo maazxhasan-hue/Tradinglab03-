@@ -58,6 +58,32 @@ body{background:linear-gradient(180deg,#fbfbfd 0%,#f5f5f7 54%,#fbfbfd 100%);colo
 @media(max-width:560px){.wrap{width:calc(100% - 28px)}.nav{padding:12px 0}.hero{padding:48px 0 38px}.hero h1{font-size:clamp(3rem,15vw,4.3rem)}.grid3,.formgrid{grid-template-columns:1fr}.panel,.card{padding:20px;border-radius:20px}.section{padding:42px 0 48px}.callout{padding:24px;border-radius:22px}.steps{gap:8px}.step{padding:13px 4px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
+
+/* Motion layer: subtle, purposeful, and reduced-motion aware. */
+@keyframes nx-fade-up{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes nx-soft-glow{0%,100%{box-shadow:0 8px 32px rgba(0,113,227,.045)}50%{box-shadow:0 14px 42px rgba(0,113,227,.12)}}
+@keyframes nx-orbit{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes nx-gradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero>div,.hero>.panel{animation:nx-fade-up .75s cubic-bezier(.2,.7,.2,1) both}
+.hero>.panel{animation-delay:.12s;animation-name:nx-fade-up,nx-soft-glow;animation-duration:.75s,7s;animation-delay:.12s,1s;animation-iteration-count:1,infinite}
+.hero .eyebrow{animation:nx-fade-up .6s ease both}
+.hero h1{background:linear-gradient(105deg,#1d1d1f 0%,#1d1d1f 55%,#0071e3 78%,#1d1d1f 100%);background-size:220% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:nx-fade-up .8s ease both,nx-gradient 9s ease-in-out 1s infinite}
+.tags .tag{transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.tags .tag:hover{transform:translateY(-2px);border-color:#9bc7f5;background:#f1f7ff}
+.reveal-ready .reveal{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.2,1)}
+.reveal-ready .reveal.is-visible{opacity:1;transform:translateY(0)}
+.reveal-ready .grid3 .card:nth-child(3n+2){transition-delay:80ms}
+.reveal-ready .grid3 .card:nth-child(3n){transition-delay:150ms}
+.reveal-ready .steps .step:nth-child(2){transition-delay:70ms}
+.reveal-ready .steps .step:nth-child(3){transition-delay:140ms}
+.reveal-ready .steps .step:nth-child(4){transition-delay:210ms}
+@media(prefers-reduced-motion:reduce){
+ .hero>div,.hero>.panel,.hero .eyebrow,.hero h1{animation:none!important}
+ .reveal-ready .reveal,.reveal-ready .reveal.is-visible{opacity:1!important;transform:none!important;transition:none!important}
+ .hero .panel{animation:none!important}
+ .tags .tag,.card,.btn{transition:none!important}
+}
+
 </style></head>
 <body data-contact-email="" data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev">
 <header class="wrap nav"><a class="brand" href="#top" aria-label="Nexora AI home">NEXORA<span> AI</span></a>
@@ -167,4 +193,16 @@ form.addEventListener("submit",async e=>{
 copyBtn.addEventListener("click",async()=>{if(!latestBrief)return;try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent="Project brief copied. It has not been submitted to TradingLab03.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; downloaded a text copy instead. It has not been submitted.";}}
 );
 copyContactBtn.addEventListener("click",async()=>{if(!latestBrief)return;const instagram=window.open("https://www.instagram.com/tradinglab03/","_blank","noopener,noreferrer");try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent=instagram?"Brief copied and Instagram opened. Paste the brief into a DM and send it yourself; nothing was sent automatically.":"Brief copied. A popup may have been blocked; open @tradinglab03 from the Contact link, then paste the brief into a DM.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; a text copy was downloaded. Open @tradinglab03 and paste it into a DM yourself. Nothing was sent automatically.";statusBox.classList.add("ok");}});
+
+/* Progressive reveal: content remains visible if JavaScript or IntersectionObserver is unavailable. */
+(function(){
+ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(reduce||!('IntersectionObserver' in window))return;
+ const targets=document.querySelectorAll('.hero>div,.hero>.panel,.section>.eyebrow,.section>h2,.section>.intro,.grid3 .card,.steps .step,.split>div,.callout');
+ targets.forEach((el,i)=>{el.classList.add('reveal'); if(el.matches('.hero>div,.hero>.panel'))el.classList.add('is-visible');});
+ document.documentElement.classList.add('reveal-ready');
+ const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -28px 0px'});
+ targets.forEach(el=>{if(!el.classList.contains('is-visible'))observer.observe(el);});
+})();
+
 </script></body></html>
