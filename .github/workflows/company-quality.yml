@@ -8,6 +8,7 @@ on:
       - "tests/**"
       - "config/**"
       - "dashboard/**"
+      - "private-hq/**"
       - "worker/**"
       - ".github/workflows/deploy-intake-api.yml"
       - ".github/workflows/company-quality.yml"
@@ -39,7 +40,7 @@ jobs:
         run: |
           python - <<'PY'
           import pathlib, re, subprocess
-          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("dashboard/index.html")]
+          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/marketing.html")]
           for page in pages:
               html = page.read_text(encoding="utf-8")
               scripts = re.findall(r"<script[^>]*>(.*?)</script>", html, re.I | re.S)
