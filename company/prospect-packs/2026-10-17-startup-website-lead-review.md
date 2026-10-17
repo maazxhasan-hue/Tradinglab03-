@@ -332,3 +332,43 @@ Nexora AI
 - Not submitted; no client contact made.
 - Listing is crowded (50+ proposals; 5 interviewing in the public snapshot), so prioritize only if the full brief is a strong match.
 - Never promise work history, client results, or capabilities not independently substantiated.
+
+
+---
+
+## Fresh lead added — Simple Business Website Build
+
+**Status: public listing signal; proposal not submitted.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Simple-Business-Website-Build_~022111119839263312995/
+- Title: “Simple Business Website Build”
+- Public search snapshot on 2026-10-17: **US$500 fixed price**, worldwide/remote, posted about 6 hours before the snapshot; Home, About, Services, and Contact pages; 50+ proposals, 0 interviews shown at snapshot time.
+- Client snapshot: member since 2026-10-04, United States. New account and crowded listing mean verify the full profile, payment verification, current status, and full scope before investing time.
+- Evidence: public Upwork listing result `turn859442search0`; this is an index snapshot, not proof that the job remains open.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help create a clean, responsive business website with clear Home, About, Services, and Contact pages, designed to make the business easy to understand and contact. I'd start by confirming the target audience, brand assets, page content, and the main action you want visitors to take, then build and test the agreed scope across mobile and desktop.
+
+I have a small-business website concept available to demonstrate layout direction; I'd adapt the structure to your actual brand and requirements rather than reuse a generic design unchanged. Could you share your business type, any reference sites, and whether the contact form needs to connect to an existing email or CRM?
+
+I'd confirm the final page list, form behavior, content responsibilities, and milestone acceptance criteria before committing to a delivery date.
+
+Best,  
+Nexora AI
+
+### Demo prepared
+- Source: `dashboard/demos/simple-business-website-concept.html`
+- GitHub source: https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/dashboard/demos/simple-business-website-concept.html
+- Commit: https://github.com/maazxhasan-hue/Tradinglab03-/commit/6401297143c245ac6a6ad8ce1338cf8737c95278
+- Fictional Fieldstone brand and placeholder email; concept only, not client-specific and not a verified live deployment.
+
+### Qualification checklist
+- [ ] Confirm listing still open in Upwork and read full brief.
+- [ ] Verify client/payment profile and application costs.
+- [ ] Confirm the requested features fit the fixed budget.
+- [ ] Submit only through the authorized Upwork account; do not pay off-platform fees.
+
+No proposal submitted, no buyer contacted, no contract or revenue claimed.
