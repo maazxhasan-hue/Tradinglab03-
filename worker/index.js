@@ -5,9 +5,17 @@ const MAX_REQUESTS_PER_HOUR = 5;
 function response(body, status, headers = {}) {
   return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...headers } });
 }
+function allowedOrigins(env) {
+  const configured = String(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "");
+  return configured.split(",").map(value => value.trim().replace(/\/$/, "")).filter(Boolean);
+}
+function originAllowed(request, env) {
+  const origin = (request.headers.get("Origin") || "").replace(/\/$/, "");
+  return Boolean(origin) && allowedOrigins(env).includes(origin);
+}
 function corsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
-  if (!env.ALLOWED_ORIGIN || origin !== env.ALLOWED_ORIGIN) return {};
+  if (!originAllowed(request, env)) return {};
   return {
     "access-control-allow-origin": origin,
     "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
@@ -103,7 +111,7 @@ async function notifyOwner(env, item) {
   }
 }
 async function createSubmission(request, env, cors) {
-  if (request.headers.get("Origin") !== env.ALLOWED_ORIGIN) {
+  if (!originAllowed(request, env)) {
     return response({ error: "This origin is not allowed to submit enquiries." }, 403, cors);
   }
   const contentLength = Number(request.headers.get("Content-Length") || 0);
@@ -185,7 +193,7 @@ async function createSubmission(request, env, cors) {
 }
 async function deleteSubmission(request, env, id, cors) {
   const origin = request.headers.get("Origin") || "";
-  if (origin && origin !== env.ALLOWED_ORIGIN) return response({ error: "This origin is not allowed." }, 403);
+  if (origin && !originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
   const auth = request.headers.get("Authorization") || "";
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
     return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
@@ -221,7 +229,7 @@ export default {
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
     if (request.method === "OPTIONS") {
-      if (request.headers.get("Origin") !== env.ALLOWED_ORIGIN) return new Response(null, { status: 403 });
+      if (!originAllowed(request, env)) return new Response(null, { status: 403 });
       return new Response(null, { status: 204, headers: cors });
     }
     if (url.pathname === "/health" && request.method === "GET") {
