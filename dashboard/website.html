@@ -117,17 +117,17 @@ ction class="wrap section" id="project"><div class="split"><div><div class="eyeb
 <div class="field full"><label for="goal">What should the finished work do?</label><textarea id="goal" name="goal" required maxlength="5000" placeholder="Describe the problem, audience, key requirements, and how you'll judge success."></textarea></div>
 <div class="field full"><label for="reference">Website / reference links (optional)</label><input id="reference" name="reference" type="url" maxlength="500" placeholder="https://..."></div>
 </div><div class="field full"><label style="display:flex;gap:10px;align-items:flex-start;color:var(--muted)"><input id="consent" name="consent" type="checkbox" required style="width:auto;margin-top:6px"><span>I agree that Nexora AI may use these details to respond to this project enquiry. Read the <a class="textlink" href="privacy.html" target="_blank" rel="noopener noreferrer">privacy notice</a>.</span></label></div>
-<div class="actions"><button class="btn" type="submit" id="submitProjectBtn" onclick="document.getElementById('formStatus').textContent='Validating your enquiry…';">Send project enquiry ↗</button><button class="btn alt" type="button" id="copyBtn" disabled>Copy brief</button><button class="btn alt" type="button" id="copyContactBtn" disabled>Copy brief & open Instagram ↗</button></div><p class="fine">When online intake is active, Send project enquiry submits your brief and returns a reference. If the service is unavailable, use the Instagram button to copy your brief and send it manually. Never include passwords, API keys, or sensitive customer data.</p>
+<div class="actions"><button class="btn" type="submit" id="submitProjectBtn" onclick="document.getElementById('formStatus').textContent='Validating your enquiry…';">Send project enquiry ↗</button><button class="btn alt" type="button" id="copyBtn" disabled>Copy brief</button></div><p class="fine">When online intake is active, Send project enquiry submits your brief and returns a reference. If the service is unavailable, use the Instagram button to copy your brief and send it manually. Never include passwords, API keys, or sensitive customer data.</p>
 <div id="formStatus" class="statusbox" role="status" aria-live="polite">Submitting sends the brief only to Nexora’s configured intake service. If that service is unavailable, no successful submission is claimed and a local copy is provided.</div></form></div></div></section>
 <section class="wrap section"><div class="callout"><div class="eyebrow" style="color:#0d5550">See the build process</div><h2 style="margin-top:10px">A concept sample, not a claimed client project.</h2><p>Explore a fictional small-business website concept to see the style and structure we can build from an approved brief.</p><a class="btn" href="https://maazxhasan-hue.github.io/Tradinglab03-/portfolio-sample/northline-small-business-website-concept.html" rel="noopener">View concept sample ↗</a></div></section>
 </main>
-<footer class="wrap footer"><div class="footerrow"><span>© <span id="year"></span> Nexora AI</span><span>Clear scope · Reviewable work · Honest delivery</span><a class="textlink" href="#project">Start a project ↗</a><a class="textlink" href="privacy.html">Privacy ↗</a><a class="textlink" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions" rel="noopener">Operations status ↗</a></div><p class="fine">TradingLab03 does not guarantee sales, search rankings, views, or financial returns. Project terms and contact method must be agreed before work starts.</p></footer>
+<footer class="wrap footer"><div class="footerrow"><span>© <span id="year"></span> Nexora AI</span><span>Clear scope · Reviewable work · Honest delivery</span><a class="textlink" href="#project">Start a project ↗</a><a class="textlink" href="privacy.html">Privacy ↗</a></div><p class="fine">Nexora AI does not guarantee sales, search rankings, views, or financial returns. Project terms and contact method must be agreed before work starts.</p></footer>
 <script>
 "use strict";
 const form=document.getElementById("projectForm");
 const statusBox=document.getElementById("formStatus");
 const copyBtn=document.getElementById("copyBtn");
-const copyContactBtn=document.getElementById("copyContactBtn");
+
 let latestBrief=null;
 const submitButton=document.querySelector('#projectForm button[type="submit"]');
 form.addEventListener("invalid",e=>{
@@ -136,11 +136,11 @@ form.addEventListener("invalid",e=>{
 },true);
 window.addEventListener("error",()=>{
  statusBox.classList.remove("ok");
- statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+ statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, contact Nexora support.";
 });
 window.addEventListener("unhandledrejection",()=>{
  statusBox.classList.remove("ok");
- statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, contact @tradinglab03.";
+ statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, contact Nexora support.";
 });
 submitButton.addEventListener("click",()=>{
  if(!form.checkValidity()){
@@ -158,16 +158,16 @@ if(configuredEndpoint){
  statusBox.textContent="Online intake is not connected yet. This button only prepares a local brief; use the Instagram contact button to send it manually.";
 }
 document.getElementById("year").textContent=String(new Date().getFullYear());
-function briefText(b){return ["NEXORA AI — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Status: "+(b.status==="submitted"?"Submitted to TradingLab03; reference: "+(b.submission_id||"received"):"Prepared in browser; not submitted.")].join("\n")}
+function briefText(b){return ["NEXORA AI — PROJECT BRIEF","", "Name: "+b.name,"Email: "+b.email,"Business/project: "+(b.company||"Not supplied"),"Service: "+b.service,"Budget: "+(b.budget||"Not decided"),"Deadline: "+(b.deadline||"Not supplied"),"Reference: "+(b.reference||"Not supplied"),"","Goal and requirements:",b.goal,"","Status: "+(b.status==="submitted"?"Submitted to Nexora AI; reference: "+(b.submission_id||"received"):"Prepared in browser; not submitted.")].join("\n")}
 function downloadBrief(){
  const blob=new Blob([JSON.stringify(latestBrief,null,2)+"\n"],{type:"application/json"});
- const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="nexora-project-brief.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!form.reportValidity())return;
  const fd=new FormData(form);
  latestBrief={schema_version:1,source:"Nexora AI public project brief form",created_at:new Date().toISOString(),name:String(fd.get("name")).trim(),email:String(fd.get("email")).trim(),company:String(fd.get("company")).trim(),service:String(fd.get("service")).trim(),budget:String(fd.get("budget")).trim(),deadline:String(fd.get("deadline")).trim(),goal:String(fd.get("goal")).trim(),reference:String(fd.get("reference")).trim(),website:String(fd.get("website")||"").trim(),consent:fd.get("consent")==="on",status:"not_submitted"};
- copyBtn.disabled=false;copyContactBtn.disabled=false;
+ copyBtn.disabled=false;
  const endpoint=document.body.dataset.intakeEndpoint.trim();
  if(endpoint){
   const submitButton=form.querySelector('button[type="submit"]');submitButton.disabled=true;statusBox.classList.remove("ok");statusBox.textContent="Submitting your enquiry securely…";
@@ -176,7 +176,7 @@ form.addEventListener("submit",async e=>{
    const result=await resp.json().catch(()=>({}));
    if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
-   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"TradingLab03 has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please contact @tradinglab03 for follow-up.":"The enquiry is saved. Email notification is not confirmed, so contact @tradinglab03 if you need a prompt reply.");
+   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Nexora AI has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please contact Nexora support for follow-up.":"The enquiry is saved. Email notification is not confirmed, so contact Nexora support if you need a prompt reply.");
    statusBox.classList.add("ok");
   }catch(err){
    latestBrief.status="submission_unconfirmed";downloadBrief();
@@ -188,11 +188,10 @@ form.addEventListener("submit",async e=>{
  downloadBrief();
  const email=document.body.dataset.contactEmail.trim();
  if(email){const subject=encodeURIComponent("Nexora AI project enquiry — "+latestBrief.service);const body=encodeURIComponent(briefText(latestBrief));statusBox.textContent="No online intake endpoint is configured. A brief was downloaded and your email app will open with a draft; review it and press Send.";statusBox.classList.add("ok");window.location.href="mailto:"+email+"?subject="+subject+"&body="+body;}
- else{statusBox.textContent="A project brief was downloaded, but this website is not yet connected to online intake. It has NOT been sent to TradingLab03. Use the Instagram contact button to send it manually.";statusBox.classList.add("ok");}
+ else{statusBox.textContent="A project brief was downloaded, but this website is not yet connected to online intake. It has NOT been sent to Nexora AI. Use the Instagram contact button to send it manually.";statusBox.classList.add("ok");}
 });
-copyBtn.addEventListener("click",async()=>{if(!latestBrief)return;try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent="Project brief copied. It has not been submitted to TradingLab03.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; downloaded a text copy instead. It has not been submitted.";}}
+copyBtn.addEventListener("click",async()=>{if(!latestBrief)return;try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent="Project brief copied. It has not been submitted to Nexora AI.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="nexora-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; downloaded a text copy instead. It has not been submitted.";}}
 );
-copyContactBtn.addEventListener("click",async()=>{if(!latestBrief)return;const instagram=window.open("https://www.instagram.com/tradinglab03/","_blank","noopener,noreferrer");try{await navigator.clipboard.writeText(briefText(latestBrief));statusBox.textContent=instagram?"Brief copied and Instagram opened. Paste the brief into a DM and send it yourself; nothing was sent automatically.":"Brief copied. A popup may have been blocked; open @tradinglab03 from the Contact link, then paste the brief into a DM.";statusBox.classList.add("ok");}catch{const blob=new Blob([briefText(latestBrief)],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="tradinglab03-project-brief.txt";a.click();URL.revokeObjectURL(url);statusBox.textContent="Clipboard access is unavailable; a text copy was downloaded. Open @tradinglab03 and paste it into a DM yourself. Nothing was sent automatically.";statusBox.classList.add("ok");}});
 
 /* Progressive reveal: content remains visible if JavaScript or IntersectionObserver is unavailable. */
 (function(){
