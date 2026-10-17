@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "admin.html"
       - "dashboard/**"
       - "portfolio-sample/**"
       - ".github/workflows/deploy-nexora-pages.yml"
