@@ -8,12 +8,14 @@ on:
       - "dashboard/inbox.html"
       - "dashboard/website.html"
       - ".github/workflows/nexora-intake-quality.yml"
+      - ".github/workflows/deploy-intake-api.yml"
   pull_request:
     paths:
       - "worker/**"
       - "dashboard/inbox.html"
       - "dashboard/website.html"
       - ".github/workflows/nexora-intake-quality.yml"
+      - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
 
 permissions:
@@ -44,6 +46,7 @@ jobs:
           worker = Path("worker/index.js").read_text(encoding="utf-8")
           inbox = Path("dashboard/inbox.html").read_text(encoding="utf-8")
           readme = Path("worker/README.md").read_text(encoding="utf-8")
+          deploy_workflow = Path(".github/workflows/deploy-intake-api.yml").read_text(encoding="utf-8")
           required_worker = [
               'url.pathname.match(/^\\/api\\/admin\\/submissions\\/([^/]+)\\/status$/)',
               'statusMatch && request.method === "PATCH"',
@@ -59,6 +62,8 @@ jobs:
           ]
           missing = [item for item in required_worker if item not in worker]
           missing += [item for item in required_inbox if item not in inbox]
+          if '{"status": "paid"}' not in deploy_workflow or "unsupported status was rejected" not in deploy_workflow:
+              missing.append("deployment workflow invalid-status end-to-end check")
           if "Payment reconciliation remains a separate" not in readme:
               missing.append("README payment-evidence disclaimer")
           if missing:
