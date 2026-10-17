@@ -32,7 +32,7 @@ class InstagramContentPackTests(unittest.TestCase):
         pack = self.make_pack()
         for post in pack["posts"]:
             self.assertIn("\n\n", post["caption"])
-            self.assertIn(self.make_pack()["cta"], post["caption"])
+            self.assertIn(post["cta"], post["caption"])
             self.assertTrue(post["caption"].endswith("#learnonthego #smallbusiness #digitalskills"))
             self.assertEqual(post["caption"].count("\n\n"), 3)
 
