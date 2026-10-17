@@ -278,3 +278,26 @@ Nexora AI
 - [ ] Clarify whether property data is static or requires an admin panel/search.
 - [ ] Confirm the US$200 budget matches the agreed first-release scope.
 - [ ] Submit only through an authorized Upwork account; no proposal submitted and no client contacted by this workflow.
+
+
+---
+
+## Owner update — 2026-10-17
+
+The owner said "Done" after being given the two Upwork job links and proposal drafts. Treat this as **owner-reported completion of the application step**, not independently verified submission: the connected tools cannot inspect the Upwork account's proposal history or sent-message state.
+
+### Follow-up protocol
+- Do not send repeated applications or duplicate messages.
+- Check Upwork's proposal/submitted history manually for each listing and record the actual status.
+- If a client responds, qualify the brief, budget, timeline, and payment-protection/milestone terms before agreeing.
+- Keep the EdTech demo clearly labeled as a concept until the buyer confirms interest; do not imply it was made specifically for or endorsed by that buyer.
+- Avoid unpaid custom work beyond a small, non-production concept preview.
+
+### Demo concept
+- Source: `dashboard/demos/edtech-startup-concept.html`
+- GitHub source: https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/dashboard/demos/edtech-startup-concept.html
+- Commit: https://github.com/maazxhasan-hue/Tradinglab03-/commit/b91fb7aece5ddd6d9b878f75ebca8b6c0e63219f
+- This is a fictional Northstar Learning concept with placeholder email; do not send it as a finished, buyer-specific production deliverable.
+- Public deployment of this new path has not been verified.
+
+No client reply, contract, or payment has been verified in the connected tools.
