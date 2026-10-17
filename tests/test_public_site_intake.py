@@ -13,11 +13,16 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn('"/api/auth/"+(mode==="login"?"login":"register")', (ROOT / "dashboard" / "login.html").read_text(encoding="utf-8"))
         self.assertIn("Never include passwords, API keys, or sensitive customer data.", html)
 
-    def test_hq_exposes_delivery_workflow_and_inbox(self):
+    def test_public_hq_page_redirects_to_protected_workspace(self):
         html = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("autonomous-client-execution.yml", html)
-        self.assertIn("https://www.instagram.com/direct/inbox/", html)
-        self.assertIn("DMs are not read or sent automatically", html)
+        self.assertIn("Company HQ moved", html)
+        self.assertIn("noindex,nofollow,noarchive", html)
+        self.assertIn("https://vercel.com/maazxhasan-8752/nexora-private-hq", html)
+        self.assertNotIn('id="quickProposal"', html)
+        private_html = (ROOT / "private-hq" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("autonomous-client-execution.yml", private_html)
+        self.assertIn("https://www.instagram.com/direct/inbox/", private_html)
+        self.assertIn("DMs are not read or sent automatically", private_html)
 
 
 
