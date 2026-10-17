@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse, json
 from pathlib import Path
 from .lead_tracker import load_store, save_store, add_lead, summary
+from .opportunity_scout import score_listing
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_DIR = ROOT / "data" / "opportunities"
@@ -109,11 +110,42 @@ def import_report(report: dict, store: dict, allowed_sources: set[str] | None = 
             lead["next_action"] = "Review the freelance work listing; verify country eligibility, actual pay/rates, scope, legitimacy, and application rules. This is not a direct client lead."
         existing_urls.add(url)
         imported.append(lead["id"])
+    # Reclassify legacy auto-imported listings using the current buyer-intent rules.
+    # Do not delete records or change their workflow status; simply remove false
+    # client-lead claims and make the next action explicit for human review.
+    reclassified = 0
+    for lead in store["leads"]:
+        if lead.get("source_type") != "public_opportunity_listing":
+            continue
+        result = score_listing(
+            str(lead.get("business_name", "")),
+            str(lead.get("need", "")),
+            str(lead.get("source_name", "")),
+        )
+        old_type = lead.get("opportunity_type")
+        new_type = result.get("opportunity_type", "unqualified")
+        lead["client_fit"] = bool(result.get("client_fit"))
+        lead["freelance_work_fit"] = bool(result.get("freelance_work_fit"))
+        lead["opportunity_type"] = new_type
+        lead["opportunity_score"] = result.get("score", 0)
+        lead["opportunity_priority"] = result.get("priority", "low")
+        lead["project_signals"] = result.get("project_signals", [])
+        lead["disqualifiers"] = result.get("disqualifiers", [])
+        if old_type != new_type:
+            reclassified += 1
+        if new_type == "client_project":
+            lead["next_action"] = "Verify buyer intent, scope, payment terms, legitimacy, and platform rules before any proposal."
+        elif new_type == "freelance_work":
+            lead["next_action"] = "Review as a possible freelance-work listing, not a direct client lead; verify pay, eligibility, scope, and rules."
+        else:
+            lead["next_action"] = "Do not treat as an actionable client lead: buyer intent is not established or job-vacancy signals were detected. Keep for reference only."
+        lead["notes"] = (str(lead.get("notes", "")) + " Rechecked by current opportunity classifier; classification and payment remain unverified.").strip()[:2000]
     types = {}
     for lead in store["leads"]:
         kind = lead.get("opportunity_type", "legacy_or_unclassified")
         types[kind] = types.get(kind, 0) + 1
     return {"imported_count": len(imported), "imported_ids": imported,
+            "reclassified_existing_listings": reclassified,
             "duplicates_skipped": duplicates, "low_priority_or_risky_skipped": skipped,
             "total_leads": len(store["leads"]), "opportunity_type_counts": types,
             "ledger_summary": summary(store)}
