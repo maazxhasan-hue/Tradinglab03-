@@ -54,6 +54,25 @@ Do not call the company fully autonomous until every required stage has repeatab
 - [Free-first acquisition plan](free-first-acquisition-plan.md)
 - [Client delivery playbook](CLIENT_DELIVERY_PLAYBOOK.md)
 
+## Web operations access-control audit — 17 October 2026
+
+### Current exposure and required fix
+
+- The public marketing site and client login/project-intake flow are intended to remain public.
+- `dashboard/index.html` (Company HQ), `dashboard/marketing.html` (Marketing Studio), and `dashboard/inbox.html` are static files in the same public website/repository. Their `noindex,nofollow` metadata only asks search engines not to index them; it is **not authentication** and does not stop a visitor from opening the URL or reading the page source.
+- The owner inbox's enquiry API is separately protected by the server-side owner key. Never move that key into HTML, JavaScript, a URL, or browser storage.
+- The current Vercel project serves the public site and these static pages together. Enabling project-wide deployment protection could also block public client access, so it must not be switched on blindly as a workaround.
+
+### Release gate for a genuinely private HQ
+
+1. Keep client-facing pages and the public homepage on the public deployment.
+2. Move Company HQ and Marketing Studio to a separate owner-only deployment or put them behind a server-enforced access layer (for example, Cloudflare Access on a controlled domain, or an authenticated server route). Static JavaScript-only passwords are not an acceptable security boundary.
+3. Keep the inbox API's owner-key authorization independent of the HQ page gate; verify unauthenticated reads, status changes, and deletes return 401/403.
+4. Verify that the public site, login, and authenticated intake still work after the split; then verify the HQ URLs deny anonymous access from a fresh browser.
+5. Until these tests pass, label the HQ as an operational console with public-page exposure—not as a private or secured dashboard.
+
+No owner credentials or production settings should be guessed or embedded in the repository to make this gate appear complete.
+
 ## Expanded agent capability audit — 17 October 2026
 
 The operating target is an agent-run service business, with evidence-based checkpoints and a clear record of what is and is not autonomous. Agents should complete all permitted internal work without repeatedly asking the owner to do manual research; external side effects still require a connected, authorized integration.
