@@ -20,6 +20,13 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn("DMs are not read or sent automatically", html)
 
 
+
+    def test_owner_inbox_clears_private_state_when_leaving_page(self):
+        html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
+        self.assertIn('window.addEventListener("pagehide"', html)
+        self.assertIn('keyField.value="";results.replaceChildren();', html)
+        self.assertIn('id="adminKey" type="password"', html)
+
     def test_vercel_security_headers_and_internal_noindex_rules(self):
         import json
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
