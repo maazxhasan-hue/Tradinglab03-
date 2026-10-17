@@ -57,3 +57,6 @@ These define the operating structure, not a claim that every role is already sta
 
 ## Agent execution standard
 - [Autonomy-first client execution policy](company/AGENT_EXECUTION_POLICY.md): agents should do feasible in-scope work end-to-end, resolve routine ambiguity, test actual behavior, continue independent tasks when blocked, and report evidence. Sensitive external actions remain subject to enforceable approval checks.
+
+## Private company workspace
+The internal Company HQ and Marketing Studio have been moved to the separate Vercel project [nexora-private-hq](https://vercel.com/maazxhasan-8752/nexora-private-hq), configured with Vercel Authentication for all deployments. The public `dashboard/index.html` and `dashboard/marketing.html` pages are now transition notices rather than the dashboard applications. Keep the public website and client intake on the main deployment. Verify the private deployment requires authentication and the public production site still loads after every deployment.
