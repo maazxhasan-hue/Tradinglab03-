@@ -440,3 +440,43 @@ Nexora AI
 - [ ] Submit only through the authorized Upwork account.
 
 No proposal submitted, no client contacted, no contract or revenue claimed.
+
+
+---
+
+## New prospect — E-commerce Website and App Developer
+
+**Status: public listing found; not applied.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/commerce-Website-and-App-Developer_~022111117797568400483/
+- Public title: “E-commerce Website and App Developer”
+- Snapshot on 2026-10-17: **US$1,000 fixed price**, posted about 1 hour before the search snapshot; 10–15 proposals; no interviews shown at snapshot time. Scope mentions an e-commerce website and mobile app, product listings, order management, payment processing, and ongoing updates/bug fixes.
+- Client profile snapshot: India; member since 2026-10-16. New account, broad scope, and a $1,000 fixed budget for website + mobile app make this a **high scope-risk** prospect. Verify full details and payment verification before applying.
+- Evidence: public Upwork search result `turn508912search2`, accessed 2026-10-17. Listing status may change.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help you define a practical first release for your e-commerce business, with a clear product-browsing experience, product details, a reliable checkout path, and an order-management workflow. Because the brief mentions both a website and a mobile app, I would first confirm whether you need native iOS/Android apps now or whether a responsive storefront/PWA is acceptable for phase one.
+
+To keep delivery predictable, I'd propose agreeing on a focused milestone: confirm product/catalog needs, payment gateway, shipping/tax rules, admin workflow, and the required platforms; then define acceptance criteria and what is included in the first release. A full custom store plus two mobile apps can exceed a $1,000 fixed budget, so I would not promise all features until scope and platform choices are confirmed.
+
+Could you share the expected product count, preferred platform/stack, payment gateway, shipping requirements, and whether any existing store or app already exists?
+
+Best,  
+Nexora AI
+
+### Demo prepared
+- Source: `dashboard/demos/ecommerce-storefront-concept.html`
+- GitHub source: https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/dashboard/demos/ecommerce-storefront-concept.html
+- Commit: https://github.com/maazxhasan-hue/Tradinglab03-/commit/a7e9d9a6da551b7daba72a9cdfa4b74527a0e2b1
+- Fictional Orris Goods brand, sample prices, placeholder email. Static concept only; no functioning cart, stock, checkout, payment, or mobile app.
+
+### Qualification checklist
+- [ ] Verify listing remains open and inspect full client profile/payment status.
+- [ ] Confirm whether budget is for one platform or both website and mobile apps.
+- [ ] Clarify catalog, payments, shipping, admin, maintenance, and launch requirements.
+- [ ] Apply only if the client accepts a realistic milestone-based scope and account is eligible.
+
+No proposal submitted, no contact made, no contract or revenue claimed.
