@@ -130,6 +130,9 @@ jobs:
           node-version: "22"
       - name: Apply database migrations
         run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
+      - name: Verify client authentication tables exist
+        run: |
+          npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts') ORDER BY name;"
       - name: Configure owner-only access key
         env:
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
