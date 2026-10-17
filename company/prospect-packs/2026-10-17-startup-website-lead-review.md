@@ -404,3 +404,39 @@ Nexora AI
 - [ ] Submit only through the authorized Upwork account; no off-platform fees.
 
 No proposal submitted, no contact made, no client or revenue claimed.
+
+
+---
+
+## New opportunity scan — Business website from scratch (US$1,000)
+
+**Status: public listing located; not submitted.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Create-Website-for-Business_~022106775626547910405/
+- Title: “Create a Website for a Business”
+- Public search snapshot accessed 2026-10-17: **US$1,000 fixed price**, worldwide/remote, ongoing project; client says they have no existing website and want a professional, easy-to-navigate site. Listing asks applicants to share similar examples and approach.
+- Snapshot showed 20–50 proposals and client last viewed 2 hours earlier. Client account is new (member since Oct 4, 2026), so verify profile, payment status, scope, and current availability before applying.
+- Evidence: public search result turn763593search0. Listing data can change and doesn't prove the account's full history or that the job remains open.
+- Fit: best current match for the reusable EdTech/Fieldstone concept demos, but do not claim they are paid client work or prior client examples. Present them honestly as concept demos.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help you create a professional website from scratch, with clear navigation, a polished responsive layout, and a structure tailored to your business and customers. I’d start by understanding your business, target audience, key services, preferred style, and the main action you want visitors to take, then agree on the page list and milestones before building.
+
+My approach is to keep the first release focused: a strong homepage, the most important business/service information, clear calls to action, and a contact path that works well on mobile and desktop. I’d test the layout and links across common screen sizes before handoff.
+
+I can share concept demos that show my design direction, clearly labelled as concepts rather than previous client projects. Could you tell me what your business does, whether you already have a logo and copy, and which pages or integrations you expect? I’ll use that to propose a realistic scope and delivery plan.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+- [ ] Open listing and verify it remains accepting proposals.
+- [ ] Review client history/payment verification and any proposal costs.
+- [ ] Confirm required pages, content, integrations, revisions, and milestones.
+- [ ] Share concept demos transparently; no fabricated client portfolio claims.
+- [ ] Submit only through the authorized Upwork account.
+
+No proposal submitted, no client contacted, no contract or revenue claimed.
