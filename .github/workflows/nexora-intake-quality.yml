@@ -70,6 +70,28 @@ jobs:
               raise SystemExit("Missing intake safety/pipeline requirements: " + ", ".join(missing))
           print("PASS: status endpoint, owner authentication, CORS, inbox controls, and payment caveat are present.")
           PY
+      - name: Check Nexora public-facing copy and recovery paths
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          site = Path("dashboard/website.html").read_text(encoding="utf-8")
+          privacy = Path("dashboard/privacy.html").read_text(encoding="utf-8")
+          checks = {
+              "public website has project enquiry form": 'id="projectForm"' in site,
+              "public website has quality section": 'id="quality"' in site,
+              "public website hides internal AI workflow details": "Agents help with the work" not in site and 'href="#agents"' not in site,
+              "public website has no unrelated TradingLab03 contact": "TradingLab03" not in site and "tradinglab03" not in site.lower(),
+              "public website has no unrelated social contact": "instagram.com" not in site.lower() and "@tradinglab03" not in site.lower(),
+              "failed intake tells users receipt is unconfirmed": "your enquiry may not have reached us" in site,
+              "privacy notice uses Nexora branding": "Nexora AI" in privacy and "TradingLab03" not in privacy,
+              "privacy notice has no dead support links": 'href="#project"' not in privacy and "instagram.com" not in privacy.lower(),
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          for name, ok in checks.items():
+              print(("PASS: " if ok else "FAIL: ") + name)
+          if failed:
+              raise SystemExit("Public-facing checks failed: " + "; ".join(failed))
+          PY
       - name: Check public page does not contain an owner key
         run: |
           python - <<'PY'
