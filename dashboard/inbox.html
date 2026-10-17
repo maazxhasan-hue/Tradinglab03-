@@ -122,6 +122,7 @@ async function loadEnquiries(){
 }
 loadBtn.addEventListener("click",loadEnquiries);
 keyField.addEventListener("keydown",e=>{if(e.key==="Enter")loadEnquiries();});
+window.addEventListener("pagehide",()=>{keyField.value="";results.replaceChildren();});
 document.getElementById("clearBtn").addEventListener("click",()=>{keyField.value="";results.replaceChildren();const empty=document.createElement("div");empty.className="empty";empty.textContent="Enquiries hidden. Enter the owner key to load them again.";results.append(empty);setStatus("Owner key cleared from this page.","ok");});
 if(!endpoint)setStatus("The intake API has not been deployed yet. Follow worker/README.md and run the Deploy TradingLab03 Intake API workflow first.","error");
 else setStatus("Intake endpoint configured. Enter the owner access key to load enquiries.","");
