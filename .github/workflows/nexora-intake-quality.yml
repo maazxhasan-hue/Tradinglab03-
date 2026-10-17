@@ -51,6 +51,7 @@ jobs:
           readme = Path("worker/README.md").read_text(encoding="utf-8")
           public_site = Path("dashboard/website.html").read_text(encoding="utf-8")
           login_page = Path("dashboard/login.html").read_text(encoding="utf-8")
+          auth_migration = Path("worker/migrations/0002_client_accounts.sql").read_text(encoding="utf-8")
           deploy_workflow = Path(".github/workflows/deploy-intake-api.yml").read_text(encoding="utf-8")
           required_worker = [
               'url.pathname.match(/^\\/api\\/admin\\/submissions\\/([^/]+)\\/status$/)',
@@ -58,7 +59,7 @@ jobs:
               'auth !== "Bearer " + env.ADMIN_API_KEY',
               '"access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS"',
               '"proposal_ready"', '"in_progress"', '"delivered"', '"won"', '"lost"',
-              '/api/auth/', '"client_accounts"', '"client_sessions"',
+              'authMatch', 'async function handleAuth',
               '"Sign in before submitting a project request."',
           ]
           required_inbox = [
@@ -71,6 +72,8 @@ jobs:
           missing += [item for item in required_inbox if item not in inbox]
           if '{"status": "paid"}' not in deploy_workflow or "unsupported status was rejected" not in deploy_workflow:
               missing.append("deployment workflow invalid-status end-to-end check")
+          if "client_accounts" not in auth_migration or "client_sessions" not in auth_migration or "client_auth_attempts" not in auth_migration:
+              missing.append("client account/session/rate-limit database migration")
           if "Payment reconciliation remains a separate" not in readme:
               missing.append("README payment-evidence disclaimer")
           if 'href="login.html?mode=signup&next=website.html%23project">Sign up to build' not in public_site or 'href="login.html?next=website.html%23project">Log in' not in public_site:
