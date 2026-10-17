@@ -210,3 +210,36 @@ The owner said "Done" after being asked to submit proposals manually. Interpret 
 - If either proposal appears in Upwork's submitted/active proposals, record the job URL, submission date, bid, and any follow-up deadline.
 - If neither appears, treat it as an unsent draft and do not resubmit repeatedly; resolve the account/apply issue first.
 - Do not contact the client outside Upwork or pay a client for access to work.
+
+
+---
+
+## Additional prospect — React/Next.js software-house portfolio site
+
+**Status: Public listing signal; draft only, not submitted.** This looks more qualified than the very low-budget music-school request because the listing describes a defined multi-page portfolio build and the public snapshot shows a client with prior spend. Competition is high.
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Expert-React-Next-Developer-Needed-for-Software-House-Company-Portfolio-Website_~022108872548207627572/
+- Public snapshot: fixed-price **US$90**, client in the UAE, 50+ proposals, 0 interviews shown in the indexed snapshot; client member since Feb 8, 2023, total spend US$1.1K, 2 hires and 0 active hires shown.
+- Scope: responsive multi-page website (Home, Services, Portfolio/Case Studies, About/Team, Blog, Contact), Figma implementation, animations, quote/contact form with email notifications, SEO/performance and deployment.
+- Current availability and full requirements must be verified on the listing before applying; search-index data may be stale.
+- Qualification: price is tight for the full listed scope. Apply only if client accepts a constrained MVP and the expected work fits the team's real delivery capacity. Do not claim specific live client websites or case studies unless we can prove them.
+
+### Tailored proposal draft — not submitted
+
+React — I can help build a clean, responsive portfolio website for your software house, with clear service pages, case studies, and a focused contact/quote path. I'd start by reviewing the Figma files and confirming which pages and interactions are required for the first release.
+
+For an initial milestone, I'd prioritize the core responsive pages, reusable components, accessible navigation, basic SEO metadata, and a working enquiry flow. Blog CMS, advanced motion, and email-provider setup would be scoped explicitly so the fixed budget and timeline stay realistic.
+
+Could you share the Figma link, whether the content is final, and which contact-form/email service you prefer? I can then confirm the exact first-milestone deliverables before committing.
+
+Best,  
+Nexora AI
+
+### Submission checklist
+
+- [ ] Verify the job is still open and inspect the full client/job page.
+- [ ] Confirm whether the client expects the entire listed scope for US$90 or is open to phased delivery.
+- [ ] Confirm any platform application cost/Connects before proceeding.
+- [ ] Submit only through the authorized Upwork account and only with truthful portfolio claims.
+
+No application submitted and no client contacted by this workflow.
