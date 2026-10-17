@@ -1,0 +1,77 @@
+name: Nexora Intake Quality Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - "dashboard/inbox.html"
+      - "dashboard/website.html"
+      - ".github/workflows/nexora-intake-quality.yml"
+  pull_request:
+    paths:
+      - "worker/**"
+      - "dashboard/inbox.html"
+      - "dashboard/website.html"
+      - ".github/workflows/nexora-intake-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-intake-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-quality:
+    name: Worker syntax and intake safety checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check Worker JavaScript syntax
+        run: node --input-type=module --check < worker/index.js
+      - name: Verify authenticated lead pipeline wiring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          worker = Path("worker/index.js").read_text(encoding="utf-8")
+          inbox = Path("dashboard/inbox.html").read_text(encoding="utf-8")
+          readme = Path("worker/README.md").read_text(encoding="utf-8")
+          required_worker = [
+              'url.pathname.match(/^\\/api\\/admin\\/submissions\\/([^/]+)\\/status$/)',
+              'statusMatch && request.method === "PATCH"',
+              'auth !== "Bearer " + env.ADMIN_API_KEY',
+              '"access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS"',
+              '"proposal_ready"', '"in_progress"', '"delivered"', '"won"', '"lost"',
+          ]
+          required_inbox = [
+              'method:"PATCH"',
+              '"/status"',
+              'Won — verify payment separately',
+              'Pipeline status',
+          ]
+          missing = [item for item in required_worker if item not in worker]
+          missing += [item for item in required_inbox if item not in inbox]
+          if "payment reconciliation remains a separate" not in readme:
+              missing.append("README payment-evidence disclaimer")
+          if missing:
+              raise SystemExit("Missing intake safety/pipeline requirements: " + ", ".join(missing))
+          print("PASS: status endpoint, owner authentication, CORS, inbox controls, and payment caveat are present.")
+          PY
+      - name: Check public page does not contain an owner key
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ("dashboard/website.html", "dashboard/inbox.html"):
+              source = Path(name).read_text(encoding="utf-8")
+              if "TRADINGLAB03_ADMIN_API_KEY" in source or "ADMIN_API_KEY =" in source:
+                  raise SystemExit("Possible owner secret reference found in public HTML: " + name)
+          print("PASS: public HTML does not contain server-side owner-key variable names.")
+          PY
