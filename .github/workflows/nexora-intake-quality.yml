@@ -76,7 +76,9 @@ jobs:
           import re
           from pathlib import Path
           site = Path("dashboard/website.html").read_text(encoding="utf-8")
-          visible_site = re.sub(r"<[^>]+>", " ", site)
+          visible_site = re.sub(r"<script\\b[^>]*>.*?</script>", " ", site, flags=re.I | re.S)
+          visible_site = re.sub(r"<style\\b[^>]*>.*?</style>", " ", visible_site, flags=re.I | re.S)
+          visible_site = re.sub(r"<[^>]+>", " ", visible_site)
           privacy = Path("dashboard/privacy.html").read_text(encoding="utf-8")
           checks = {
               "public website has project enquiry form": 'id="projectForm"' in site,
