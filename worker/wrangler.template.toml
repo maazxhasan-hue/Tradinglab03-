@@ -4,7 +4,7 @@ compatibility_date = "2026-10-16"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGIN = "__SITE_ORIGIN__"
+ALLOWED_ORIGINS = "__SITE_ORIGINS__"
 NOTIFY_EMAIL = "__NOTIFY_EMAIL__"
 FROM_EMAIL = "__FROM_EMAIL__"
 
