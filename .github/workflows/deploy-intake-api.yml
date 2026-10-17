@@ -7,6 +7,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/website.html"
+      - "dashboard/login.html"
       - "dashboard/inbox.html"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
@@ -221,6 +222,10 @@ jobs:
           origin = os.environ["SITE_ORIGINS"].split(",")[0].strip().rstrip("/")
           admin_key = os.environ["TRADINGLAB03_ADMIN_API_KEY"]
           tag = uuid.uuid4().hex[:12]
+          auth_status, auth = request("POST", "/api/auth/register", {"email": "nexora-qa-" + tag + "@example.invalid", "password": "Synthetic-QA-" + uuid.uuid4().hex + "-Only"})
+          if auth_status != 200 or auth.get("ok") is not True or not auth.get("token"):
+              raise SystemExit("Client registration endpoint did not create a synthetic test session.")
+          client_token = auth["token"]
           payload = {
               "schema_version": 1,
               "source": "Nexora automated synthetic end-to-end test",
@@ -244,11 +249,18 @@ jobs:
               req = urllib.request.Request(endpoint + path, data=data, headers=merged, method=method)
               with urllib.request.urlopen(req, timeout=20) as res:
                   return res.status, json.load(res)
-          status, saved = request("POST", "/api/intake", payload)
+          status, saved = request("POST", "/api/intake", payload, headers={"Authorization": "Bearer " + client_token})
           if status != 201 or saved.get("ok") is not True or not saved.get("reference_id"):
-              raise SystemExit("Synthetic enquiry was not confirmed saved.")
+              raise SystemExit("Synthetic authenticated enquiry was not confirmed saved.")
           submission_id = saved["reference_id"]
           try:
+              try:
+                  request("POST", "/api/intake", payload)
+                  raise SystemExit("Security check failed: anonymous project submission was accepted.")
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 401:
+                      raise SystemExit("Anonymous project submission returned HTTP " + str(exc.code) + " instead of 401.")
+              print("PASS: anonymous project submissions are rejected.")
               status, inbox = request("GET", "/api/admin/submissions?limit=100", headers={"Authorization": "Bearer " + admin_key})
               rows = inbox.get("submissions", [])
               if status != 200 or not any(row.get("id") == submission_id for row in rows):
@@ -295,5 +307,9 @@ jobs:
               status, deleted = request("DELETE", "/api/admin/submissions/" + submission_id, headers={"Authorization": "Bearer " + admin_key})
               if status != 200 or deleted.get("deleted") is not True:
                   raise SystemExit("Cleanup failed for synthetic test enquiry " + submission_id + ". Remove it from the private inbox.")
+          try:
+              request("POST", "/api/auth/logout", headers={"Authorization": "Bearer " + client_token})
+          except Exception:
+              pass
           print("PASS: synthetic enquiry removed after verification. No real client data was used.")
           PY
