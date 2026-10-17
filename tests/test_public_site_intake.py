@@ -44,5 +44,12 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn("Disallow: /dashboard/", robots)
         self.assertIn("Disallow: /owner-console/", robots)
 
+
+    def test_owner_inbox_clears_sensitive_page_state_on_navigation(self):
+        html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
+        self.assertIn('window.addEventListener("pagehide",()=>{keyField.value="";results.replaceChildren();});', html)
+        self.assertIn('keyField.value="";results.replaceChildren()', html)
+        self.assertIn("Enter the owner access key to load enquiries.", html)
+
 if __name__ == "__main__":
     unittest.main()
