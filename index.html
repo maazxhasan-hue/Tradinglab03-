@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f5f7">
-<meta name="description" content="Nexora AI builds practical business websites, landing pages, content systems, and lightweight workflow automation.">
+<meta name="description" content="Nexora AI is a coordinated AI-operated digital studio concept: discover, scope, build, test, deliver, and reconcile—with human approval gates and verified status.">
 <title>Nexora AI — Thoughtful digital work, delivered clearly</title>
 <style>
 :root{color-scheme:dark;--bg:#08101a;--panel:#101c2b;--panel2:#14263a;--line:#263b52;--text:#eff6ff;--muted:#a9b8ca;--teal:#63ead5;--blue:#8bb7ff;--max:1160px}
@@ -84,15 +84,64 @@ body{background:linear-gradient(180deg,#fbfbfd 0%,#f5f5f7 54%,#fbfbfd 100%);colo
  .tags .tag,.card,.btn{transition:none!important}
 }
 
+
+/* Nexora HQ concept: calm motion, GPU-friendly transforms, and clear operating model. */
+html{scroll-behavior:smooth;scroll-padding-top:92px}
+body{overflow-x:clip}
+.btn,.navlinks a,.tag,.card,.agent-card{will-change:auto}
+.btn,.navlinks a,.tag,.card,.agent-card{transition:transform .24s cubic-bezier(.2,.7,.2,1),background-color .22s ease,border-color .22s ease,box-shadow .24s ease,color .22s ease}
+.concept-board{margin-top:30px;padding:clamp(16px,3vw,28px);border:1px solid rgba(29,29,31,.1);border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(246,249,253,.94));box-shadow:0 18px 60px rgba(25,45,70,.06);overflow:hidden}
+.board-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid #e8eaf0;font-size:.8rem;letter-spacing:.035em}
+.board-head>div{display:flex;align-items:center;gap:9px}.board-muted{color:#868b96;font-size:.72rem}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#18a875;box-shadow:0 0 0 4px rgba(24,168,117,.1)}
+.board-chip,.agent-state,.supervisor-tag{font-size:.65rem;letter-spacing:.08em;font-weight:750;color:#526174;background:#f0f4f8;border:1px solid #e1e7ef;border-radius:999px;padding:6px 9px}
+.agent-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:22px 0}
+.agent-card{min-width:0;border:1px solid #e4e8ee;border-radius:18px;padding:17px;background:rgba(255,255,255,.9)}
+.agent-card:hover{transform:translateY(-3px);border-color:#b9d5f4;box-shadow:0 12px 28px rgba(0,90,180,.07)}
+.agent-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.agent-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#eaf3ff;color:#0071e3;font-size:1.15rem}
+.agent-state{padding:5px 7px;font-size:.56rem;white-space:nowrap}.agent-card h3{margin:16px 0 7px;font-size:1rem}.agent-card p{font-size:.86rem;line-height:1.55;min-height:5.2em;margin:0;color:#686d77}
+.agent-line{height:3px;background:#edf0f4;border-radius:9px;overflow:hidden;margin-top:17px}.agent-line i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#0071e3,#69b8ff)}
+.orchestrator{display:flex;align-items:center;gap:15px;border:1px solid #cfe0f4;background:linear-gradient(100deg,#eff6ff,#f9fbff);padding:17px 19px;border-radius:18px}
+.orbit-mark{display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:14px;background:#0071e3;color:white;font-size:1.4rem}
+.orchestrator>div{flex:1;min-width:0}.orchestrator p{font-size:.85rem;color:#626b79;margin:3px 0 0}.supervisor-tag{background:white;white-space:nowrap}
+.journey{display:flex;align-items:center;gap:10px;margin-top:28px;padding:20px 0;overflow-x:auto;scrollbar-width:thin}
+.journey-step{flex:0 0 auto;display:grid;gap:4px;min-width:104px}.journey-step span{font-size:.68rem;font-weight:800;color:#0071e3;letter-spacing:.1em}.journey-step strong{font-size:.94rem}.journey-step small{font-size:.76rem;color:#737984}.journey-connector{height:1px;background:linear-gradient(90deg,#8ab9ee,#dce7f4);min-width:20px;flex:1}
+.concept-note{margin-top:4px;max-width:900px;line-height:1.7}.concept-note strong{color:#343a43}
+@media(max-width:900px){.agent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.agent-card p{min-height:0}}
+@media(max-width:560px){.concept-board{border-radius:21px;padding:14px}.agent-grid{gap:9px;padding:15px 0}.agent-card{padding:13px;border-radius:15px}.agent-card h3{font-size:.94rem;margin-top:12px}.agent-card p{font-size:.8rem}.agent-state{font-size:.49rem;letter-spacing:.04em}.orchestrator{align-items:flex-start;padding:14px}.supervisor-tag{display:none}.journey{gap:8px}.journey-step{min-width:91px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.navlinks a,.tag,.card,.agent-card{transition:none!important}.agent-card:hover,.card:hover,.btn:hover{transform:none}}
+
 </style></head>
 <body data-contact-email="" data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev">
 <header class="wrap nav"><a class="brand" href="#top" aria-label="Nexora AI home">NEXORA<span> AI</span></a>
-<nav class="navlinks" aria-label="Main navigation"><a href="#services">Services</a><a href="#process">Process</a><a href="#agents">AI workflow</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
+<nav class="navlinks" aria-label="Main navigation"><a href="#company">Company concept</a><a href="#services">Services</a><a href="#process">Process</a><a href="#agents">AI workflow</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
 <main id="top">
 <section class="wrap hero"><div><div class="eyebrow">Digital services for growing businesses</div><h1>Good work.<br>Clear process.<br>Built to ship.</h1>
 <p>Nexora AI helps turn a business need into a practical website, landing page, content system, or lightweight automation—with a clear scope and quality checks before handover.</p>
 <div class="actions"><a class="btn" href="#project">Tell us what you need ↘</a><a class="btn alt" href="#services">Explore services</a></div><div class="tags"><span class="tag">Mobile-first</span><span class="tag">Scope-led</span><span class="tag">QA before handover</span></div></div>
 <aside class="panel"><div class="eyebrow">Our operating principle</div><div class="big">Useful first.<br>Reliable always.</div><p class="muted">Start with the outcome, build the smallest useful version, test the details, and hand over the work clearly.</p><div class="rule"></div><strong>What clients can expect</strong><ul class="list"><li>Written scope and acceptance checklist</li><li>Honest limits and realistic commitments</li><li>Reviewable deliverables and handover notes</li></ul></aside></section>
+
+<section class="wrap section concept" id="company"><div class="eyebrow">The Nexora concept</div><h2>A company run by coordinated AI agents—with you in control.</h2><p class="intro">Nexora is designed as a digital-first AI studio. Specialized agents work like departments: discover opportunities, prepare project plans, build deliverables, test quality, and keep the business record straight. Real integrations and approval gates determine what can actually run.</p>
+<div class="concept-board">
+  <div class="board-head"><div><span class="live-dot"></span><strong>NEXORA HQ</strong><span class="board-muted"> / OPERATING MODEL</span></div><span class="board-chip">HUMAN-OVERSIGHT BY DESIGN</span></div>
+  <div class="agent-grid">
+    <article class="agent-card"><div class="agent-top"><span class="agent-icon">↗</span><span class="agent-state">DISCOVERY</span></div><h3>Sales &amp; research</h3><p>Find public opportunities, qualify fit, organize leads, and draft tailored proposals for review.</p><div class="agent-line"><i style="width:78%"></i></div></article>
+    <article class="agent-card"><div class="agent-top"><span class="agent-icon">⌘</span><span class="agent-state">PRODUCTION</span></div><h3>Builder agents</h3><p>Turn an approved brief into website, content, or workflow deliverables and package the result.</p><div class="agent-line"><i style="width:66%"></i></div></article>
+    <article class="agent-card"><div class="agent-top"><span class="agent-icon">✓</span><span class="agent-state">QUALITY GATE</span></div><h3>QA &amp; security</h3><p>Check the acceptance list, mobile behavior, links, errors, and sensitive-data risks before handover.</p><div class="agent-line"><i style="width:88%"></i></div></article>
+    <article class="agent-card"><div class="agent-top"><span class="agent-icon">▤</span><span class="agent-state">RECORDS</span></div><h3>Finance &amp; operations</h3><p>Track quotes, invoices, fees, refunds, and verified payments—never treat an estimate as revenue.</p><div class="agent-line"><i style="width:54%"></i></div></article>
+  </div>
+  <div class="orchestrator"><span class="orbit-mark">✳</span><div><strong>Supervisor / orchestration layer</strong><p>Coordinates tasks, checks dependencies, prevents duplicate work, records outcomes, and escalates blocked steps.</p></div><span class="supervisor-tag">COORDINATE · VERIFY · ESCALATE</span></div>
+</div>
+<div class="journey" aria-label="Nexora project lifecycle">
+  <div class="journey-step"><span>01</span><strong>Discover</strong><small>Lead &amp; need</small></div><div class="journey-connector"></div>
+  <div class="journey-step"><span>02</span><strong>Approve</strong><small>Scope &amp; price</small></div><div class="journey-connector"></div>
+  <div class="journey-step"><span>03</span><strong>Build</strong><small>Make &amp; test</small></div><div class="journey-connector"></div>
+  <div class="journey-step"><span>04</span><strong>Deliver</strong><small>Review &amp; handover</small></div><div class="journey-connector"></div>
+  <div class="journey-step"><span>05</span><strong>Reconcile</strong><small>Invoice &amp; payment</small></div>
+</div>
+<p class="fine concept-note"><strong>Honest status:</strong> this is the operating concept and intended workflow—not a claim that every agent, outreach channel, payment step, or deployment is already fully autonomous. Nexora reports only actions confirmed by connected services and real results.</p>
+</section>
+
 <section class="wrap section" id="services"><div class="eyebrow">Services</div><h2>Small, useful digital improvements.</h2><p class="intro">Start with one concrete problem. We confirm requirements, scope, timing, and price before work begins.</p>
 <div class="grid3">
 <article class="card"><div class="n">01 / WEB</div><h3>Business websites</h3><p>Responsive multi-section websites, service pages, clear navigation, and practical contact paths.</p></article>
