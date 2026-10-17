@@ -254,6 +254,13 @@ jobs:
               if status != 200 or not any(row.get("id") == submission_id for row in rows):
                   raise SystemExit("Synthetic enquiry was saved but not found in the private inbox.")
               print("PASS: synthetic enquiry saved and visible in private inbox.")
+              try:
+                  request("PATCH", "/api/admin/submissions/" + submission_id + "/status", {"status": "qualified"})
+                  raise SystemExit("Security check failed: unauthenticated status update was accepted.")
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 401:
+                      raise SystemExit("Security check failed: unauthenticated status update returned HTTP " + str(exc.code))
+              print("PASS: unauthenticated status update was rejected.")
               status, updated = request(
                   "PATCH",
                   "/api/admin/submissions/" + submission_id + "/status",
