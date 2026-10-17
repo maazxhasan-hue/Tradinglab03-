@@ -1,17 +1,163 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#08101a">
-<meta http-equiv="refresh" content="0; url=dashboard/website.html">
-<meta name="robots" content="index,follow">
-<title>Nexora AI — Digital Services</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cast &amp; Render — 3D Object Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#08101a;--panel:#101c2b;--line:#263b52;--text:#eff6ff;--muted:#a9b8ca;--teal:#63ead5}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at 85% 0%,#15394a 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif;padding:24px}.card{max-width:620px;padding:32px;border:1px solid var(--line);border-radius:22px;background:var(--panel)}.brand{font-weight:900;letter-spacing:.05em;font-size:1.15rem}.brand span{color:var(--teal)}h1{line-height:1.1;font-size:clamp(2.2rem,8vw,3.5rem);margin:28px 0 12px}p{color:var(--muted)}a{display:inline-block;background:var(--teal);color:#07131a;font-weight:800;padding:12px 16px;border-radius:10px;text-decoration:none;margin-top:12px}
+:root{
+ --fg:#0d0c0b;--fg-soft:rgba(13,12,11,.64);--fg-faint:rgba(13,12,11,.42);
+ --shade:#f2f0ec;--rule:rgba(13,12,11,.16);--ease:cubic-bezier(.22,.61,.36,1);
+ --pill-bg:#0a0908;--pill-fg:#ffffff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--shade);color:var(--fg);font-family:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
+.stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--shade)}
+.stage video{position:absolute;top:50%;left:50%;width:100%;height:100%;transform:translate(-50%,-50%) scale(1.02);object-fit:cover;filter:contrast(1.02);will-change:transform}
+.veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(242,240,236,.62) 0%,rgba(242,240,236,.12) 22%,rgba(242,240,236,.12) 78%,rgba(242,240,236,.66) 100%),radial-gradient(100% 80% at 50% 48%,rgba(242,240,236,0) 0%,rgba(242,240,236,.34) 100%),rgba(242,240,236,.20)}
+.grain{position:absolute;inset:-50%;opacity:.13;mix-blend-mode:multiply;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>")}
+.chrome{position:fixed;left:0;right:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:max(14px,calc(env(safe-area-inset-top,0px) + 12px)) clamp(16px,3.4vw,44px) 14px;background:linear-gradient(to bottom,rgba(242,240,236,.94) 0%,rgba(242,240,236,.78) 72%,rgba(242,240,236,0) 100%)}
+.mark{display:flex;align-items:center;gap:9px;font-size:15px;letter-spacing:-.012em;color:var(--fg);min-width:0;flex-shrink:1}
+.mark-star{opacity:.85}
+.nav{display:flex;align-items:center;gap:clamp(14px,2.4vw,32px);flex-shrink:0}
+.nav a:not(.pill){color:var(--fg);text-decoration:none;font-size:14.5px;letter-spacing:-.008em;opacity:.88;transition:opacity .3s var(--ease)}
+.nav a:not(.pill):hover{opacity:1}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 21px;border-radius:999px;background:var(--pill-bg);color:var(--pill-fg);font-size:14.5px;font-weight:500;letter-spacing:-.008em;text-decoration:none;white-space:nowrap;opacity:1;border:1px solid rgba(10,9,8,.12);box-shadow:0 1px 0 rgba(255,255,255,.10) inset;-webkit-text-fill-color:var(--pill-fg);transition:transform .4s var(--ease),background .3s var(--ease),color .3s var(--ease)}
+.nav .pill{color:#fff;-webkit-text-fill-color:#fff}
+.pill:hover,.pill:focus-visible{transform:translateY(-2px);background:#000;color:#fff;-webkit-text-fill-color:#fff}
+.pill:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.foot{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:center;padding:14px clamp(16px,4vw,24px) max(16px,calc(env(safe-area-inset-bottom,0px) + 12px));font-size:12px;line-height:1.45;letter-spacing:.02em;color:var(--fg-faint);text-align:center;pointer-events:none;background:linear-gradient(to top,rgba(242,240,236,.92) 0%,rgba(242,240,236,.72) 72%,rgba(242,240,236,0) 100%)}
+.meter{position:fixed;top:0;left:0;z-index:50;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:var(--fg);opacity:.55}
+.panels{position:fixed;inset:0;z-index:20;pointer-events:none}
+.panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:max(104px,calc(env(safe-area-inset-top,0px) + 88px)) clamp(20px,5vw,60px) max(96px,calc(env(safe-area-inset-bottom,0px) + 80px));opacity:0;will-change:opacity,transform}
+.eyebrow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;letter-spacing:.045em;color:var(--fg-soft);margin-bottom:clamp(16px,2vw,22px);max-width:min(46ch,100%);text-align:center}
+h1{font-weight:400;font-size:clamp(34px,7.1vw,104px);line-height:.98;letter-spacing:-.036em;max-width:15ch;text-wrap:balance;margin:0}
+.sub{margin-top:clamp(18px,2.2vw,28px);font-size:clamp(15px,1.28vw,19px);line-height:1.5;letter-spacing:-.008em;color:var(--fg-soft);max-width:min(46ch,100%);text-wrap:pretty}
+.cta{margin-top:clamp(28px,3.4vw,44px);pointer-events:auto;width:100%;display:flex;justify-content:center}
+.cta .pill{height:48px;padding:0 27px;font-size:15px;max-width:min(100%,320px)}
+.boot{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--shade);transition:opacity .7s var(--ease),visibility .7s}
+.boot.done{opacity:0;visibility:hidden}
+.boot p{font-size:12.5px;letter-spacing:.05em;color:var(--fg-faint)}
+.bar{width:150px;height:1px;background:var(--rule);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--fg);transform:scaleX(0);transform-origin:0 50%}
+.track{position:relative;z-index:1;height:560vh;min-height:3200px}
+@media(max-width:900px){.veil{background:linear-gradient(to bottom,rgba(242,240,236,.72) 0%,rgba(242,240,236,.18) 24%,rgba(242,240,236,.18) 76%,rgba(242,240,236,.74) 100%),radial-gradient(100% 80% at 50% 48%,rgba(242,240,236,0) 0%,rgba(242,240,236,.40) 100%),rgba(242,240,236,.24)}}
+@media(max-width:720px){.nav a:not(.pill){display:none}.mark{font-size:14px}.nav .pill{height:38px;padding:0 16px;font-size:13.5px}h1{max-width:12ch;font-size:clamp(30px,9.8vw,52px)}.sub{font-size:15px;max-width:34ch}.panel{padding:max(92px,calc(env(safe-area-inset-top,0px) + 76px)) 18px max(88px,calc(env(safe-area-inset-bottom,0px) + 72px))}.foot{font-size:11px;max-width:34ch;margin-inline:auto}}
+@media(max-width:420px){.mark-star{display:none}.nav .pill{height:36px;padding:0 14px;font-size:13px}h1{max-width:11ch;font-size:clamp(28px,10.5vw,40px)}.eyebrow{font-size:11px;letter-spacing:.04em;max-width:28ch}.cta .pill{width:100%;max-width:280px;height:44px;padding:0 20px;font-size:14px}}
+@media(max-height:520px) and (orientation:landscape){.panel{padding:max(72px,calc(env(safe-area-inset-top,0px) + 56px)) 24px max(64px,calc(env(safe-area-inset-bottom,0px) + 48px))}h1{font-size:clamp(28px,8vh,44px)}.sub{margin-top:12px;font-size:14px}.cta{margin-top:16px}}
+@media(prefers-reduced-motion:reduce){.nav a:not(.pill),.pill{transition:none}}
 </style>
-<script>location.replace(new URL("dashboard/website.html", location.href).href);</script>
 </head>
-<body><main class="card"><div class="brand">NEXORA<span> AI</span></div><h1>Good work. Clear process. Built to ship.</h1><p>We're opening the Nexora AI services website. If you are not redirected automatically, use the button below.</p><a href="dashboard/website.html">Open Nexora AI website →</a></main></body>
+<body>
+<div class="boot" id="boot"><div class="bar"><i id="bootBar"></i></div><p id="bootPct">LOADING 0%</p></div>
+<div class="stage"><video id="clip" muted playsinline preload="auto" disablepictureinpicture></video><div class="veil"></div><div class="grain"></div></div>
+<i class="meter" id="meter"></i>
+<header class="chrome">
+ <div class="mark"><span class="mark-star" aria-hidden="true">&#10037;</span>&nbsp;Cast &amp; Render</div>
+ <nav class="nav" aria-label="Main navigation"><a href="#board">Works</a><a href="#visit">About</a><a class="pill" href="#order">Start a brief</a></nav>
+</header>
+<main class="panels">
+ <section class="panel" data-panel><div class="eyebrow">Objects studio <span>&middot;</span> No. 112 Render Lane</div><h1>Built at four.<br />Out by seven.</h1><div class="sub">Six kinds of mesh, one render farm, and a queue that starts before the sun does.</div><div class="cta"><a class="pill" href="#board">View the reel</a></div></section>
+ <section class="panel" data-panel><div class="eyebrow">Across the studio</div><h1>Flat, never bent.</h1><div class="sub">The mesh should still be clean when it reaches the viewport. We export to order, never before.</div><div class="cta"><a class="pill" href="#visit">Tour our space</a></div></section>
+ <section class="panel" data-panel><div class="eyebrow">The surface</div><h1>Smooth enough to<br />hold a light pass.</h1><div class="sub">Custom surface shaders whipped every morning, spread to the edge and weighed by the quarter pound.</div><div class="cta"><a class="pill" href="#order">Start a brief</a></div></section>
+</main>
+<footer class="foot">112 Render Lane &nbsp;&middot;&nbsp; Tue–Sun, 9am till sold out</footer>
+<div class="track"></div>
+<script>
+(function(){
+"use strict";
+// All-intra footage: every frame is a keyframe, so seeks can land on exact frames.
+var VIDEO_URL = "https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/45567745-d826-44a2-a5ce-7ef670944e60.mp4";
+var clip=document.getElementById("clip");
+var boot=document.getElementById("boot");
+var bootBar=document.getElementById("bootBar");
+var bootPct=document.getElementById("bootPct");
+var meter=document.getElementById("meter");
+var panels=[].slice.call(document.querySelectorAll("[data-panel]"));
+// Cue gaps are deliberate video-only dead zones; two text panels are never readable at once.
+var CUES=[[0.00,0.00,0.15,0.23],[0.35,0.43,0.57,0.65],[0.77,0.85,1.10,1.20]];
+var DRIFT=22;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function smooth(t){return t*t*(3-2*t);}
+function ramp(p,a,b){if(b<=a)return p>=b?1:0;return smooth(clamp((p-a)/(b-a),0,1));}
+var progress=0,seekTo=0,seekAt=0,duration=0,ready=false,started=false,attached=false;
+function readScroll(){
+ var max=document.documentElement.scrollHeight-window.innerHeight;
+ progress=max>0?clamp(window.pageYOffset/max,0,1):0;
+ if(duration)seekTo=progress*duration;
+}
+function paint(){
+ meter.style.transform="scaleX("+progress+")";
+ for(var i=0;i<panels.length;i++){
+  var el=panels[i],c=CUES[i];
+  var enter=ramp(progress,c[0],c[1]),leave=ramp(progress,c[2],c[3]);
+  var o=enter*(1-leave),y=(1-enter)*DRIFT-leave*DRIFT;
+  el.style.opacity=o;
+  el.style.transform="translate3d(0,"+y+"px,0)";
+  el.style.pointerEvents=o>0.6?"auto":"none";
+ }
+}
+function frame(){
+ if(ready&&duration){
+  var gap=seekTo-seekAt;
+  if(Math.abs(gap)>0.0008){
+   seekAt+=gap*0.115; // Smoothly ease the seek target rather than snapping to scroll position.
+   if(clip.readyState>=2&&!clip.seeking){try{clip.currentTime=seekAt;}catch(e){}}
+  }
+ }
+ paint();
+ requestAnimationFrame(frame);
+}
+function setProgress(f){bootBar.style.transform="scaleX("+f+")";bootPct.textContent="LOADING "+Math.round(f*100)+"%";}
+function start(){
+ if(started)return;started=true;ready=true;boot.classList.add("done");readScroll();seekAt=seekTo;
+}
+function attach(src){
+ if(attached)return;attached=true;
+ clip.addEventListener("loadedmetadata",function(){duration=clip.duration||0;clip.pause();readScroll();seekAt=seekTo;try{clip.currentTime=seekAt;}catch(e){}});
+ clip.addEventListener("loadeddata",start);
+ clip.addEventListener("canplaythrough",start);
+ clip.addEventListener("error",start);
+ clip.src=src;clip.load();
+ setTimeout(start,12000);
+}
+function preload(){
+ var controller=typeof AbortController!=="undefined"?new AbortController():null;
+ var signal=controller?controller.signal:undefined;
+ var bailed=false;
+ var bail=setTimeout(function(){
+  if(!attached){bailed=true;if(controller)controller.abort();setProgress(1);attach(VIDEO_URL);}
+ },15000);
+ // Buffer as a Blob first: range-request seeking can stutter, while a local blob is usually much faster.
+ fetch(VIDEO_URL,signal?{signal:signal}:{})
+ .then(function(res){if(!res.ok||!res.body)throw new Error("Video fetch unavailable");var total=Number(res.headers.get("content-length"))||0;var reader=res.body.getReader();var chunks=[],got=0;
+  return new Promise(function(resolve,reject){
+   function pump(){reader.read().then(function(r){if(r.done){resolve(new Blob(chunks,{type:"video/mp4"}));return;}chunks.push(r.value);got+=r.value.byteLength;setProgress(total?got/total:Math.min(got/11e6,0.95));pump();}).catch(reject);}
+   pump();
+  });
+ })
+ .then(function(blob){if(bailed||attached)return;clearTimeout(bail);setProgress(1);attach(URL.createObjectURL(blob));})
+ .catch(function(){if(bailed||attached)return;clearTimeout(bail);setProgress(1);attach(VIDEO_URL);});
+}
+function unlock(){
+ // iOS may not paint a frame until playback has been unlocked once; play then immediately pause.
+ var p=clip.play();
+ if(p&&p.then)p.then(function(){clip.pause();}).catch(function(){});
+ else clip.pause();
+}
+["touchstart","pointerdown","wheel","keydown"].forEach(function(ev){window.addEventListener(ev,unlock,{once:true,passive:true});});
+window.addEventListener("scroll",readScroll,{passive:true});
+window.addEventListener("resize",readScroll);
+readScroll();
+paint();
+preload();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
 </html>
