@@ -149,3 +149,44 @@ Nexora AI
 - [ ] Apply only through an authorized Upwork account.
 
 No proposal submitted; no client contacted; no contract or revenue claimed.
+
+
+---
+
+## Newer prospect scan — 2026-10-17
+
+### Candidate A: Landing page redesign for global services website
+- Listing: https://www.upwork.com/freelance-jobs/apply/Landing-Page-Redesign-for-Global-Services-Website_~022110996180769923643/
+- Public listing says **US$100 fixed-price**, posted around Oct 16, with **5–10 proposals** and client activity about an hour before the search snapshot.
+- Scope: redesign an existing AI-built services-company landing page, retaining current logo/colour guidelines while improving polish and UX.
+- Fit: potentially a concise visual redesign, but the public snapshot does not show client payment/history signals. Verify full brief and client before applying.
+- Draft — not submitted:
+
+Hi,
+
+I can help refine your existing landing page into a cleaner, more professional experience while respecting your current logo and colour direction. I would first review the current page and identify the highest-impact improvements to hierarchy, typography, spacing, mobile layout, and calls to action, then implement a focused redesign and test it across common screen sizes.
+
+Could you share the current URL, the main conversion goal, and any sites you consider good references? I would confirm the page scope and handoff format before committing to the fixed price.
+
+Best,  
+Nexora AI
+
+### Candidate B: WordPress landing page for a surgical clinic in India
+- Listing: https://www.upwork.com/freelance-jobs/apply/WordPress-Landing-Page-for-Surgical-Clinic-India-Elementor-GoDaddy-Hosting_~022109649248985588245/
+- Public listing says **US$120 fixed-price**. Client snapshot: member since May 25, 2010, **US$3.6K spent, 59 hires, 0 active**. Listing showed 20–50 proposals and 0 interviewing at the time of the search snapshot.
+- Scope includes Elementor, lead form/WhatsApp, tracking, speed, SEO, patient privacy, healthcare advertising compliance, staging, and 14 days support.
+- Fit: client-history signal is stronger, but scope is broad for $120 and requires real Elementor/clinic portfolio examples plus careful handling of medical/privacy requirements. **Do not apply unless those capabilities and genuine portfolio evidence can be demonstrated.** No fabricated portfolio claims.
+- Search snapshot source on 2026-10-17: turn523596search1.
+
+### Candidate C: Nonprofit landing page
+- Listing: https://www.upwork.com/freelance-jobs/apply/Website-Designer-Developer-for-Nonprofit-Landing-Page-Brand-and-Page-Framework-Provided_~022110118869176440447/
+- Public listing says **US$1,500 fixed-price**, but shows 50+ proposals and a request for 2–3 live websites personally built, platform recommendation, and detailed scope. Client snapshot shows US$600 spent and 3 hires.
+- Fit: larger budget but lower priority unless we have genuine, attributable examples to show. No proposal draft prioritized because we must not invent experience or portfolio.
+
+## Prioritization decision
+1. Review Candidate A first if the live listing is open and scope remains limited.
+2. Candidate B only if the required healthcare/Elementor experience and real portfolio can be proven; do not overpromise on $120.
+3. Candidate C only if genuine examples and capacity meet the requested experience.
+4. Keep earlier EdTech and music-school applications as drafts unless the owner confirms they were actually submitted in Upwork.
+
+All statuses above are based on public search snapshots; recheck the actual listing and account before applying. No new application or client contact was made through this workflow.
