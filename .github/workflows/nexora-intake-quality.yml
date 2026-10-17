@@ -59,7 +59,7 @@ jobs:
           ]
           missing = [item for item in required_worker if item not in worker]
           missing += [item for item in required_inbox if item not in inbox]
-          if "payment reconciliation remains a separate" not in readme:
+          if "Payment reconciliation remains a separate" not in readme:
               missing.append("README payment-evidence disclaimer")
           if missing:
               raise SystemExit("Missing intake safety/pipeline requirements: " + ", ".join(missing))
