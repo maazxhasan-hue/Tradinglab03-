@@ -372,3 +372,35 @@ Nexora AI
 - [ ] Submit only through the authorized Upwork account; do not pay off-platform fees.
 
 No proposal submitted, no buyer contacted, no contract or revenue claimed.
+
+
+---
+
+## New prospect — Website design for a business (US$400)
+
+**Status: public listing verified in search snapshot; application not submitted.**
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Web-Designer-for-build-Website_~022111082533207694314/
+- Title: “Web Designer for build a Website”
+- Snapshot from 2026-10-17: US$400 fixed price; homepage, About page, and Contact page; posted around 6 hours before the snapshot; 20–50 proposals and 0 interviews shown. Client member since May 30, 2023, India (Ambala). Last viewed around 5 hours before the snapshot.
+- Evidence: public Upwork search result turn519423search9. Snapshot data can change; open the listing and verify the full brief, status, client/payment details, and proposal requirements before applying.
+- Priority: medium. Better recent activity and an established account, but competition is already meaningful.
+
+### Tailored proposal draft — not submitted
+
+Hi,
+
+I can help design a clean, modern website for your business with a strong homepage, clear About section, and a contact page that makes the next step obvious. I'd first align on your audience, brand style, reference sites, content, and primary call to action, then build a responsive layout and check it across common mobile and desktop sizes.
+
+To avoid assumptions, could you share what your business does, whether you already have a logo/copy/images, and whether the contact page needs a form, WhatsApp link, map, or CRM integration? I'll confirm the deliverables and milestone acceptance criteria before committing to a timeline.
+
+Best,  
+Nexora AI
+
+### Qualification checklist
+- [ ] Verify listing remains open and inspect full client profile.
+- [ ] Confirm payment verification and any proposal costs.
+- [ ] Confirm the expected scope fits US$400 and the team's actual capacity.
+- [ ] Submit only through the authorized Upwork account; no off-platform fees.
+
+No proposal submitted, no contact made, no client or revenue claimed.
