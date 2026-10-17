@@ -128,6 +128,21 @@ const form=document.getElementById("projectForm");
 const statusBox=document.getElementById("formStatus");
 const copyBtn=document.getElementById("copyBtn");
 
+function saveProjectDraft(){
+ const draft={};
+ [...form.elements].forEach(el=>{if(!el.id)return;draft[el.id]=el.type==="checkbox"?el.checked:el.value;});
+ sessionStorage.setItem("nexora_project_draft",JSON.stringify(draft));
+}
+(function restoreProjectDraft(){
+ try{
+  const raw=sessionStorage.getItem("nexora_project_draft");if(!raw)return;
+  const draft=JSON.parse(raw);
+  [...form.elements].forEach(el=>{if(!el.id||!(el.id in draft))return;if(el.type==="checkbox")el.checked=Boolean(draft[el.id]);else el.value=String(draft[el.id]);});
+  sessionStorage.removeItem("nexora_project_draft");
+  statusBox.textContent="Your draft was restored after sign-in. Review it before submitting.";
+ }catch{sessionStorage.removeItem("nexora_project_draft");}
+})();
+
 let latestBrief=null;
 const submitButton=document.querySelector('#projectForm button[type="submit"]');
 form.addEventListener("invalid",e=>{
@@ -166,7 +181,7 @@ function downloadBrief(){
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!form.reportValidity())return;
  const clientToken=localStorage.getItem("nexora_client_token");
- if(!clientToken){const next=encodeURIComponent("website.html#project");window.location.href="login.html?mode=signup&next="+next;return;}
+ if(!clientToken){saveProjectDraft();const next=encodeURIComponent("website.html#project");window.location.href="login.html?mode=signup&next="+next;return;}
  const fd=new FormData(form);
  latestBrief={schema_version:1,source:"Nexora AI public project brief form",created_at:new Date().toISOString(),name:String(fd.get("name")).trim(),email:String(fd.get("email")).trim(),company:String(fd.get("company")).trim(),service:String(fd.get("service")).trim(),budget:String(fd.get("budget")).trim(),deadline:String(fd.get("deadline")).trim(),goal:String(fd.get("goal")).trim(),reference:String(fd.get("reference")).trim(),website:String(fd.get("website")||"").trim(),consent:fd.get("consent")==="on",status:"not_submitted"};
  copyBtn.disabled=false;
