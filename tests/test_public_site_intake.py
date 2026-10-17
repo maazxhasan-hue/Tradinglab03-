@@ -19,5 +19,23 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn("https://www.instagram.com/direct/inbox/", html)
         self.assertIn("DMs are not read or sent automatically", html)
 
+
+    def test_vercel_security_headers_and_internal_noindex_rules(self):
+        import json
+        config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
+        header_rules = config.get("headers", [])
+        all_headers = {
+            header["key"].lower(): header["value"]
+            for rule in header_rules
+            for header in rule.get("headers", [])
+        }
+        self.assertEqual(all_headers.get("x-content-type-options"), "nosniff")
+        self.assertEqual(all_headers.get("x-frame-options"), "DENY")
+        self.assertEqual(all_headers.get("referrer-policy"), "strict-origin-when-cross-origin")
+        self.assertIn("dashboard", " ".join(rule.get("source", "") for rule in header_rules))
+        robots = (ROOT / "robots.txt").read_text(encoding="utf-8")
+        self.assertIn("Disallow: /dashboard/", robots)
+        self.assertIn("Disallow: /owner-console/", robots)
+
 if __name__ == "__main__":
     unittest.main()
