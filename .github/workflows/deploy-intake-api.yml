@@ -1,3 +1,4 @@
+# Nexora intake deployment workflow; push trigger used to verify configured deployment.
 name: Deploy TradingLab03 Intake API
 
 on:
