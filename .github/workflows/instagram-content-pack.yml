@@ -52,11 +52,11 @@ jobs:
           python-version: "3.11"
       - name: Generate seven-post draft pack
         env:
-          ACCOUNT: ${{ inputs.account || 'tradinglab03' }}
-          TOPIC: ${{ inputs.topic || 'AI trading education for beginners' }}
-          OFFER: ${{ inputs.offer || 'Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees' }}
-          AUDIENCE: ${{ inputs.audience || 'beginners and small-business owners' }}
-          CTA: ${{ inputs.cta || 'Save this for later and ask a question in the comments.' }}
+          ACCOUNT: ${{ github.event.inputs.account || 'tradinglab03' }}
+          TOPIC: ${{ github.event.inputs.topic || 'AI trading education for beginners' }}
+          OFFER: ${{ github.event.inputs.offer || 'Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees' }}
+          AUDIENCE: ${{ github.event.inputs.audience || 'beginners and small-business owners' }}
+          CTA: ${{ github.event.inputs.cta || 'Save this for later and ask a question in the comments.' }}
         run: |
           python company/instagram_content_pack.py \\
             --account "$ACCOUNT" \\
