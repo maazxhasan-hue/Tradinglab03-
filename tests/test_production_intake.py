@@ -34,8 +34,10 @@ class ProductionIntakeTests(unittest.TestCase):
         self.assertIn('name="website"', html)
         self.assertIn('fetch(endpoint.replace(', html)
         self.assertIn("Your enquiry was received and saved", html)
-        self.assertIn("nothing was sent automatically", html)
-        self.assertIn("https://www.instagram.com/tradinglab03/", html)
+        self.assertIn('href="login.html?next=website.html%23project">Log in', html)
+        self.assertIn('href="login.html?mode=signup&next=website.html%23project">Sign up to build', html)
+        self.assertIn('"authorization":"Bearer "+clientToken', html)
+        self.assertIn("Sign in before submitting a project request.", (ROOT / "worker" / "index.js").read_text(encoding="utf-8"))
 
     def test_privacy_notice_and_explicit_consent_are_present(self):
         html = (ROOT / "dashboard" / "website.html").read_text(encoding="utf-8")
