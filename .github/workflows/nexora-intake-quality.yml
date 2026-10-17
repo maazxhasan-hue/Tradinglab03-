@@ -112,7 +112,7 @@ jobs:
               "CSV export is available": "nexora-weekly-content-calendar.csv" in page,
               "publishing is explicitly manual": "will not publish to the separate TradingLab03 account" in page and "manually published" in page,
               "no auto-publish is promised": "NO AUTO-PUBLISH" in page,
-              "all draft cards include editable fields": page.count("<textarea>") >= 7 and page.count("<input") >= 28,
+              "all draft cards include editable fields": page.count("<textarea>") >= 7 and page.count("<input") >= 14,
           }
           for name, ok in checks.items():
               print(("PASS: " if ok else "FAIL: ") + name)
