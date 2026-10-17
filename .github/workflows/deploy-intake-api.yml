@@ -222,10 +222,6 @@ jobs:
           origin = os.environ["SITE_ORIGINS"].split(",")[0].strip().rstrip("/")
           admin_key = os.environ["TRADINGLAB03_ADMIN_API_KEY"]
           tag = uuid.uuid4().hex[:12]
-          auth_status, auth = request("POST", "/api/auth/register", {"email": "nexora-qa-" + tag + "@example.invalid", "password": "Synthetic-QA-" + uuid.uuid4().hex + "-Only"})
-          if auth_status != 200 or auth.get("ok") is not True or not auth.get("token"):
-              raise SystemExit("Client registration endpoint did not create a synthetic test session.")
-          client_token = auth["token"]
           payload = {
               "schema_version": 1,
               "source": "Nexora automated synthetic end-to-end test",
@@ -249,6 +245,10 @@ jobs:
               req = urllib.request.Request(endpoint + path, data=data, headers=merged, method=method)
               with urllib.request.urlopen(req, timeout=20) as res:
                   return res.status, json.load(res)
+          auth_status, auth = request("POST", "/api/auth/register", {"email": "nexora-qa-" + tag + "@example.invalid", "password": "Synthetic-QA-" + uuid.uuid4().hex + "-Only"})
+          if auth_status != 200 or auth.get("ok") is not True or not auth.get("token"):
+              raise SystemExit("Client registration endpoint did not create a synthetic test session.")
+          client_token = auth["token"]
           status, saved = request("POST", "/api/intake", payload, headers={"Authorization": "Bearer " + client_token})
           if status != 201 or saved.get("ok") is not True or not saved.get("reference_id"):
               raise SystemExit("Synthetic authenticated enquiry was not confirmed saved.")
