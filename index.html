@@ -67,16 +67,12 @@ body{background:linear-gradient(180deg,#fbfbfd 0%,#f5f5f7 54%,#fbfbfd 100%);colo
 .hero>div,.hero>.panel{animation:nx-fade-up .65s cubic-bezier(.2,.7,.2,1) both}
 .hero>.panel{animation-delay:.08s}
 .hero .eyebrow{animation:nx-fade-up .6s ease both}
-.hero h1{background:linear-gradient(105deg,#1d1d1f 0%,#1d1d1f 55%,#0071e3 78%,#1d1d1f 100%);background-size:220% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:nx-fade-up .65s ease both}
+.hero h1{color:#1d1d1f;animation:nx-fade-up .45s ease both}
 .tags .tag{transition:transform .2s ease,border-color .2s ease,background .2s ease}
 .tags .tag:hover{transform:translateY(-2px);border-color:#9bc7f5;background:#f1f7ff}
-.reveal-ready .reveal{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.2,1)}
+.reveal-ready .reveal{opacity:0;transform:translate3d(0,10px,0);transition:opacity .38s ease,transform .38s cubic-bezier(.2,.7,.2,1)}
 .reveal-ready .reveal.is-visible{opacity:1;transform:translateY(0)}
-.reveal-ready .grid3 .card:nth-child(3n+2){transition-delay:80ms}
-.reveal-ready .grid3 .card:nth-child(3n){transition-delay:150ms}
-.reveal-ready .steps .step:nth-child(2){transition-delay:70ms}
-.reveal-ready .steps .step:nth-child(3){transition-delay:140ms}
-.reveal-ready .steps .step:nth-child(4){transition-delay:210ms}
+.reveal-ready .grid3 .card,.reveal-ready .steps .step{transition-delay:0ms}
 @media(prefers-reduced-motion:reduce){
  .hero>div,.hero>.panel,.hero .eyebrow,.hero h1{animation:none!important}
  .reveal-ready .reveal,.reveal-ready .reveal.is-visible{opacity:1!important;transform:none!important;transition:none!important}
@@ -116,10 +112,10 @@ body{overflow-x:clip}
 <header class="wrap nav"><a class="brand" href="#top" aria-label="Nexora AI home">NEXORA<span> AI</span></a>
 <nav class="navlinks" aria-label="Main navigation"><a href="#company">Company concept</a><a href="#services">Services</a><a href="#process">Process</a><a href="#agents">AI workflow</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
 <main id="top">
-<section class="wrap hero"><div><div class="eyebrow">Digital services for growing businesses</div><h1>Good work.<br>Clear process.<br>Built to ship.</h1>
-<p>Nexora AI helps turn a business need into a practical website, landing page, content system, or lightweight automation—with a clear scope and quality checks before handover.</p>
-<div class="actions"><a class="btn" href="#project">Tell us what you need ↘</a><a class="btn alt" href="#services">Explore services</a></div><div class="tags"><span class="tag">Mobile-first</span><span class="tag">Scope-led</span><span class="tag">QA before handover</span></div></div>
-<aside class="panel"><div class="eyebrow">Our operating principle</div><div class="big">Useful first.<br>Reliable always.</div><p class="muted">Start with the outcome, build the smallest useful version, test the details, and hand over the work clearly.</p><div class="rule"></div><strong>What clients can expect</strong><ul class="list"><li>Written scope and acceptance checklist</li><li>Honest limits and realistic commitments</li><li>Reviewable deliverables and handover notes</li></ul></aside></section>
+<section class="wrap hero"><div><div class="eyebrow">NEXORA AI · THE AI-OPERATED DIGITAL STUDIO</div><h1>An AI company.<br>Built to work as one.</h1>
+<p>Specialized agents work together across research, sales, production, quality assurance, and operations—turning approved client briefs into tested digital work, with a clear human-approval path.</p>
+<div class="actions"><a class="btn" href="#company">Explore our AI HQ ↘</a><a class="btn alt" href="#project">Start a project</a></div><div class="tags"><span class="tag">Agent-led workflows</span><span class="tag">One coordinated HQ</span><span class="tag">Human approval gates</span></div></div>
+<aside class="panel"><div class="eyebrow">Inside Nexora HQ</div><div class="big">Many agents.<br>One company.</div><p class="muted">A supervisor coordinates focused teams, tracks dependencies, checks results, and escalates anything that needs a human decision.</p><div class="rule"></div><strong>Core departments</strong><ul class="list"><li>Sales &amp; opportunity research</li><li>Website, content &amp; workflow builders</li><li>QA, security &amp; delivery</li><li>Finance, records &amp; operations</li></ul></aside></section>
 
 <section class="wrap section concept" id="company"><div class="eyebrow">The Nexora concept</div><h2>A company run by coordinated AI agents—with you in control.</h2><p class="intro">Nexora is designed as a digital-first AI studio. Specialized agents work like departments: discover opportunities, prepare project plans, build deliverables, test quality, and keep the business record straight. Real integrations and approval gates determine what can actually run.</p>
 <div class="concept-board">
@@ -247,11 +243,11 @@ copyContactBtn.addEventListener("click",async()=>{if(!latestBrief)return;const i
 (function(){
  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  if(reduce||!('IntersectionObserver' in window))return;
- const targets=document.querySelectorAll('.hero>div,.hero>.panel,.section>.eyebrow,.section>h2,.section>.intro,.grid3 .card,.steps .step,.split>div,.callout');
- targets.forEach((el,i)=>{el.classList.add('reveal'); if(el.matches('.hero>div,.hero>.panel'))el.classList.add('is-visible');});
+ const targets=document.querySelectorAll('.section>.eyebrow,.section>h2,.section>.intro,.grid3 .card,.steps .step,.split>div,.callout');
+ targets.forEach(el=>el.classList.add('reveal'));
  document.documentElement.classList.add('reveal-ready');
  const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -28px 0px'});
- targets.forEach(el=>{if(!el.classList.contains('is-visible'))observer.observe(el);});
+ targets.forEach(el=>observer.observe(el));
 })();
 
 </script></body></html>
