@@ -58,11 +58,11 @@ jobs:
           AUDIENCE: ${{ github.event.inputs.audience || 'beginners and small-business owners' }}
           CTA: ${{ github.event.inputs.cta || 'Save this for later and ask a question in the comments.' }}
         run: |
-          python company/instagram_content_pack.py \\
-            --account "$ACCOUNT" \\
-            --topic "$TOPIC" \\
-            --offer "$OFFER" \\
-            --audience "$AUDIENCE" \\
+          python company/instagram_content_pack.py \
+            --account "$ACCOUNT" \
+            --topic "$TOPIC" \
+            --offer "$OFFER" \
+            --audience "$AUDIENCE" \
             --cta "$CTA"
       - name: Upload draft pack for review
         uses: actions/upload-artifact@v4
