@@ -136,11 +136,11 @@ form.addEventListener("invalid",e=>{
 },true);
 window.addEventListener("error",()=>{
  statusBox.classList.remove("ok");
- statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, contact Nexora support.";
+ statusBox.textContent="The enquiry form encountered a page script error. Please refresh the page and try again; if it continues, try again later.";
 });
 window.addEventListener("unhandledrejection",()=>{
  statusBox.classList.remove("ok");
- statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, contact Nexora support.";
+ statusBox.textContent="The enquiry form encountered an unexpected error. Please refresh the page and try again; if it continues, try again later.";
 });
 submitButton.addEventListener("click",()=>{
  if(!form.checkValidity()){
@@ -176,7 +176,7 @@ form.addEventListener("submit",async e=>{
    const result=await resp.json().catch(()=>({}));
    if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
-   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Nexora AI has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please contact Nexora support for follow-up.":"The enquiry is saved. Email notification is not confirmed, so contact Nexora support if you need a prompt reply.");
+   statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Nexora AI has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please try again later for follow-up.":"The enquiry is saved. Email notification is not confirmed, so try again later if you need a prompt reply.");
    statusBox.classList.add("ok");
   }catch(err){
    latestBrief.status="submission_unconfirmed";downloadBrief();
