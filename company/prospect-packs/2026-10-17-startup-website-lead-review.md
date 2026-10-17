@@ -113,3 +113,39 @@ Nexora AI
 - [ ] Submit only via an authorized marketplace account; do not pay any off-platform fee.
 
 No proposal submitted and no contact made.
+
+
+---
+
+## Fresh prospect — WordPress website maintenance
+
+**Status: Research-qualified public listing; proposal draft only.** Checked on 2026-10-17. Listing is recent and explicitly describes ongoing WordPress maintenance, but we have not verified the full client profile or account-specific application eligibility.
+
+- Listing: https://www.upwork.com/freelance-jobs/apply/Web-Developer_~022111124693233788188/
+- Search result title: “Web Developer”
+- Public snapshot: US$15–20/hour; 6+ months; 30+ hours/week; worldwide; WordPress maintenance, database and server support, performance, backups, security, plugins, hosting/DNS/SSL.
+- Search snapshot shows 20–50 proposals and the client viewed the listing about five hours before the search result. This can change quickly.
+- Source: https://www.upwork.com/freelance-jobs/apply/Web-Developer_~022111124693233788188/ (public listing result checked 2026-10-17).
+- Fit warning: this is a substantial ongoing role and explicitly asks for proven WordPress, database, server and security experience. Do not claim experience we cannot demonstrate; apply only if the profile/portfolio and actual delivery capacity support it.
+
+### Tailored proposal draft — not submitted
+
+Hello,
+
+I can help maintain WordPress sites with a structured, safety-first workflow: review the current environment, confirm backups and recovery access, handle updates in a controlled order, check performance and responsive behavior, and document changes. For any production change, I would first confirm the backup/recovery path and test the impact before applying it.
+
+To assess fit, could you share the number of sites, hosting setup, current maintenance process, expected availability, and whether you have a staging environment? I'd also want to clarify the security incident/escalation process and access permissions before taking responsibility for live systems.
+
+I prefer to be precise about scope and experience rather than promise work before reviewing the environment. If the role matches my demonstrated experience and availability, I can propose a clear maintenance cadence and reporting format.
+
+Best,
+Nexora AI
+
+### Qualification gate
+
+- [ ] Confirm the listing remains open and review full client history/payment status.
+- [ ] Check the applicant profile truthfully supports the required WordPress/server experience and 30+ hours/week.
+- [ ] Confirm availability and capability before applying; no fabricated credentials.
+- [ ] Apply only through an authorized Upwork account.
+
+No proposal submitted; no client contacted; no contract or revenue claimed.
