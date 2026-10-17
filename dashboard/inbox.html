@@ -71,6 +71,26 @@ function render(rows){
   card.append(grid);
   const goal=document.createElement("p");goal.className="goal";goal.textContent=item.goal||"No project goal supplied";card.append(goal);
   const actions=document.createElement("div");actions.className="row";
+  const statusWrap=document.createElement("div");statusWrap.style.minWidth="190px";
+  const statusLabel=document.createElement("label");statusLabel.textContent="Pipeline status";
+  const statusSelect=document.createElement("select");statusSelect.setAttribute("aria-label","Pipeline status");
+  statusSelect.style.cssText="width:100%;padding:11px;border:1px solid #d2d2d7;border-radius:12px;background:#fff;color:#1d1d1f";
+  const statusOptions=[["new","New"],["reviewing","Reviewing"],["qualified","Qualified"],["proposal_ready","Proposal ready"],["in_progress","In progress"],["delivered","Delivered"],["won","Won — verify payment separately"],["lost","Lost"]];
+  statusOptions.forEach(function(option){const el=document.createElement("option");el.value=option[0];el.textContent=option[1];statusSelect.append(el);});
+  statusSelect.value=statusOptions.some(option=>option[0]===item.status)?item.status:"new";
+  const saveStatus=document.createElement("button");saveStatus.type="button";saveStatus.textContent="Save status";
+  saveStatus.addEventListener("click",async function(){
+   saveStatus.disabled=true;
+   try{
+    const res=await fetch(endpoint.replace(/\\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id)+"/status",{method:"PATCH",headers:{Authorization:"Bearer "+keyField.value.trim(),"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:statusSelect.value}),mode:"cors",credentials:"omit"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||data.updated!==true)throw new Error(data.error||"Status update failed.");
+    item.status=data.status;meta.textContent="Received "+(item.created_at||"date unknown")+" · Status: "+item.status+" · Email alert: "+(item.notification_status||"unknown");
+    setStatus("Pipeline status saved. “Won” is a manual sales label, not proof of payment.","ok");
+   }catch(err){setStatus("Could not update status: "+String(err.message||"request failed"),"error");}
+   finally{saveStatus.disabled=false;}
+  });
+  statusWrap.append(statusLabel,statusSelect);actions.append(statusWrap,saveStatus);
   if(item.email){const email=document.createElement("a");email.href="mailto:"+item.email;email.textContent="Draft email reply";actions.append(email);}
   const del=document.createElement("button");del.className="danger";del.type="button";del.textContent="Delete enquiry";
   del.addEventListener("click",async function(){
