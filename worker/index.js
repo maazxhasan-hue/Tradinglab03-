@@ -110,10 +110,100 @@ async function notifyOwner(env, item) {
     return "failed";
   }
 }
+
+function bytesToHex(bytes) {
+  return Array.from(new Uint8Array(bytes)).map(value => value.toString(16).padStart(2, "0")).join("");
+}
+function hexToBytes(hex) {
+  if (!/^(?:[0-9a-f]{2})+$/i.test(hex)) throw new Error("invalid_hex");
+  return Uint8Array.from(hex.match(/.{2}/g), value => parseInt(value, 16));
+}
+async function sha256Hex(value) {
+  return bytesToHex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+}
+async function passwordHash(password, saltHex) {
+  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({name:"PBKDF2", salt:hexToBytes(saltHex), iterations:150000, hash:"SHA-256"}, material, 256);
+  return bytesToHex(bits);
+}
+function randomHex(size = 32) {
+  const bytes = crypto.getRandomValues(new Uint8Array(size));
+  return bytesToHex(bytes);
+}
+function bearerToken(request) {
+  const header = request.headers.get("Authorization") || "";
+  return header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+}
+async function accountFromRequest(request, env) {
+  const token = bearerToken(request);
+  if (!token || token.length < 40 || token.length > 200) return null;
+  const tokenHash = await sha256Hex(token);
+  return await env.DB.prepare(
+    "SELECT a.id, a.email FROM client_sessions s JOIN client_accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ? AND a.disabled = 0"
+  ).bind(tokenHash, new Date().toISOString()).first();
+}
+async function authRateAllowed(request, env, action) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipHash = await sha256Hex(String(env.IP_HASH_SALT || env.ADMIN_API_KEY || "nexora-auth") + ":" + ip + ":" + action);
+  const row = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_auth_attempts WHERE ip_hash = ? AND created_at >= datetime('now','-1 hour')").bind(ipHash).first();
+  if (Number(row && row.total || 0) >= 10) return false;
+  await env.DB.prepare("INSERT INTO client_auth_attempts (id, ip_hash, created_at) VALUES (?, ?, ?)").bind(crypto.randomUUID(), ipHash, new Date().toISOString()).run();
+  return true;
+}
+async function handleAuth(request, env, cors, action) {
+  if (!originAllowed(request, env)) return response({error:"This origin is not allowed."}, 403, cors);
+  if (action === "me" && request.method === "GET") {
+    const account = await accountFromRequest(request, env);
+    return account ? response({ok:true, account:{id:account.id,email:account.email}}, 200, cors) : response({error:"Sign in to continue."}, 401, cors);
+  }
+  if (action === "logout" && request.method === "POST") {
+    const token = bearerToken(request);
+    if (token) await env.DB.prepare("DELETE FROM client_sessions WHERE token_hash = ?").bind(await sha256Hex(token)).run();
+    return response({ok:true}, 200, cors);
+  }
+  if (request.method !== "POST") return response({error:"Method not allowed."}, 405, cors);
+  let body;
+  try { body = JSON.parse(await readLimitedBody(request, 3000)); } catch { return response({error:"Invalid request."}, 400, cors); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return response({error:"Invalid request."}, 400, cors);
+  const email = clean(body.email, 180).toLowerCase();
+  const password = typeof body.password === "string" ? body.password : "";
+  if (!validEmail(email) || password.length < 12 || password.length > 256) {
+    return response({error:"Use a valid email and a password between 12 and 256 characters."}, 422, cors);
+  }
+  if (!await authRateAllowed(request, env, action)) return response({error:"Too many attempts. Try again in an hour."}, 429, {...cors,"retry-after":"3600"});
+  let account;
+  if (action === "register") {
+    const salt = randomHex(16);
+    const hash = await passwordHash(password, salt);
+    const id = crypto.randomUUID();
+    try {
+      await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled) VALUES (?,?,?,?,?,0)")
+        .bind(id,email,salt,hash,new Date().toISOString()).run();
+      account = {id,email};
+    } catch {
+      return response({error:"An account may already exist for this email. Try signing in instead."}, 409, cors);
+    }
+  } else if (action === "login") {
+    account = await env.DB.prepare("SELECT id,email,password_salt,password_hash FROM client_accounts WHERE email = ? AND disabled = 0").bind(email).first();
+    const candidate = await passwordHash(password, account ? account.password_salt : "00000000000000000000000000000000");
+    if (!account || candidate !== account.password_hash) return response({error:"Email or password is incorrect."}, 401, cors);
+  } else {
+    return response({error:"Unknown authentication action."}, 404, cors);
+  }
+  const token = randomHex(32);
+  const now = new Date();
+  const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  await env.DB.prepare("INSERT INTO client_sessions (token_hash,account_id,created_at,expires_at) VALUES (?,?,?,?)")
+    .bind(await sha256Hex(token), account.id, now.toISOString(), expires.toISOString()).run();
+  return response({ok:true, token, expires_at:expires.toISOString(), account:{id:account.id,email:account.email}}, 200, cors);
+}
+
 async function createSubmission(request, env, cors) {
   if (!originAllowed(request, env)) {
     return response({ error: "This origin is not allowed to submit enquiries." }, 403, cors);
   }
+  const account = await accountFromRequest(request, env);
+  if (!account) return response({error:"Sign in before submitting a project request."}, 401, cors);
   const contentLength = Number(request.headers.get("Content-Length") || 0);
   if (contentLength > MAX_BODY_BYTES) return response({ error: "Request is too large." }, 413, cors);
   if (!(request.headers.get("Content-Type") || "").toLowerCase().includes("application/json")) {
@@ -136,6 +226,7 @@ async function createSubmission(request, env, cors) {
 
   const item = {
     id: crypto.randomUUID(),
+    account_id: account.id,
     created_at: new Date().toISOString(),
     consent_at: payload.consent === true ? new Date().toISOString() : "",
     name: clean(payload.name, 120),
@@ -168,9 +259,9 @@ async function createSubmission(request, env, cors) {
 
   try {
     await env.DB.prepare(
-      "INSERT INTO submissions (id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, ip_hash, notification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO submissions (id, account_id, created_at, consent_at, name, email, company, service, budget, deadline, goal, reference_url, status, ip_hash, notification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
-      item.id, item.created_at, item.consent_at, item.name, item.email, item.company, item.service, item.budget,
+      item.id, item.account_id, item.created_at, item.consent_at, item.name, item.email, item.company, item.service, item.budget,
       item.deadline, item.goal, item.reference_url, item.status, ipHash, item.notification_status
     ).run();
   } catch {
@@ -261,6 +352,11 @@ export default {
       } catch {
         return response({ ok: false, service: "tradinglab03-intake", storage: "unavailable" }, 503, cors);
       }
+    }
+    const authMatch = url.pathname.match(/^\/api\/auth\/(register|login|me|logout)$/);
+    if (authMatch) {
+      try { return await handleAuth(request, env, cors, authMatch[1]); }
+      catch { return response({error:"Authentication service temporarily unavailable."}, 503, cors); }
     }
     if (url.pathname === "/api/intake" && request.method === "POST") {
       try { return await createSubmission(request, env, cors); }
