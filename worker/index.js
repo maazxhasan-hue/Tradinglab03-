@@ -75,7 +75,7 @@ async function hashIp(ip, salt) {
 async function notifyOwner(env, item) {
   if (!env.RESEND_API_KEY || !env.NOTIFY_EMAIL || !env.FROM_EMAIL) return "not_configured";
   const text = [
-    "New TradingLab03 project enquiry",
+    "New Nexora AI project enquiry",
     "Reference: " + item.id,
     "Received: " + item.created_at,
     "",
@@ -100,7 +100,7 @@ async function notifyOwner(env, item) {
         from: env.FROM_EMAIL,
         to: [env.NOTIFY_EMAIL],
         reply_to: item.email,
-        subject: "New TradingLab03 enquiry — " + item.service + " — " + item.id.slice(0, 8),
+        subject: "New Nexora AI enquiry — " + item.service + " — " + item.id.slice(0, 8),
         text
       })
     });
