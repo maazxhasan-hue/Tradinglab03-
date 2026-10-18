@@ -93,3 +93,29 @@ These public search results were visible during a fresh review. Job status can c
 
 ## Recommended next move
 Prioritize the small-business lead-generation site only if it remains open and the buyer accepts a starter scope. Do not spend money to apply without explicit owner approval. Keep all proposals factual, avoid invented client work, and do not send unsolicited messages outside a platform's rules. The live site currently uses a Vercel subdomain; verify the live deployment and replace the domain in metadata only after the final domain is connected.
+
+## Verified deployment and current priority — 2026-10-18
+
+- Vercel production deployment is READY on the public project. Latest deployment inspected: https://vercel.com/maazxhasan-8752/tradinglab03-/DQLu8n1T4A5RwjD2WTZ4nsU3jS5E
+- The deployed commit was `326e83a4f6ac241d29491e79be74e4cb83a0b734`, which is newer than the SEO and acquisition-plan commits. Deployment readiness is verified in Vercel; this does not itself prove search indexing or client acquisition.
+- Company Quality Gate passed after the JSON-LD parser fix: https://github.com/maazxhasan-hue/Tradinglab03-/actions/runs/39108885282
+- Python tests passed: https://github.com/maazxhasan-hue/Tradinglab03-/actions/runs/39108885307
+
+### Freshly checked public opportunity
+
+**Build a Modern AI-Ready Business Website with Lead Generation — Upwork**
+- Listing: https://www.upwork.com/freelance-jobs/apply/Build-Modern-Ready-Business-Website-with-Lead-Generation_~022108990721127611504/
+- Public search result at this review showed: $100 fixed-price, 4–5 pages, responsive design, contact/lead capture, WhatsApp link, basic SEO, CMS, optional AI chatbot, deployment; 10–15 proposals and zero interviews shown at the time of the result. The platform page must be opened before acting because status/activity can change.
+- Scope risk: $100 is low for the entire described bundle. Best proposal should offer a narrowly defined first milestone and explicitly ask the buyer to prioritize essentials. Do not promise CMS, AI chatbot, hosting, and every integration together at that price.
+- Proposal draft for owner review:
+  “I can help you scope a clean, mobile-first business site with a working enquiry path. For a focused first milestone, I’d confirm the 4–5 page structure, content/assets, contact-form destination, WhatsApp link behavior, CMS preference, and hosting access, then agree acceptance checks for responsive layouts, tested enquiries, and basic on-page SEO. To keep the budget realistic, I’d treat an AI chatbot and any paid integrations as optional follow-on work. My public product/demo site is https://tradinglab03.vercel.app/; I won’t represent it as paid client work.”
+- Status: researched; not applied. Do not spend Connects or submit a proposal without the owner explicitly approving the exact proposal and any application cost.
+
+**Wix 13-page rebuild — Upwork**
+- Listing: https://www.upwork.com/freelance-jobs/apply/Wix-website-rebuild-from-provided-desktop-design-pages-responsive-fixed-price_~022109729970882106702/
+- Public result showed $500 fixed-price in three milestones and required 2–3 examples of Wix sites built from supplied designs. Since we have not verified such portfolio examples, do not apply unless genuine relevant examples exist. This is not a fit to claim without evidence.
+
+### Current operating status
+- Website metadata and sitemap changes are in the deployed source history; Vercel reports the current production deployment READY.
+- Quality gate and Python tests are green for the fix commit. Newer repo activity also has a successful scheduled company health monitor.
+- No client has been acquired and no proposal or social post has been sent/published. These require a real buyer response or an explicit final review before submission/publishing.
