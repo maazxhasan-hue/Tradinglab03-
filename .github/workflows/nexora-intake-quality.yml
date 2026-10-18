@@ -9,6 +9,7 @@ on:
       - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
+      - "dashboard/index.html"
       - ".github/workflows/nexora-intake-quality.yml"
       - ".github/workflows/deploy-intake-api.yml"
   pull_request:
@@ -18,6 +19,7 @@ on:
       - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
+      - "dashboard/index.html"
       - ".github/workflows/nexora-intake-quality.yml"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
@@ -112,26 +114,26 @@ jobs:
           if failed:
               raise SystemExit("Public-facing checks failed: " + "; ".join(failed))
           PY
-      - name: Validate marketing studio safety and content coverage
+      - name: Verify internal dashboard boundary
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
-          page = Path("dashboard/marketing.html").read_text(encoding="utf-8")
+          marketing = Path("dashboard/marketing.html").read_text(encoding="utf-8")
           hq = Path("dashboard/index.html").read_text(encoding="utf-8")
           checks = {
-              "marketing studio is linked from HQ": 'href="marketing.html">Open Marketing Studio</a>' in hq,
-              "seven content drafts are present": len(re.findall(r'<article class="post"', page)) >= 7,
-              "CSV export is available": "nexora-weekly-content-calendar.csv" in page,
-              "publishing is explicitly manual": "will not publish to the separate TradingLab03 account" in page and "manually published" in page,
-              "no auto-publish is promised": "NO AUTO-PUBLISH" in page,
-              "all draft cards include editable fields": page.count("<textarea>") >= 7 and page.count("<input") >= 14,
+              "marketing page is a moved notice": "Marketing Studio moved" in marketing and "separate Vercel project" in marketing,
+              "HQ page is a moved notice": "Company HQ moved" in hq and "separate Vercel project" in hq,
+              "marketing page is not indexed": 'name="robots" content="noindex' in marketing,
+              "HQ page is not indexed": 'name="robots" content="noindex' in hq,
+              "marketing page points to private HQ": "nexora-private-hq" in marketing,
+              "HQ page points to private HQ": "nexora-private-hq" in hq,
+              "public page does not expose internal marketing editor": '<article class="post"' not in marketing and "NO AUTO-PUBLISH" not in marketing,
           }
           for name, ok in checks.items():
               print(("PASS: " if ok else "FAIL: ") + name)
           failed = [name for name, ok in checks.items() if not ok]
           if failed:
-              raise SystemExit("Marketing quality checks failed: " + "; ".join(failed))
+              raise SystemExit("Dashboard boundary checks failed: " + "; ".join(failed))
           PY
       - name: Check public page does not contain an owner key
         run: |
