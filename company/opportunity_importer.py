@@ -139,7 +139,13 @@ def import_report(report: dict, store: dict, allowed_sources: set[str] | None = 
             lead["next_action"] = "Review as a possible freelance-work listing, not a direct client lead; verify pay, eligibility, scope, and rules."
         else:
             lead["next_action"] = "Do not treat as an actionable client lead: buyer intent is not established or job-vacancy signals were detected. Keep for reference only."
-        lead["notes"] = (str(lead.get("notes", "")) + " Rechecked by current opportunity classifier; classification and payment remain unverified.").strip()[:2000]
+        # Keep re-runs idempotent: repeated hourly imports must not append the
+        # same classifier note indefinitely. Preserve original notes and cap length.
+        marker = "Rechecked by current opportunity classifier; classification and payment remain unverified."
+        notes = str(lead.get("notes", "")).strip()
+        if marker not in notes:
+            notes = (notes + " " + marker).strip()
+        lead["notes"] = notes[:2000]
     types = {}
     for lead in store["leads"]:
         kind = lead.get("opportunity_type", "legacy_or_unclassified")
