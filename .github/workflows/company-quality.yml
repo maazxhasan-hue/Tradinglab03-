@@ -43,7 +43,8 @@ jobs:
           pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/marketing.html")]
           for page in pages:
               html = page.read_text(encoding="utf-8")
-              scripts = re.findall(r"<script[^>]*>(.*?)</script>", html, re.I | re.S)
+              script_blocks = re.findall(r"<script([^>]*)>(.*?)</script>", html, re.I | re.S)
+              scripts = [body for attrs, body in script_blocks if not re.search(r"""type\s*=\s*[\'"]application/ld\+json[\'"]""", attrs, re.I)]
               if not scripts:
                   raise SystemExit("No inline scripts found in " + str(page))
               for index, script in enumerate(scripts):
