@@ -70,3 +70,26 @@ Nexora AI helps businesses plan practical website improvements and focused first
 - No account credentials, customer data, or owner keys in public content.
 - No promises of viral popularity, search rankings, lead volume, or revenue.
 - Confirm the public Nexora domain before changing canonical URLs or promoting the brand broadly.
+
+## Fresh prospect review — 2026-10-18
+
+These public search results were visible during a fresh review. Job status can change; open each listing and confirm it remains open and that the owner is eligible before applying. No applications have been sent.
+
+4. **Modern AI-ready small-business website — Upwork**
+   - Source: https://www.upwork.com/freelance-jobs/apply/Build-Modern-Ready-Business-Website-with-Lead-Generation_~022108990721127611504/
+   - Public listing describes 4–5 pages, contact/lead capture, WhatsApp contact, basic SEO, CMS, mobile responsiveness and a 3–4 day target. Earlier search result showed a US$100 fixed-price budget and 10–15 proposals; activity may have changed.
+   - Fit: good only if the buyer accepts a tightly defined starter scope. CMS, WhatsApp, lead capture, deployment, and any AI chatbot need to be clarified; do not promise all integrations inside the budget without scoping.
+   - Draft proposal: “I can help define a focused first release for your small-business site. I’d first confirm the page list, content/assets, preferred CMS, form delivery destination, WhatsApp link behavior, and hosting access. I’d then propose milestones and acceptance checks for responsive layouts, tested enquiry flow, and basic on-page SEO. Any AI chatbot or paid integrations would be separately scoped. Here is a live concept site I maintain: https://tradinglab03.vercel.app/ — it is a product/demo site, not a claim of paid client work.”
+
+5. **Website and app development for cooperative — Upwork**
+   - Source: https://www.upwork.com/freelance-jobs/apply/Website-and-app-development_~022107187875666122501/
+   - Public result describes membership registration, accounts, dashboards, uploads, payments, notifications and potential mobile app. Earlier result showed US$800 fixed-price; 50+ proposals and no interviews at the time of that snapshot.
+   - Fit: low for a first engagement because authentication, payments, document handling, privacy and admin features are materially larger than a small starter website. Only respond if a qualified team and a realistic milestone/budget are available; otherwise skip.
+
+6. **E-commerce website and app — Upwork**
+   - Source: https://www.upwork.com/freelance-jobs/apply/commerce-Website-and-App-Developer_~022111117797568400483/
+   - Public result described e-commerce website/app, product catalogue, orders and payments. Earlier result showed US$1,000 fixed price, 10–15 proposals, client member since 16 October 2026.
+   - Fit: low-to-medium; scope includes payments and an app, so do not promise end-to-end delivery without proven portfolio and careful milestone breakdown.
+
+## Recommended next move
+Prioritize the small-business lead-generation site only if it remains open and the buyer accepts a starter scope. Do not spend money to apply without explicit owner approval. Keep all proposals factual, avoid invented client work, and do not send unsolicited messages outside a platform's rules. The live site currently uses a Vercel subdomain; verify the live deployment and replace the domain in metadata only after the final domain is connected.
