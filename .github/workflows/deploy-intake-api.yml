@@ -106,7 +106,7 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
         run: |
@@ -217,7 +217,7 @@ jobs:
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
