@@ -177,6 +177,24 @@ class OpportunityImporterTests(unittest.TestCase):
         self.assertIn("Do not treat as an actionable client lead",lead["next_action"])
         self.assertEqual(len(store["leads"]),1)
 
+
+    def test_reclassification_note_is_idempotent_across_hourly_runs(self):
+        marker = "Rechecked by current opportunity classifier; classification and payment remain unverified."
+        store={"schema_version":1,"leads":[{
+            "id":"legacy-note","business_name":"Senior Shopify Developer",
+            "need":"We are hiring a contract-based developer full-time with salary and benefits.",
+            "source_url":"https://example.org/job/legacy-note","source_type":"public_opportunity_listing",
+            "source_name":"Old job feed","opportunity_type":"client_project","client_fit":True,
+            "freelance_work_fit":False,"status":"new","notes":"Keep this original note."
+        }]}
+        import_report({"opportunities":[]},store,allowed_sources=set())
+        first_notes = store["leads"][0]["notes"]
+        import_report({"opportunities":[]},store,allowed_sources=set())
+        second_notes = store["leads"][0]["notes"]
+        self.assertEqual(first_notes, second_notes)
+        self.assertEqual(second_notes.count(marker), 1)
+        self.assertIn("Keep this original note.", second_notes)
+
     def test_reclassifies_legacy_buyer_request_as_client_project(self):
         store={"schema_version":1,"leads":[{
             "id":"legacy2","business_name":"Need a website for my business",
