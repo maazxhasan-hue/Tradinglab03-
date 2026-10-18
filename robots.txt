@@ -2,3 +2,5 @@ User-agent: *
 Disallow: /dashboard/
 Disallow: /owner-console/
 Disallow: /admin.html
+
+Sitemap: https://tradinglab03.vercel.app/sitemap.xml
