@@ -30,7 +30,7 @@ If the Cloudflare credentials or owner key are missing, deployment intentionally
 
 ## Owner inbox and private retrieval
 
-After deployment, open the owner inbox at `https://nexora-ai-sooty-two.vercel.app/dashboard/inbox.html` (or the matching `/dashboard/inbox.html` path on your configured site) on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
+After deployment, open the owner inbox at `https://tradinglab03.vercel.app/dashboard/inbox.html` (or the matching `/dashboard/inbox.html` path on your configured site) on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
 
 For command-line retrieval, use the deployed worker URL and owner key privately:
 
