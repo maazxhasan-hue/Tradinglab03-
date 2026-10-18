@@ -185,7 +185,8 @@ class OpportunityImporterTests(unittest.TestCase):
             "need":"We are hiring a contract-based developer full-time with salary and benefits.",
             "source_url":"https://example.org/job/legacy-note","source_type":"public_opportunity_listing",
             "source_name":"Old job feed","opportunity_type":"client_project","client_fit":True,
-            "freelance_work_fit":False,"status":"new","notes":"Keep this original note."
+            "freelance_work_fit":False,"status":"new",
+            "notes":"Keep this original note. " + marker + " " + marker
         }]}
         import_report({"opportunities":[]},store,allowed_sources=set())
         first_notes = store["leads"][0]["notes"]
