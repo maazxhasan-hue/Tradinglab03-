@@ -142,9 +142,11 @@ def import_report(report: dict, store: dict, allowed_sources: set[str] | None = 
         # Keep re-runs idempotent: repeated hourly imports must not append the
         # same classifier note indefinitely. Preserve original notes and cap length.
         marker = "Rechecked by current opportunity classifier; classification and payment remain unverified."
+        # Collapse historical duplicates from earlier hourly runs as well as
+        # avoiding new duplicates on future runs.
         notes = str(lead.get("notes", "")).strip()
-        if marker not in notes:
-            notes = (notes + " " + marker).strip()
+        notes = notes.replace(" " + marker, "").replace(marker, "").strip()
+        notes = (notes + " " + marker).strip()
         lead["notes"] = notes[:2000]
     types = {}
     for lead in store["leads"]:
