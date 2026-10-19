@@ -407,4 +407,36 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   [$('#copyBtn'),$('#copyContactBtn')].filter(Boolean).forEach(b=>b.setAttribute('aria-label',b.textContent.trim()||'Copy project brief'));
 })();
 </script>
+
+<style>
+.nav{position:sticky;top:0;z-index:850;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:saturate(180%) blur(18px)}
+#formStatus.ux-error{border-color:#d93025;color:#d93025;background:#fff1f0}
+#formStatus.ux-success{border-color:#188038;color:#188038;background:#effaf2}
+button[disabled]{opacity:.65;cursor:wait}
+.ux-loading{display:inline-flex;align-items:center;gap:9px}
+.ux-spinner{width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ux-spin .7s linear infinite}
+@keyframes ux-spin{to{transform:rotate(360deg)}}
+.faq-section{max-width:var(--max,1160px);width:calc(100% - 36px);margin:36px auto;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
+.faq-section h2{margin-top:0}.faq-section details{padding:14px 0;border-top:1px solid var(--line)}.faq-section summary{cursor:pointer;font-weight:750}.faq-section details p{color:var(--muted)}
+</style>
+<script>
+(function(){
+ const footer=document.querySelector('.ux-footer');
+ if(footer&&!document.querySelector('.faq-section')){
+   const section=document.createElement('section');section.className='faq-section';section.setAttribute('aria-labelledby','faq-heading');
+   const h=document.createElement('h2');h.id='faq-heading';h.textContent='Frequently asked questions';section.append(h);
+   const faqs=[
+    ['What does Nexora AI build?','We help businesses with websites, landing pages, content systems, website quality checks, SEO foundations, and practical workflow automation.'],
+    ['How does a project begin?','Share your goals through the project enquiry form. We review the brief and clarify scope, timing, and deliverables before work begins.'],
+    ['Is my project form submitted automatically?','When the online intake service is available and you are signed in, the form sends your brief to the service. If submission cannot be confirmed, the page explains the fallback and does not claim the enquiry was received.'],
+    ['How can I contact Nexora AI?','Use the Contact button on this page to open the Nexora AI Instagram profile. You control and send any message yourself.']
+   ];
+   faqs.forEach(([q,a])=>{const d=document.createElement('details');const s=document.createElement('summary');s.textContent=q;const p=document.createElement('p');p.textContent=a;d.append(s,p);section.append(d)});
+   footer.parentNode.insertBefore(section,footer);
+ }
+ // Loading feedback for the project submit button; preserve the form's existing validation and request handler.
+ const form=document.querySelector('#projectForm'),submit=form&&form.querySelector('button[type="submit"]');
+ if(form&&submit){form.addEventListener('submit',()=>{if(!form.reportValidity())return;const label=submit.textContent;submit.dataset.originalLabel=label;submit.innerHTML='<span class="ux-loading"><span class="ux-spinner" aria-hidden="true"></span>Processing…</span>';setTimeout(()=>{if(submit.isConnected&&submit.dataset.originalLabel){submit.textContent=submit.dataset.originalLabel;delete submit.dataset.originalLabel}},18000)})}
+})();
+</script>
 </body></html>
