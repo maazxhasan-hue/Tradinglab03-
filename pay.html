@@ -31,8 +31,8 @@ button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:14px 16px;backgro
 <h1>Pay for your Nexora project.</h1>
 <p class="muted">Use this page only after you have received and approved a written quote from Nexora AI. Enter the exact amount from that quote.</p>
 <div class="notice" role="status">
-<strong>UPI checkout is being configured</strong>
-The merchant UPI ID has not yet been configured, so this page will not launch a payment or collect money. Contact us to confirm your quote and payment instructions.
+<strong>UPI payment details configured</strong>
+For an approved quote, the page can open your UPI app with the amount and project reference filled in. Confirm the payee name and amount in your UPI app before authorizing payment.
 </div>
 <form id="payment-form">
 <label for="amount">Approved amount (INR)</label>
@@ -40,7 +40,7 @@ The merchant UPI ID has not yet been configured, so this page will not launch a 
 <label for="reference">Quote / project reference</label>
 <input id="reference" name="reference" type="text" maxlength="80" autocomplete="off" placeholder="e.g. NX-2026-001" required>
 <p id="form-error" class="error" role="alert"></p>
-<button id="pay-button" type="submit" disabled>Pay with UPI — not yet enabled</button>
+<button id="pay-button" type="submit">Continue to UPI app</button>
 </form>
 <p class="small muted">Never share your UPI PIN, OTP, or banking password with anyone. A payment is complete only after your UPI app and bank confirm success. Do not rely on screenshots alone.</p>
 <p><a href="mailto:rayanahmed10077@gmail.com?subject=Nexora%20AI%20UPI%20payment%20setup">Email Nexora AI about payment setup</a></p>
@@ -52,7 +52,7 @@ The merchant UPI ID has not yet been configured, so this page will not launch a 
 document.getElementById("year").textContent = new Date().getFullYear();
 // Set a verified merchant VPA here only after confirming ownership with the account holder.
 // Keep blank until the business UPI ID is provided; payment remains intentionally disabled.
-const MERCHANT_UPI_ID = "";
+const MERCHANT_UPI_ID = "7892708813@superyes";
 const MERCHANT_NAME = "Nexora AI";
 const form = document.getElementById("payment-form");
 const amount = document.getElementById("amount");
