@@ -87,7 +87,7 @@
    <div class="pixel-feed-item"><b>Marketing drafts</b>Draft workflows · publishing and outreach are not automatic</div>
   </div>
  </div>
- <p class="pixel-note">Pixel characters are animated office visuals, not proof that a task is running. Live task status and completion counts will appear only when connected to workflow or agent-run telemetry.</p>
+ <p class="pixel-note" id="pixelTelemetryNote">Connecting to GitHub workflow activity… Status is based on recent workflow runs, not fabricated agent actions.</p>
  <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem"><a class="button" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml">Open opportunity scout ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/autonomous-client-execution.yml">Open delivery agents ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml">Open quality gate ↗</a></div>
 </section>
 
@@ -280,4 +280,74 @@ function makeBrief(){return {brief_id:Date.now().toString(36),client:document.qu
 exportBrief.addEventListener('click',function(){if(!latestBrief)return;const blob=new Blob([JSON.stringify(latestBrief,null,2)+'\\n'],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tradinglab03-client-brief-'+latestBrief.brief_id+'.json';a.click();URL.revokeObjectURL(url);feedback.textContent='Brief exported. Send it to the client for written confirmation before estimating or building.'});
 form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief();if(!p.client||!p.goal||!p.acceptance_criteria){feedback.textContent='Complete the business name, main goal, and acceptance criteria.';return}latestBrief=p;exportBrief.disabled=false;projects.unshift({...p,client:p.client,type:p.project_type,goal:p.goal,state:p.state});projects=projects.slice(0,100);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(projects));feedback.textContent='Detailed brief saved in this browser. Download the JSON, confirm version 1 and future features with the client, and record written approval. Nothing was sent, quoted, deployed, or marked as revenue.'}catch(_){feedback.textContent='Brief created for this session only; browser storage is unavailable. Download it now.'}renderProjects();});
 
-</script></body></html>
+</script>
+<script>
+(function(){
+ 'use strict';
+ const API='https://api.github.com/repos/maazxhasan-hue/Tradinglab03-/actions/runs?per_page=30';
+ const note=document.getElementById('pixelTelemetryNote');
+ const feed=document.querySelector('#pixelAgentHQ .pixel-feed');
+ const desks=Array.from(document.querySelectorAll('#pixelAgentHQ .pixel-desk'));
+ const map=[
+  {match:/client-delivery|autonomous-client-execution|end-to-end-delivery/i,desk:4,label:'Delivery agents'},
+  {match:/company-quality|tests|acceptance|nexora-synthetic-e2e|delivery-smoke/i,desk:5,label:'Quality & QA'},
+  {match:/hourly-opportunity-scout|daily-client-opportunity-review/i,desk:1,label:'Opportunity research'},
+  {match:/instagram|website-draft|nexora-instagram-draft/i,desk:2,label:'Creative & marketing'},
+  {match:/agent-worker|ai-worker-smoke-test|autonomy-validation/i,desk:0,label:'Engineering agents'},
+  {match:/company-operations|company-health|lead-tracker|client-proposal-pack/i,desk:3,label:'Operations & client success'}
+ ];
+ const nice=s=>String(s||'').replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase());
+ function status(run){
+  if(run.status==='in_progress'||run.status==='queued'||run.status==='waiting'||run.status==='requested')return {label:run.status==='in_progress'?'RUNNING':run.status.toUpperCase(),color:'#8af0d8'};
+  if(run.conclusion==='success')return {label:'PASSED',color:'#8af0d8'};
+  if(run.conclusion==='failure'||run.conclusion==='timed_out'||run.conclusion==='action_required')return {label:'NEEDS ATTENTION',color:'#ffb4a8'};
+  if(run.conclusion==='cancelled'||run.conclusion==='skipped')return {label:nice(run.conclusion).toUpperCase(),color:'#a9b8ca'};
+  return {label:nice(run.status||'unknown').toUpperCase(),color:'#a9b8ca'};
+ }
+ function setDesk(idx,run){
+  const d=desks[idx];if(!d||!run)return;
+  const p=d.querySelector('p');const badge=d.querySelector('.pixel-status');const s=status(run);
+  if(p)p.textContent=nice(run.name)+' · '+(run.status==='completed'?'finished '+new Date(run.updated_at).toLocaleString():nice(run.status));
+  if(badge){badge.textContent=s.label+' · '+new Date(run.updated_at).toLocaleTimeString();badge.style.color=s.color;badge.style.borderColor=s.color}
+  const person=d.querySelector('.pixel-person');
+  if(person){person.classList.remove('typing','walking','research');if(run.status==='in_progress'||run.status==='queued')person.classList.add(idx===1?'research':idx===3?'walking':'typing');else person.style.opacity='.72'}
+  d.title='Latest matching workflow: '+run.name+'; '+s.label+'; '+run.html_url;
+ }
+ function render(runs){
+  const matched=new Set();
+  map.forEach(m=>{
+   const r=runs.find(x=>m.match.test(x.path||'')||m.match.test(x.name||''));
+   if(r){matched.add(r.id);setDesk(m.desk,r)}
+  });
+  if(feed){
+   const selected=runs.slice(0,6);
+   feed.replaceChildren();
+   selected.forEach(run=>{
+    const item=document.createElement('a');item.className='pixel-feed-item';item.href=run.html_url;item.target='_blank';item.rel='noopener';item.style.textDecoration='none';
+    const title=document.createElement('b');title.textContent=nice(run.name);
+    const line=document.createElement('span');const s=status(run);line.textContent=s.label+' · '+new Date(run.updated_at).toLocaleString();line.style.color=s.color;
+    item.append(title,line);feed.append(item);
+   });
+   if(!selected.length){const item=document.createElement('div');item.className='pixel-feed-item';item.textContent='No recent workflow runs returned.';feed.append(item)}
+  }
+  const active=runs.filter(r=>r.status==='in_progress').length;
+  const passed=runs.filter(r=>r.status==='completed'&&r.conclusion==='success').length;
+  note.textContent='Live GitHub Actions data · '+active+' running now · '+passed+' successful runs in latest '+runs.length+' records. Updated '+new Date().toLocaleTimeString()+'. Open any activity item to inspect its real workflow run. This tracks workflows, not every internal agent action.';
+ }
+ async function refresh(){
+  try{
+   const response=await fetch(API,{headers:{Accept:'application/vnd.github+json'}});
+   if(!response.ok)throw new Error('GitHub API returned '+response.status);
+   const data=await response.json();
+   if(!Array.isArray(data.workflow_runs))throw new Error('Workflow run data unavailable');
+   render(data.workflow_runs);
+  }catch(e){
+   note.textContent='Live workflow telemetry unavailable ('+e.message+'). Pixel office remains visual; use the workflow links to inspect real run status.';
+  }
+ }
+ refresh();
+ window.setInterval(refresh,60000);
+})();
+</script>
+
+</body></html>
