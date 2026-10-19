@@ -236,7 +236,7 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         "temperature": 0.2,
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user", "content": "GOAL:\\n" + req.goal + "\\n\\nCONTEXT:\\n" + (req.context or "(none)") + "\\n\\nCONSTRAINTS:\\n" + req.constraints}
+            {"role": "user", "content": "GOAL:\n" + req.goal + "\n\nCONTEXT:\n" + (req.context or "(none)") + "\n\nCONSTRAINTS:\n" + req.constraints}
         ]
     }
     task_id = None
@@ -309,7 +309,7 @@ async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] 
       "6. Reconstructed Source Code (annotated, clearly label pseudocode and assumptions). "
       "Mode-specific guidance: " + mode_guidance[req.mode]
     )
-    user = "INPUT NAME: " + req.input_name + "\\nGOAL: " + req.goal + "\\nCONTEXT: " + (req.context or "(none)") + "\\n\\nUNTRUSTED INPUT START\\n" + req.input_text + "\\nUNTRUSTED INPUT END"
+    user = "INPUT NAME: " + req.input_name + "\nGOAL: " + req.goal + "\nCONTEXT: " + (req.context or "(none)") + "\n\nUNTRUSTED INPUT START\n" + req.input_text + "\nUNTRUSTED INPUT END"
     task_id = None
     with db() as c:
         task_id = c.execute("INSERT INTO tasks(kind,status,input_json,created_at,updated_at) VALUES(?,?,?,?,?)",
