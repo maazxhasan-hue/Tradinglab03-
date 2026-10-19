@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: nexora-harvey-worker
+    runtime: docker
+    dockerfilePath: ./harvey-worker/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: HARVEY_API_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/harvey.db
+    disk:
+      name: harvey-data
+      mountPath: /var/data
+      sizeGB: 1
