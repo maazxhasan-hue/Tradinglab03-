@@ -3,7 +3,7 @@
   if (window.__nexoraChatLoaded) return;
   window.__nexoraChatLoaded = true;
   const script = document.currentScript;
-  const apiBase = (script && script.dataset.apiBase || "").replace(/\/$/, "");
+  const apiBase = (script && script.dataset.apiBase || "https://tradinglab03-intake.maazxhasan.workers.dev").replace(/\/$/, "");
   const css = `
   #nexora-chat-launcher{position:fixed;right:22px;bottom:22px;z-index:99998;border:0;border-radius:999px;background:#6d5dfc;color:#fff;padding:14px 19px;font:600 15px system-ui;box-shadow:0 10px 32px #0003;cursor:pointer}
   #nexora-chat-panel{position:fixed;right:18px;bottom:84px;width:min(370px,calc(100vw - 28px));height:min(570px,calc(100dvh - 120px));z-index:99999;background:#fff;color:#151525;border:1px solid #e6e5f2;border-radius:20px;box-shadow:0 22px 70px #10102435;display:none;overflow:hidden;font:14px/1.45 system-ui}
