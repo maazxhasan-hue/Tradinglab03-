@@ -4,6 +4,38 @@
 :root{color-scheme:dark;--bg:#080d16;--panel:#101a29;--line:#24344a;--cyan:#54e7d2;--blue:#79aaff;--text:#edf4ff;--muted:#9aabc1}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#122b3b 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 2rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:#080d16ef;backdrop-filter:blur(12px)}.logo{font-weight:850;letter-spacing:.06em}.logo span{color:var(--cyan)}.pill{border:1px solid #275f5b;color:var(--cyan);padding:.35rem .7rem;border-radius:99px;font-size:.78rem}.wrap{max-width:1440px;margin:auto;padding:2rem}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.15em;font-size:.75rem;font-weight:800}h1{font-size:clamp(2rem,4vw,3.3rem);line-height:1.05;letter-spacing:-.04em;margin:.5rem 0}p{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.5rem 0}.card{background:linear-gradient(160deg,#142134,#0d1522);border:1px solid var(--line);border-radius:1rem;padding:1.2rem}.metric{font-size:2rem;font-weight:800;margin:.3rem 0}.muted{color:var(--muted);font-size:.86rem}.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:1rem}.row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.status{color:var(--cyan);font-size:.78rem}.button{border:1px solid #27665e;background:#12352f;color:#dffef8;padding:.7rem .9rem;border-radius:.65rem;font-weight:750;cursor:pointer}.button.secondary{background:#121f30;border-color:var(--line);color:var(--text)}input,select,textarea{width:100%;background:#09111e;color:var(--text);border:1px solid var(--line);padding:.7rem;border-radius:.6rem;margin:.3rem 0 .8rem}label{display:block;color:var(--muted);font-size:.85rem}h2{font-size:1.15rem}h3{font-size:1rem;margin:.25rem 0}.notice{border-left:3px solid var(--cyan);padding:.6rem .9rem;background:#102522;color:#cceee9;border-radius:.25rem}.foot{padding:2rem 0;color:var(--muted);font-size:.8rem}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.wrap{padding:1rem}header{padding:1rem}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr}.metric{font-size:1.5rem}}
+
+/* Pixel-agent HQ */
+.pixel-hq{margin:1rem 0;overflow:hidden}
+.pixel-hq-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.pixel-hq-head p{margin:.35rem 0}
+.pixel-live{display:inline-flex;align-items:center;gap:.45rem;border:1px solid #28594f;border-radius:99px;padding:.35rem .65rem;color:#8af0d8;font-size:.75rem}
+.pixel-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#54e7d2;box-shadow:0 0 12px #54e7d2}
+.pixel-office{position:relative;margin-top:1rem;min-height:340px;border:1px solid #28445b;border-radius:1rem;overflow:hidden;background:linear-gradient(180deg,#102638 0%,#0a1725 100%);padding:1.1rem}
+.pixel-office:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#27425855 1px,transparent 1px),linear-gradient(90deg,#27425855 1px,transparent 1px);background-size:32px 32px;opacity:.45;pointer-events:none}
+.pixel-floor{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;z-index:1}
+.pixel-desk{position:relative;min-height:145px;border:1px solid #29465b;background:#102033e8;border-radius:.75rem;padding:.75rem;overflow:hidden}
+.pixel-desk h3{font-size:.86rem}
+.pixel-desk p{font-size:.75rem;margin:.25rem 0;color:#9aabc1}
+.pixel-screen{height:34px;width:62px;border:3px solid #7892a6;background:#0a101b;box-shadow:inset 0 0 0 3px #193e4a; margin:.55rem auto .35rem;position:relative}
+.pixel-screen:after{content:"";position:absolute;left:8px;right:8px;top:9px;height:3px;background:#54e7d2;box-shadow:0 6px #6487fc}
+.pixel-person{width:16px;height:16px;background:#e8bd8a;position:absolute;left:calc(50% - 8px);top:47px;image-rendering:pixelated;box-shadow:0 -8px 0 -2px #8db3ff, -6px 6px 0 -2px #8db3ff, 6px 6px 0 -2px #8db3ff, 0 14px 0 -2px #54e7d2}
+.pixel-person:after{content:"";position:absolute;left:4px;top:5px;width:3px;height:3px;background:#152131;box-shadow:5px 0 #152131}
+.pixel-person.typing{animation:pixel-type .45s steps(2,end) infinite alternate}
+.pixel-person.walking{animation:pixel-walk 2.6s steps(4,end) infinite alternate}
+.pixel-person.research{animation:pixel-look 2s steps(2,end) infinite alternate}
+.pixel-status{display:inline-block;font-size:.68rem;color:#9af0d9;border:1px solid #28594f;padding:.2rem .45rem;border-radius:99px}
+.pixel-feed{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:1rem}
+.pixel-feed-item{background:#091421dd;border:1px solid #263d52;border-radius:.6rem;padding:.7rem;font-size:.8rem;color:#c7d5e7}
+.pixel-feed-item b{color:#eaf4ff;display:block;margin-bottom:.15rem}
+.pixel-note{font-size:.75rem;color:#91a7be;margin:.75rem 0 0}
+@keyframes pixel-type{from{transform:translateY(0)}to{transform:translateY(2px)}}
+@keyframes pixel-walk{from{transform:translateX(-5px)}to{transform:translateX(5px)}}
+@keyframes pixel-look{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
+@media(max-width:700px){.pixel-floor{grid-template-columns:repeat(2,minmax(0,1fr))}.pixel-office{padding:.65rem}.pixel-feed{grid-template-columns:1fr}}
+@media(max-width:420px){.pixel-floor{grid-template-columns:1fr}.pixel-desk{min-height:125px}}
+@media(prefers-reduced-motion:reduce){.pixel-person{animation:none!important}}
+
 </style></head><body>
 <header><div class="logo">NEXORA<span> AI</span> / COMPANY HQ</div><div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap"><a class="button secondary" style="text-decoration:none" href="https://tradinglab03.vercel.app/">Public website ↗</a><span class="pill">HQ · WORKFLOWS & REPORTS</span></div></header>
 <main class="wrap"><div class="eyebrow">AI services operations</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
@@ -36,6 +68,29 @@
 </div>
 <p class="muted">No workflow sends outreach, publishes a client site, spends money, or records revenue automatically.</p>
 </section>
+
+<section class="card pixel-hq" id="pixelAgentHQ" aria-labelledby="pixelHQTitle">
+ <div class="pixel-hq-head"><div><div class="eyebrow">Pixel office</div><h2 id="pixelHQTitle">Your AI team, at work</h2><p class="muted">A little living office for the Nexora specialist roles.</p></div><span class="pixel-live">Office visualizer running</span></div>
+ <div class="pixel-office">
+  <div class="pixel-floor">
+   <article class="pixel-desk"><h3>Engineering &amp; QA</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Build, test, review</p><span class="pixel-status">Workflow station</span></article>
+   <article class="pixel-desk"><h3>Research &amp; Intelligence</h3><div class="pixel-screen"></div><div class="pixel-person research" aria-hidden="true"></div><p>Investigate, compare, summarize</p><span class="pixel-status">Research station</span></article>
+   <article class="pixel-desk"><h3>Creative Studio</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Design, content, concepts</p><span class="pixel-status">Creative station</span></article>
+   <article class="pixel-desk"><h3>Sales &amp; Client Success</h3><div class="pixel-screen"></div><div class="pixel-person walking" aria-hidden="true"></div><p>Qualify leads, prepare drafts</p><span class="pixel-status">Human approval required</span></article>
+   <article class="pixel-desk"><h3>Delivery &amp; Project Ops</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Plan tasks, package deliverables</p><span class="pixel-status">Delivery station</span></article>
+   <article class="pixel-desk"><h3>Security &amp; Quality</h3><div class="pixel-screen"></div><div class="pixel-person research" aria-hidden="true"></div><p>Check safety, scope, acceptance</p><span class="pixel-status">Review station</span></article>
+  </div>
+  <div class="pixel-feed" aria-label="Available workstreams">
+   <div class="pixel-feed-item"><b>Opportunity scout</b>Scheduled workflow · inspect the latest run in GitHub Actions</div>
+   <div class="pixel-feed-item"><b>Client delivery agents</b>On-demand workflow · run only with an approved brief</div>
+   <div class="pixel-feed-item"><b>Quality gate</b>On-demand checks · review the actual workflow result</div>
+   <div class="pixel-feed-item"><b>Marketing drafts</b>Draft workflows · publishing and outreach are not automatic</div>
+  </div>
+ </div>
+ <p class="pixel-note">Pixel characters are animated office visuals, not proof that a task is running. Live task status and completion counts will appear only when connected to workflow or agent-run telemetry.</p>
+ <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem"><a class="button" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml">Open opportunity scout ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/autonomous-client-execution.yml">Open delivery agents ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml">Open quality gate ↗</a></div>
+</section>
+
 <div class="grid">
 <div class="card"><div class="muted">Specialist roles</div><div class="metric">30+</div><div class="muted">Role definitions across departments</div></div>
 <div class="card"><div class="muted">Active projects</div><div class="metric" id="projectCount">0</div><div class="muted">Local demo entries only</div></div>
