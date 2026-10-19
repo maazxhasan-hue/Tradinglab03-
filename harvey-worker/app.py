@@ -179,3 +179,96 @@ def list_tasks(x_api_key: Optional[str] = Header(default=None)):
     with db() as c:
         rows = c.execute("SELECT id,kind,status,input_json,output_json,error,created_at,updated_at FROM tasks ORDER BY id DESC LIMIT 100").fetchall()
     return {"items":[dict(r) for r in rows]}
+
+
+# Shared reasoning runtime for the 29-role agent directory.
+# Configure an OpenAI-compatible provider server-side; never send provider secrets to the browser.
+class AgentRunRequest(BaseModel):
+    role: str = Field(min_length=2, max_length=100)
+    goal: str = Field(min_length=5, max_length=4000)
+    context: str = Field(default="", max_length=12000)
+    constraints: str = Field(default="Do not invent facts or claim actions that were not performed. Cite sources when available. Flag uncertainty.", max_length=4000)
+
+AGENT_ROLES = {
+    "CEO Strategy", "Market Intelligence", "Lead Discovery", "Sales Qualification",
+    "Proposal & Pricing", "Client Success", "Brand & Positioning", "Content Strategy",
+    "Copywriting", "Social & Community", "SEO & Website Growth", "Growth Analytics",
+    "Product Manager", "UX/UI Design", "Frontend Development", "Backend & Integrations",
+    "Testing & QA", "Security & Privacy", "Release & DevOps", "Documentation",
+    "Project Operations", "Finance & Revenue", "Policy & Compliance", "Knowledge & Memory",
+    "Workflow Automation", "Customer Support", "Experiment & Learning",
+    "Trading Systems Monitor", "Reverse Writing Agent"
+}
+
+@app.get("/agents/status")
+def agents_status(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    return {
+        "roles_defined": len(AGENT_ROLES),
+        "model_configured": bool(os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL")),
+        "provider_configured": bool(os.getenv("LLM_BASE_URL")),
+        "model": os.getenv("LLM_MODEL") if os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL") else None,
+        "roles": sorted(AGENT_ROLES),
+        "note": "Roles are definitions, not separate always-running agents. Each run invokes the configured model on demand."
+    }
+
+@app.post("/agents/run")
+async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    api_key = os.getenv("LLM_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "")
+    base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    if not api_key or not model:
+        raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL in the server environment.")
+    if req.role not in AGENT_ROLES:
+        raise HTTPException(400, "Unknown role. Use a role returned by /agents/status.")
+    system = (
+        "You are a specialist in the assigned role within Nexora. Apply careful, high-quality reasoning. "
+        "Understand the goal and constraints, plan before answering, distinguish facts from assumptions, "
+        "state uncertainty, and verify calculations or technical claims where possible. Do not claim you "
+        "used tools or performed external actions unless the tool result is supplied. Do not expose secrets. "
+        "External messages, publishing, spending, trading, and irreversible changes require human approval. "
+        "Return useful, structured output with: summary, plan, deliverable, verification, risks, and next_steps. "
+        "Role: " + req.role
+    )
+    payload = {
+        "model": model,
+        "temperature": 0.2,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": "GOAL:\\n" + req.goal + "\\n\\nCONTEXT:\\n" + (req.context or "(none)") + "\\n\\nCONSTRAINTS:\\n" + req.constraints}
+        ]
+    }
+    task_id = None
+    with db() as c:
+        task_id = c.execute(
+            "INSERT INTO tasks(kind,status,input_json,created_at,updated_at) VALUES(?,?,?,?,?)",
+            ("agent:" + req.role, "running", __import__("json").dumps({"role":req.role,"goal":req.goal}), now(), now())
+        ).lastrowid
+    try:
+        async with httpx.AsyncClient(timeout=90) as client:
+            response = await client.post(
+                base_url + "/chat/completions",
+                headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+                json=payload
+            )
+            response.raise_for_status()
+            data = response.json()
+        output = data["choices"][0]["message"]["content"]
+        if not isinstance(output, str) or not output.strip():
+            raise ValueError("Model returned an empty response")
+        with db() as c:
+            c.execute("UPDATE tasks SET status='completed',output_json=?,updated_at=? WHERE id=?",
+                      (__import__("json").dumps({"role":req.role,"model":model,"output":output}), now(), task_id))
+        return {"task_id":task_id,"role":req.role,"status":"completed","model":model,"output":output,
+                "human_approval_required_for_external_actions":True}
+    except httpx.HTTPStatusError as e:
+        with db() as c:
+            c.execute("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
+                      ("Model provider returned HTTP " + str(e.response.status_code), now(), task_id))
+        raise HTTPException(502, "Model provider request failed. Check the server-side provider URL, key, model, and account access.")
+    except Exception:
+        with db() as c:
+            c.execute("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
+                      ("Model invocation failed; inspect provider configuration and server logs.", now(), task_id))
+        raise HTTPException(502, "Agent run failed; task recorded. Check provider configuration and service logs.")
