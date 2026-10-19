@@ -7,6 +7,7 @@ import os, sqlite3, secrets
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import httpx
 
@@ -14,6 +15,8 @@ APP_NAME = "Nexora Harvey Worker"
 DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
 API_KEY = os.getenv("HARVEY_API_KEY", "")
 app = FastAPI(title=APP_NAME, version="0.1.0")
+ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app").split(",") if x.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=False, allow_methods=["GET","POST","OPTIONS"], allow_headers=["Content-Type","X-API-Key"])
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
