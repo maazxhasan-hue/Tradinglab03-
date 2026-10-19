@@ -459,4 +459,29 @@ button[disabled]{opacity:.65;cursor:wait}
   <a class="nexora-contact-link nexora-contact-wa" href="https://wa.me/917892708813?text=Hi%20Nexora%20AI%2C%20I%27d%20like%20to%20discuss%20a%20project." target="_blank" rel="noopener noreferrer" aria-label="Contact Nexora AI on WhatsApp">WhatsApp us ↗</a>
   <a class="nexora-contact-link nexora-contact-email" href="mailto:rayanahmed10077@gmail.com" aria-label="Email Nexora AI">Email us</a>
 </div>
+
+<!-- Google Analytics 4: only load after the visitor opts into analytics. -->
+<script>
+(function(){
+  const measurementId = 'G-3M5F3QYFHJ';
+  let loaded = false;
+  function loadAnalytics(){
+    if(loaded)return;
+    loaded = true;
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', measurementId, { anonymize_ip: true });
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    document.head.appendChild(script);
+  }
+  try {
+    if (localStorage.getItem('nexora_cookie_choice') === 'analytics') loadAnalytics();
+  } catch {}
+  document.getElementById('cookie-accept')?.addEventListener('click', loadAnalytics);
+})();
+</script>
 </body></html>
