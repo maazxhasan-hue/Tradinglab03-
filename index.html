@@ -296,4 +296,115 @@ copyContactBtn.addEventListener("click",async()=>{if(!latestBrief)return;const i
  targets.forEach(el=>observer.observe(el));
 })();
 
-</script></body></html>
+</script>
+<!-- Nexora UX enhancements -->
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div id="scroll-progress" aria-hidden="true"></div>
+<div class="ux-tools" aria-label="Website tools">
+  <button type="button" id="theme-toggle" class="ux-icon-btn" aria-label="Switch to light mode" title="Toggle dark mode">☼</button>
+  <button type="button" id="search-open" class="ux-icon-btn" aria-label="Search this website" title="Search">⌕</button>
+</div>
+<div id="site-search" class="ux-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="search-title">
+  <div class="ux-dialog"><button class="ux-close" type="button" data-close-overlay aria-label="Close search">×</button><h2 id="search-title">Search Nexora AI</h2><label for="site-search-input">Search this page</label><input id="site-search-input" type="search" placeholder="Try “pricing”, “SEO”, or “contact”"><div id="site-search-results" aria-live="polite"></div></div>
+</div>
+<div id="confirm-dialog" class="ux-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title"><div class="ux-dialog"><h2 id="confirm-title">Continue?</h2><p id="confirm-copy">Please confirm this action.</p><div class="ux-actions"><button type="button" id="confirm-cancel" class="btn secondary">Cancel</button><button type="button" id="confirm-yes" class="btn">Continue</button></div></div></div>
+<div id="cookie-banner" class="cookie-banner" hidden role="region" aria-label="Cookie notice"><p>We use essential browser storage for site preferences and form continuity. Optional analytics are only tracked when you allow them.</p><div class="ux-actions"><button type="button" id="cookie-reject" class="btn secondary">Essential only</button><button type="button" id="cookie-accept" class="btn">Allow analytics</button></div></div>
+<a class="floating-contact" href="https://www.instagram.com/tradinglab03/" target="_blank" rel="noopener noreferrer" aria-label="Contact Nexora AI on Instagram">Contact us ↗</a>
+<button id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<footer class="ux-footer"><span>Last updated: <time id="last-updated"></time></span><button type="button" id="print-page" class="textlink">Print this page</button></footer>
+<style>
+:root{scroll-padding-top:90px;--ux-accent:var(--teal,#63ead5)}
+html{scroll-behavior:smooth}
+body{padding-bottom:12px}
+#main-content{scroll-margin-top:90px}
+.skip-link{position:fixed;z-index:10020;top:8px;left:8px;transform:translateY(-160%);padding:12px 16px;border-radius:10px;background:#fff;color:#111;font-weight:800}
+.skip-link:focus{transform:translateY(0)}
+#scroll-progress{position:fixed;z-index:10010;top:0;left:0;height:3px;width:0;background:var(--ux-accent);box-shadow:0 0 12px #63ead577}
+.ux-tools{position:fixed;right:18px;top:84px;z-index:1000;display:flex;gap:8px}
+.ux-icon-btn,#back-to-top{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1.25rem;cursor:pointer;box-shadow:0 5px 18px #0002;transition:transform .18s,background .18s}
+.ux-icon-btn:hover,#back-to-top:hover,.floating-contact:hover{transform:translateY(-2px)}
+.ux-overlay[hidden],.cookie-banner[hidden],#back-to-top[hidden]{display:none}
+.ux-overlay{position:fixed;inset:0;z-index:10030;background:#0009;display:grid;place-items:start center;padding:12vh 18px 24px}
+.ux-dialog{position:relative;width:min(620px,100%);max-height:75vh;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 24px 80px #0005}
+.ux-dialog h2{margin-top:0}.ux-dialog input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+.ux-close{position:absolute;right:12px;top:12px;border:0;background:transparent;color:var(--text);font-size:1.8rem;cursor:pointer}
+#site-search-results{display:grid;gap:8px;margin-top:14px}#site-search-results a{padding:10px 12px;border:1px solid var(--line);border-radius:10px;text-decoration:none}#site-search-results a:hover{border-color:var(--ux-accent)}
+.ux-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}.ux-actions .btn{cursor:pointer}
+.cookie-banner{position:fixed;z-index:10020;left:16px;right:16px;bottom:16px;margin:auto;max-width:850px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);box-shadow:0 15px 55px #0004}
+.cookie-banner p{margin:0;max-width:520px}.floating-contact{position:fixed;z-index:900;right:18px;bottom:74px;padding:12px 16px;border-radius:999px;background:var(--ux-accent);color:#06151a;text-decoration:none;font-weight:800;box-shadow:0 8px 28px #0003;transition:transform .18s}
+#back-to-top{position:fixed;z-index:900;left:18px;bottom:18px;display:block;font-size:1.4rem}
+.ux-footer{max-width:var(--max,1160px);width:calc(100% - 36px);margin:25px auto 0;padding:16px 0;border-top:1px solid var(--line);display:flex;gap:14px;justify-content:space-between;flex-wrap:wrap;color:var(--muted);font-size:.86rem}
+.textlink{border:0;background:transparent;color:var(--blue);text-decoration:underline;cursor:pointer}
+body.ux-light{color-scheme:light;--bg:#f5f5f7;--panel:#fff;--panel2:#f0f4f8;--line:#d8d8de;--text:#1d1d1f;--muted:#626269;--teal:#0071e3;--blue:#0066cc;background:var(--bg);color:var(--text)}
+body.ux-light .nav,body.ux-light .card,body.ux-light .step,body.ux-light .callout{box-shadow:0 8px 30px #00000008}
+body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-top{color:var(--text)}
+/* Make navigation usable on narrow screens without hiding its links. */
+@media(max-width:760px){.nav{flex-wrap:wrap}.navlinks{display:none;flex-basis:100%;flex-direction:column;align-items:stretch;gap:0}.navlinks.ux-menu-open{display:flex}.navlinks a{padding:12px 4px;border-top:1px solid var(--line)}.ux-tools{top:auto;bottom:126px;right:14px}.floating-contact{right:14px;bottom:68px}.cookie-banner{left:10px;right:10px;bottom:10px}.ux-footer{margin-top:20px}}
+@media(hover:hover){a,button,.card,.step{transition:color .18s ease,border-color .18s ease,transform .18s ease,background .18s ease}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media print{body{background:#fff!important;color:#000!important;padding:0!important;font-size:11pt}nav,.navlinks,.btn,.ux-tools,.floating-contact,#back-to-top,#scroll-progress,.cookie-banner,.ux-overlay,.skip-link,#print-page{display:none!important}.wrap{width:100%!important;max-width:none!important}.card,.step,.callout{break-inside:avoid;box-shadow:none!important;border:1px solid #aaa!important;background:#fff!important;color:#000!important}a{color:#000!important;text-decoration:underline}.ux-footer{border-top:1px solid #aaa;color:#000}}
+</style>
+<script>
+(function(){
+  const $=(s,root=document)=>root.querySelector(s);
+  const $=(s,root=document)=>Array.from(root.querySelectorAll(s));
+  // Give the main page a real skip target and accessible mobile navigation toggle.
+  const nav=$('.nav'), main=$('main');
+  if(main){main.id=main.id||'main-content';}
+  if(nav){
+    const links=$('.navlinks',nav);
+    if(links&&!$('#mobile-menu-toggle')){
+      const b=document.createElement('button');b.id='mobile-menu-toggle';b.type='button';b.className='btn secondary';b.textContent='Menu';b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','site-navigation');
+      links.id='site-navigation';nav.insertBefore(b,links);
+      b.addEventListener('click',()=>{const open=links.classList.toggle('ux-menu-open');b.setAttribute('aria-expanded',String(open));b.textContent=open?'Close menu':'Menu';});
+      $('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
+    }
+  }
+  // Theme preference is local-only; no tracking needed.
+  const theme=$('#theme-toggle');
+  function setTheme(light){document.body.classList.toggle('ux-light',light);if(theme){theme.textContent=light?'☾':'☼';theme.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');}try{localStorage.setItem('nexora_theme',light?'light':'dark')}catch{}}
+  let light=false;try{light=localStorage.getItem('nexora_theme')==='light'}catch{}setTheme(light);
+  theme?.addEventListener('click',()=>setTheme(!document.body.classList.contains('ux-light')));
+  // Cookie banner: optional UTM analytics only after explicit consent.
+  const cookie=$('#cookie-banner');let choice='';try{choice=localStorage.getItem('nexora_cookie_choice')||''}catch{}
+  if(cookie&&!choice)cookie.hidden=false;
+  function cookieChoice(value){try{localStorage.setItem('nexora_cookie_choice',value)}catch{}if(cookie)cookie.hidden=true;if(value==='analytics')trackUtm(true)}
+  $('#cookie-accept')?.addEventListener('click',()=>cookieChoice('analytics'));
+  $('#cookie-reject')?.addEventListener('click',()=>cookieChoice('essential'));
+  function trackUtm(consented){
+    if(!consented)return;
+    try{const u=new URL(location.href),keys=['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];const data={};keys.forEach(k=>{const v=u.searchParams.get(k);if(v)data[k]=v.slice(0,200)});if(Object.keys(data).length)localStorage.setItem('nexora_utm',JSON.stringify({captured_at:new Date().toISOString(),...data}))}catch{}
+  }
+  try{if(choice==='analytics')trackUtm(true)}catch{}
+  // Search across visible page headings and section copy, linking to the matching section.
+  const searchOverlay=$('#site-search'), searchInput=$('#site-search-input'), searchResults=$('#site-search-results');
+  const index=()=>$('main h1,main h2,main h3,main section,main .card').map((el,i)=>({el,title:(el.innerText||'').trim().split('\n')[0].slice(0,120),text:(el.innerText||'').trim().slice(0,600),id:el.id||(el.id='search-result-'+i)})).filter(x=>x.title&&x.text);
+  let items=[];
+  function renderSearch(q){if(!searchResults)return;searchResults.replaceChildren();const term=q.trim().toLowerCase();if(!term){searchResults.textContent='Type a keyword to search this page.';return}const found=items.filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,12);if(!found.length){searchResults.textContent='No matching sections found.';return}found.forEach(x=>{const a=document.createElement('a');a.href='#'+encodeURIComponent(x.id);a.textContent=x.title;a.addEventListener('click',()=>{searchOverlay.hidden=true});searchResults.append(a)})}
+  $('#search-open')?.addEventListener('click',()=>{items=index();searchOverlay.hidden=false;searchInput?.focus();renderSearch('')});
+  searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
+  // Accessible overlay close and confirmation dialog.
+  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
+  [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.hidden=true}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>x.hidden=true)});
+  let confirmAction=null;const confirmDialog=$('#confirm-dialog');
+  window.nexoraConfirm=(message,action)=>{const copy=$('#confirm-copy');if(copy)copy.textContent=String(message||'Please confirm this action.');confirmAction=typeof action==='function'?action:null;if(confirmDialog)confirmDialog.hidden=false;$('#confirm-yes')?.focus()};
+  $('#confirm-cancel')?.addEventListener('click',()=>{if(confirmDialog)confirmDialog.hidden=true;confirmAction=null});
+  $('#confirm-yes')?.addEventListener('click',()=>{const fn=confirmAction;confirmAction=null;if(confirmDialog)confirmDialog.hidden=true;if(fn)fn()});
+  // Scroll progress and back-to-top.
+  const progress=$('#scroll-progress'), topBtn=$('#back-to-top');
+  function onScroll(){const max=document.documentElement.scrollHeight-innerHeight;const pct=max>0?(scrollY/max)*100:0;if(progress)progress.style.width=Math.min(100,Math.max(0,pct))+'%';if(topBtn)topBtn.hidden=scrollY<500}
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  topBtn?.addEventListener('click',()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
+  $('#print-page')?.addEventListener('click',()=>print());
+  // UTM campaign attribution is retained only with optional analytics consent.
+  // Add form status styling without changing the existing submit flow.
+  const formStatus=$('#formStatus');
+  if(formStatus){const obs=new MutationObserver(()=>{const t=(formStatus.textContent||'').toLowerCase();formStatus.classList.toggle('ux-error',/could not|failed|error|not yet|not connected|expired|unavailable|not confirmed/.test(t));formStatus.classList.toggle('ux-success',/received and saved|copied|downloaded|successfully|opened/.test(t));});obs.observe(formStatus,{childList:true,subtree:true,characterData:true});}
+  // Last updated reflects the current site build date, with a safe fallback.
+  const updated=$('#last-updated');if(updated){const d=document.lastModified?new Date(document.lastModified):new Date();updated.dateTime=d.toISOString().slice(0,10);updated.textContent=d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
+  // Make copy actions visibly announce their state and provide robust fallback behavior.
+  [$('#copyBtn'),$('#copyContactBtn')].filter(Boolean).forEach(b=>b.setAttribute('aria-label',b.textContent.trim()||'Copy project brief'));
+})();
+</script>
+</body></html>
