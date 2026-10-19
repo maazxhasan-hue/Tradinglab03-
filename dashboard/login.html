@@ -20,4 +20,16 @@ form.addEventListener("submit",async e=>{e.preventDefault();if(!form.reportValid
 try{const res=await fetch(endpoint+"/api/auth/"+(mode==="login"?"login":"register"),{method:"POST",headers:{"content-type":"application/json","accept":"application/json"},body:JSON.stringify({email:document.getElementById("email").value.trim(),password:password.value}),mode:"cors",credentials:"omit"});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok!==true)throw new Error(data.error||"Account service is unavailable.");localStorage.setItem("nexora_client_token",data.token);password.value="";status.className="status ok";status.textContent="Signed in successfully. Opening the project form…";location.href=next;}catch(err){status.className="status error";status.textContent=String(err.message||"Could not sign in.").slice(0,240);}finally{submit.disabled=false;switchBtn.disabled=false;}});
 render();
 fetch(endpoint+"/api/auth/me",{headers:{authorization:"Bearer "+(localStorage.getItem("nexora_client_token")||"")},mode:"cors",credentials:"omit"}).then(r=>r.ok?location.replace(next):null).catch(()=>{});
-</script></body></html>
+</script>
+<style>
+.password-wrap{display:flex;gap:8px;align-items:stretch}.password-wrap input{flex:1;min-width:0}.password-toggle{border:1px solid #d2d2d7;border-radius:12px;padding:0 12px;background:#fff;color:#1d1d1f;cursor:pointer;font:inherit}.password-toggle:focus-visible{outline:3px solid #0071e3;outline-offset:3px}
+</style>
+<script>
+(function(){
+ const password=document.getElementById('password');if(!password)return;
+ const wrap=document.createElement('div');wrap.className='password-wrap';password.parentNode.insertBefore(wrap,password);wrap.appendChild(password);
+ const toggle=document.createElement('button');toggle.type='button';toggle.className='password-toggle';toggle.id='toggle-password';toggle.textContent='Show';toggle.setAttribute('aria-controls','password');toggle.setAttribute('aria-label','Show password');wrap.appendChild(toggle);
+ toggle.addEventListener('click',()=>{const show=password.type==='password';password.type=show?'text':'password';toggle.textContent=show?'Hide':'Show';toggle.setAttribute('aria-label',show?'Hide password':'Show password');password.focus()});
+})();
+</script>
+</body></html>
