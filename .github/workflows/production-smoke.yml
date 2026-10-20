@@ -9,6 +9,10 @@ on:
     paths:
       - "vercel.json"
       - "private-hq/**"
+      - "dashboard/index.html"
+      - "dashboard/marketing.html"
+      - "dashboard/inbox.html"
+      - "dashboard/website.html"
       - "harvey-worker/**"
       - ".github/workflows/production-smoke.yml"
 
@@ -46,6 +50,23 @@ jobs:
             fi
             echo "PASS $path -> HTTP 404"
           done
+
+      - name: Verify Render public website and legacy-page safety
+        env:
+          RENDER_STATIC_URL: https://nexora-internal-hq.onrender.com
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$RENDER_STATIC_URL/website.html" -o /tmp/nexora-render-website.html
+          grep -qi "Nexora AI" /tmp/nexora-render-website.html
+          curl --fail --silent --show-error --max-time 25 "$RENDER_STATIC_URL/index.html" -o /tmp/nexora-render-index.html
+          grep -Fq "Company HQ moved" /tmp/nexora-render-index.html
+          if grep -Fq "Owner Inbox" /tmp/nexora-render-index.html; then
+            echo "::error::Render public index unexpectedly contains private owner-inbox content."
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 25 "$RENDER_STATIC_URL/marketing.html" -o /tmp/nexora-render-marketing.html
+          grep -Fq 'location.replace("https://nexora-private-hq.vercel.app/")' /tmp/nexora-render-marketing.html
+          echo "PASS Render public website is available; legacy HQ pages contain only move/redirect content."
 
       - name: Verify Render owner inbox is a protected-HQ redirect
         env:
