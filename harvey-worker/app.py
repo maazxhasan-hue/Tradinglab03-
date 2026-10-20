@@ -143,15 +143,41 @@ def metrics(x_api_key: Optional[str] = Header(default=None)):
 @app.post("/prospects/discover")
 async def discover(req: DiscoverRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
-    # Public OpenStreetMap Overpass endpoint. Rate-limit requests and store only business listing data.
-    task_input = __import__("json").dumps(req.model_dump())
+    # Validate and normalize user input before interpolating it into the Overpass query.
+    city = re.sub(r"[^\\w\\s,.'-]", "", req.city, flags=re.UNICODE)
+    city = re.sub(r"\\s+", " ", city).strip()
+    if not city:
+        raise HTTPException(400, "Enter a valid city name.")
+    category = re.sub(r"[^a-z]", "", req.category.lower())
+    category_filters = {
+        "business": ['["shop"]', '["office"]', '["amenity"~"^(restaurant|cafe|clinic|bank|school)$"]'],
+        "retail": ['["shop"]'], "shop": ['["shop"]'], "shops": ['["shop"]'],
+        "office": ['["office"]'], "offices": ['["office"]'],
+        "restaurant": ['["amenity"~"^(restaurant|cafe|fast_food|bar|pub)$"]'],
+        "restaurants": ['["amenity"~"^(restaurant|cafe|fast_food|bar|pub)$"]'],
+        "food": ['["amenity"~"^(restaurant|cafe|fast_food|bar|pub)$"]'],
+        "healthcare": ['["amenity"~"^(clinic|doctors|hospital|pharmacy)$"]'],
+        "medical": ['["amenity"~"^(clinic|doctors|hospital|pharmacy)$"]'],
+        "clinic": ['["amenity"~"^(clinic|doctors|hospital|pharmacy)$"]'],
+        "education": ['["amenity"~"^(school|college|university)$"]'],
+        "school": ['["amenity"~"^(school|college|university)$"]'],
+        "finance": ['["amenity"~"^(bank|atm)$"]'],
+        "bank": ['["amenity"~"^(bank|atm)$"]'],
+        "hospitality": ['["tourism"~"^(hotel|guest_house|hostel)$"]'],
+        "hotel": ['["tourism"~"^(hotel|guest_house|hostel)$"]'],
+    }
+    if category not in category_filters:
+        raise HTTPException(400, "Unsupported category. Choose business, retail, office, restaurants, healthcare, education, finance, or hospitality.")
+    task_input = __import__("json").dumps({"city": city, "category": category, "limit": req.limit})
     with db() as c:
         task_id = c.execute("INSERT INTO tasks(kind,status,input_json,created_at,updated_at) VALUES(?,?,?,?,?)",
                             ("discover", "running", task_input, now(), now())).lastrowid
-    query = f'''[out:json][timeout:25];area["name"="{req.city}"]["boundary"="administrative"]->.a;
-      (node["name"]["shop"](area.a);way["name"]["shop"](area.a);node["name"]["office"](area.a);
-       way["name"]["office"](area.a);node["name"]["amenity"~"^(restaurant|cafe|clinic|bank|school)$"](area.a);
-       way["name"]["amenity"~"^(restaurant|cafe|clinic|bank|school)$"](area.a););out center tags {req.limit};'''
+    clauses = ";".join(
+        f'node["name"]{tag_filter}(area.a);way["name"]{tag_filter}(area.a)'
+        for tag_filter in category_filters[category]
+    )
+    query = f'''[out:json][timeout:25];area["name"="{city}"]["boundary"="administrative"]->.a;
+      ({clauses});out center tags {req.limit};'''
     try:
         async with httpx.AsyncClient(timeout=35, headers={"User-Agent":"NexoraHarvey/0.1 (business prospect research)"}) as client:
             response = await client.post("https://overpass-api.de/api/interpreter", data={"data": query})
@@ -165,16 +191,16 @@ async def discover(req: DiscoverRequest, x_api_key: Optional[str] = Header(defau
                 if not name: continue
                 website = tags.get("website") or tags.get("contact:website")
                 phone = tags.get("phone") or tags.get("contact:phone")
-                cat = tags.get("shop") or tags.get("office") or tags.get("amenity") or req.category
+                cat = tags.get("shop") or tags.get("office") or tags.get("amenity") or tags.get("tourism") or category
                 cur = c.execute("""INSERT OR IGNORE INTO prospects(name,category,website,phone,city,source,status,created_at)
                                    VALUES(?,?,?,?,?,'OpenStreetMap','new',?)""",
-                                (name, cat, website, phone, req.city, now()))
+                                (name, cat, website, phone, city, now()))
                 row = c.execute("SELECT id,name,category,website,phone,city,status FROM prospects WHERE name=? AND city=?",
-                                (name, req.city)).fetchone()
+                                (name, city)).fetchone()
                 if row: found.append(dict(row))
             c.execute("UPDATE tasks SET status='completed',output_json=?,updated_at=? WHERE id=?",
                       (__import__("json").dumps({"found":len(found)}), now(), task_id))
-        return {"task_id": task_id, "status": "completed", "count": len(found), "prospects": found[:req.limit],
+        return {"task_id": task_id, "status": "completed", "count": len(found), "city": city, "category": category, "prospects": found[:req.limit],
                 "source": "OpenStreetMap", "note": "Listings can be incomplete. Verify each business before outreach."}
     except Exception as e:
         with db() as c:
