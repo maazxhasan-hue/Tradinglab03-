@@ -26,8 +26,15 @@ class PublicSiteIntakeTests(unittest.TestCase):
 
 
 
-    def test_owner_inbox_clears_private_state_when_leaving_page(self):
+    def test_public_owner_inbox_redirects_to_private_hq(self):
         html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
+        self.assertIn("https://nexora-private-hq.vercel.app/", html)
+        self.assertIn("window.location.replace", html)
+        self.assertNotIn('id="adminKey"', html)
+        self.assertNotIn("api/admin/submissions", html)
+
+    def test_owner_inbox_clears_private_state_when_leaving_page(self):
+        html = (ROOT / "private-hq" / "inbox.html").read_text(encoding="utf-8")
         self.assertIn('window.addEventListener("pagehide"', html)
         self.assertIn('keyField.value="";results.replaceChildren();', html)
         self.assertIn('id="adminKey" type="password"', html)
@@ -51,7 +58,7 @@ class PublicSiteIntakeTests(unittest.TestCase):
 
 
     def test_owner_inbox_clears_sensitive_page_state_on_navigation(self):
-        html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
+        html = (ROOT / "private-hq" / "inbox.html").read_text(encoding="utf-8")
         self.assertIn('window.addEventListener("pagehide",()=>{keyField.value="";results.replaceChildren();});', html)
         self.assertIn('keyField.value="";results.replaceChildren()', html)
         self.assertIn("Enter the owner access key to load enquiries.", html)

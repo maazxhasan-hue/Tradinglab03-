@@ -6,6 +6,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/inbox.html"
+      - "private-hq/inbox.html"
       - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
@@ -16,6 +17,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/inbox.html"
+      - "private-hq/inbox.html"
       - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
@@ -50,7 +52,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           worker = Path("worker/index.js").read_text(encoding="utf-8")
-          inbox = Path("dashboard/inbox.html").read_text(encoding="utf-8")
+          inbox = Path("private-hq/inbox.html").read_text(encoding="utf-8")
+          public_inbox = Path("dashboard/inbox.html").read_text(encoding="utf-8")
           readme = Path("worker/README.md").read_text(encoding="utf-8")
           public_site = Path("dashboard/website.html").read_text(encoding="utf-8")
           login_page = Path("dashboard/login.html").read_text(encoding="utf-8")
@@ -73,6 +76,8 @@ jobs:
           ]
           missing = [item for item in required_worker if item not in worker]
           missing += [item for item in required_inbox if item not in inbox]
+          if "https://nexora-private-hq.vercel.app/" not in public_inbox or "window.location.replace" not in public_inbox or "api/admin/submissions" in public_inbox:
+              missing.append("public owner inbox must redirect to protected HQ without exposing the interactive inbox UI")
           if '{"status": "paid"}' not in deploy_workflow or "unsupported status was rejected" not in deploy_workflow:
               missing.append("deployment workflow invalid-status end-to-end check")
           if "client_accounts" not in auth_migration or "client_sessions" not in auth_migration or "client_auth_attempts" not in auth_migration:

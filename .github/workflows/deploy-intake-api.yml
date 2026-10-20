@@ -9,6 +9,7 @@ on:
       - "dashboard/website.html"
       - "dashboard/login.html"
       - "dashboard/inbox.html"
+      - "private-hq/inbox.html"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
 
@@ -169,7 +170,7 @@ jobs:
           python - <<'PY'
           import os, pathlib, re
           endpoint = os.environ["INTAKE_ENDPOINT"]
-          for filename in ("dashboard/website.html", "dashboard/inbox.html"):
+          for filename in ("dashboard/website.html", "private-hq/inbox.html"):
               path = pathlib.Path(filename)
               html = path.read_text(encoding="utf-8")
               updated, count = re.subn(r'data-intake-endpoint="[^"]*"', 'data-intake-endpoint="' + endpoint + '"', html, count=1)
@@ -179,7 +180,7 @@ jobs:
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dashboard/website.html dashboard/inbox.html
+          git add dashboard/website.html private-hq/inbox.html
           git diff --cached --quiet || { git commit -m "Connect public website to intake service"; git push origin HEAD:main; }
       - name: Verify intake health endpoint
         env:
