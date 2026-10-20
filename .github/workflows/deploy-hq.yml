@@ -1,36 +1,65 @@
-name: Deploy TradingLab03 HQ
+name: Validate HQ Source (Vercel owns private deployment)
+
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
+      - "private-hq/**"
       - "dashboard/**"
       - ".github/workflows/deploy-hq.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
 concurrency:
-  group: github-pages
+  group: hq-source-validation
   cancel-in-progress: true
+
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          enablement: true
-      - name: Upload HQ dashboard
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dashboard
-      - name: Deploy HQ
-        id: deployment
-        uses: actions/deploy-pages@v4
+          node-version: "22"
+
+      - name: Syntax-check website chat widget
+        run: node --check dashboard/chat-widget.js
+
+      - name: Syntax-check HQ inline scripts and verify roster
+        run: |
+          python - <<'PY'
+          import re
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          hq_path = Path("private-hq/agent-town.html")
+          hq = hq_path.read_text(encoding="utf-8")
+          match = re.search(r"const roles=\[(.*?)\n\];", hq, re.S)
+          if not match:
+              raise SystemExit("Could not find the HQ role roster")
+          roles = re.findall(r'^\["', match.group(1), re.M)
+          if len(roles) != 30:
+              raise SystemExit(f"Expected 30 roles (29 core + Instagram), found {len(roles)}")
+          for required in ("NAMAZ ROOM", "SERVER ROOM", "voiceToggle", "Instagram Growth Agent"):
+              if required not in hq:
+                  raise SystemExit(f"Missing required HQ feature: {required}")
+
+          scripts = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", hq, re.I | re.S)
+          if not scripts:
+              raise SystemExit("No inline scripts found in private HQ")
+          for index, script in enumerate(scripts, 1):
+              with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as tmp:
+                  tmp.write(script)
+                  tmp.flush()
+                  subprocess.run(["node", "--check", tmp.name], check=True)
+              print(f"PASS: HQ inline script {index} syntax")
+          print("PASS: 30-role roster, Instagram station, Namaz room, server room, and voice control")
+          PY
