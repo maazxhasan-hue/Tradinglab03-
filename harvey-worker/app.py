@@ -49,6 +49,14 @@ def init_db():
           status TEXT NOT NULL, model TEXT, manifest_json TEXT, archive BLOB, error TEXT,
           created_at TEXT NOT NULL, updated_at TEXT NOT NULL)""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_projects_status ON projects(status)")
+
+        c.execute("""CREATE TABLE IF NOT EXISTS company_jobs(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, cycle_id TEXT NOT NULL, role TEXT NOT NULL,
+          mandate TEXT NOT NULL, goal TEXT NOT NULL, context TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'queued', output_json TEXT, error TEXT,
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_company_jobs_cycle ON company_jobs(cycle_id, status)")
+
 init_db()
 
 def require_key(x_api_key: Optional[str]):
@@ -278,6 +286,133 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
                       ("Model invocation failed; inspect provider configuration and server logs.", now(), task_id))
         raise HTTPException(502, "Agent run failed; task recorded. Check provider configuration and service logs.")
 
+
+
+# Company operations: distinct mandates and persistent, auditable work items for each specialist role.
+AGENT_MANDATES = {
+ "CEO Strategy":"Set company priorities, measurable goals, decision rules, and cross-team alignment.",
+ "Market Intelligence":"Research target markets, competitors, customer pain points, and evidence-backed opportunities.",
+ "Lead Discovery":"Find lawful, relevant prospect sources and define qualification criteria; do not fabricate leads.",
+ "Sales Qualification":"Score leads against fit, need, budget, authority, timing, and evidence gaps.",
+ "Proposal & Pricing":"Draft scoped offers, assumptions, milestones, pricing logic, and exclusions for human review.",
+ "Client Success":"Define onboarding, communication plans, delivery check-ins, and client outcome tracking.",
+ "Brand & Positioning":"Clarify ideal customer, differentiation, value proposition, voice, and brand consistency.",
+ "Content Strategy":"Build an editorial strategy tied to audience needs and measurable business goals.",
+ "Copywriting":"Draft clear conversion-focused copy and label claims requiring proof.",
+ "Social & Community":"Plan platform-appropriate posts and community engagement; publishing requires approval.",
+ "SEO & Website Growth":"Prioritize technical SEO, search intent, landing pages, and organic conversion improvements.",
+ "Growth Analytics":"Define metrics, instrumentation, funnel analysis, and evidence-based experiments.",
+ "Product Manager":"Translate customer needs into prioritized requirements, acceptance criteria, and roadmap.",
+ "UX/UI Design":"Create accessible flows, interaction specs, responsive layouts, and usability checks.",
+ "Frontend Development":"Implement accessible, responsive interfaces and client-side behavior.",
+ "Backend & Integrations":"Design APIs, persistence, authentication, data flows, and reliable integrations.",
+ "Testing & QA":"Create test plans, edge cases, regression coverage, and release acceptance criteria.",
+ "Security & Privacy":"Review threat models, secrets handling, access control, data minimization, and privacy risks.",
+ "Release & DevOps":"Plan reproducible builds, deployment, monitoring, rollback, and operational readiness.",
+ "Documentation":"Produce accurate setup, usage, architecture, and troubleshooting documentation.",
+ "Project Operations":"Coordinate dependencies, owners, milestones, blockers, and delivery status.",
+ "Finance & Revenue":"Model unit economics, budgets, cash flow, revenue assumptions, and cost controls; no transactions.",
+ "Policy & Compliance":"Identify applicable policy and compliance questions; flag areas needing qualified review.",
+ "Knowledge & Memory":"Maintain decision logs, reusable knowledge, provenance, and change history.",
+ "Workflow Automation":"Identify safe repeatable workflows, triggers, retries, and human approval gates.",
+ "Customer Support":"Design support triage, response drafts, escalation rules, and feedback loops.",
+ "Experiment & Learning":"Propose falsifiable experiments, success metrics, sample limits, and learning reviews.",
+ "Trading Systems Monitor":"Review system health, paper-trading controls, and risk telemetry; never place trades.",
+ "Reverse Writing Agent":"Reconstruct specifications and documentation from provided artifacts; label uncertainty."
+}
+
+class CompanyDispatchRequest(BaseModel):
+    mission: str = Field(min_length=10, max_length=4000)
+    context: str = Field(default="", max_length=8000)
+    constraints: str = Field(default="Do not fabricate evidence or claim external actions. External outreach, publishing, spending, trading, and irreversible actions require human approval.", max_length=3000)
+
+@app.get("/agents/roster")
+def agent_roster(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    return {"roles_defined": len(AGENT_MANDATES),
+            "roles": [{"role": role, "mandate": AGENT_MANDATES[role],
+                       "execution_mode": "on-demand model invocation",
+                       "independently_running": False}
+                      for role in sorted(AGENT_MANDATES)],
+            "model_configured": bool(os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL"))}
+
+@app.post("/company/dispatch")
+def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    import uuid, json
+    cycle_id = uuid.uuid4().hex
+    with db() as c:
+        for role, mandate in AGENT_MANDATES.items():
+            c.execute("""INSERT INTO company_jobs
+              (cycle_id,role,mandate,goal,context,status,created_at,updated_at)
+              VALUES(?,?,?,?,?,'queued',?,?)""",
+              (cycle_id, role, mandate, req.mission, req.context, now(), now()))
+    return {"cycle_id": cycle_id, "status": "queued",
+            "roles_assigned": len(AGENT_MANDATES),
+            "queued_jobs": len(AGENT_MANDATES),
+            "message": "Each specialist has a distinct mandate and persisted work item. Jobs are queued, not running yet; execute them with /company/jobs/{job_id}/run. No external actions are taken."}
+
+@app.get("/company/jobs")
+def list_company_jobs(cycle_id: Optional[str] = None, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    with db() as c:
+        if cycle_id:
+            rows = c.execute("SELECT id,cycle_id,role,mandate,goal,status,output_json,error,created_at,updated_at FROM company_jobs WHERE cycle_id=? ORDER BY id", (cycle_id,)).fetchall()
+        else:
+            rows = c.execute("SELECT id,cycle_id,role,mandate,goal,status,output_json,error,created_at,updated_at FROM company_jobs ORDER BY id DESC LIMIT 100").fetchall()
+    import json
+    items=[]
+    for row in rows:
+        item=dict(row)
+        if item.get("output_json"):
+            try: item["output"]=json.loads(item.pop("output_json"))
+            except Exception: item["output"]=item.pop("output_json")
+        items.append(item)
+    return {"count":len(items),"jobs":items}
+
+@app.post("/company/jobs/{job_id}/run")
+async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    import json
+    api_key=os.getenv("LLM_API_KEY","")
+    model=os.getenv("LLM_MODEL","")
+    base_url=os.getenv("LLM_BASE_URL","https://api.openai.com/v1").rstrip("/")
+    if not api_key or not model:
+        raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
+    with db() as c:
+        row=c.execute("SELECT * FROM company_jobs WHERE id=?", (job_id,)).fetchone()
+        if not row: raise HTTPException(404,"Company job not found.")
+        if row["status"]=="completed": raise HTTPException(409,"This job is already completed.")
+        if row["status"]=="running": raise HTTPException(409,"This job is already running.")
+        c.execute("UPDATE company_jobs SET status='running',error=NULL,updated_at=? WHERE id=?", (now(),job_id))
+    system=("You are Nexora's specialist agent. Own only the assigned role and produce a concrete, "
+            "evidence-aware deliverable. Clearly separate facts, assumptions, and recommendations. "
+            "Do not claim external work was done. Never expose secrets. External outreach, publishing, "
+            "spending, trading, and irreversible actions require explicit human approval. "
+            "Return headings: Objective, Deliverable, Evidence/Assumptions, Verification, Risks, Handoffs. "
+            "Role: "+row["role"]+"\nMandate: "+row["mandate"])
+    user="COMPANY MISSION:\n"+row["goal"]+"\n\nCONTEXT:\n"+(row["context"] or "(none)")+"\n\nGUARDRAILS:\nNo fabricated facts; provide actionable work and explicit dependencies."
+    try:
+        async with httpx.AsyncClient(timeout=90) as client:
+            response=await client.post(base_url+"/chat/completions",
+              headers={"Authorization":"Bearer "+api_key,"Content-Type":"application/json"},
+              json={"model":model,"temperature":0.2,"messages":[{"role":"system","content":system},{"role":"user","content":user}]})
+            response.raise_for_status()
+            data=response.json()
+        output=data["choices"][0]["message"]["content"]
+        if not isinstance(output,str) or not output.strip(): raise ValueError("Empty model output")
+        saved={"role":row["role"],"model":model,"output":output}
+        with db() as c:
+            c.execute("UPDATE company_jobs SET status='completed',output_json=?,updated_at=? WHERE id=?", (json.dumps(saved),now(),job_id))
+        return {"job_id":job_id,"cycle_id":row["cycle_id"],"role":row["role"],"status":"completed","model":model,"output":output}
+    except httpx.HTTPStatusError as e:
+        with db() as c:
+            c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Model provider returned HTTP "+str(e.response.status_code),now(),job_id))
+        raise HTTPException(502,"Specialist model call failed. Check server-side provider configuration and account limits.")
+    except Exception:
+        with db() as c:
+            c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Specialist execution failed; inspect server logs.",now(),job_id))
+        raise HTTPException(502,"Specialist execution failed; the job is recorded for diagnosis.")
 
 # Project builder: generate a multi-file source artifact with a downloadable ZIP.
 # Generated code is never executed by this API. Users must inspect and run it in their own sandbox.
