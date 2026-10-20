@@ -1,6 +1,7 @@
-"""Harvey worker API: persistent prospect queue, safe discovery, approval-gated outreach.
-No email is sent by this service. Outreach remains a draft until a separate, explicitly
-configured mail provider and approval flow are implemented.
+"""Harvey worker API: persistent prospect queue and approval-gated outreach.
+Resend delivery is fail-closed: it requires an approved draft, explicit per-send
+confirmation, server-side credentials, a configured sender, unsubscribe protection,
+suppression checks, duplicate-send protection, and a daily limit.
 """
 from __future__ import annotations
 import os, sqlite3, secrets, re
@@ -126,7 +127,7 @@ def health():
     return {"service": APP_NAME, "status": "ready", "time": now(),
             "database": "postgresql" if DATABASE_URL else "sqlite",
             "prospects": prospects, "pending_approvals": pending,
-            "tasks_recorded": tasks, "email_sending": "disabled"}
+            "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled")}
 
 @app.get("/metrics")
 def metrics(x_api_key: Optional[str] = Header(default=None)):
@@ -861,6 +862,11 @@ def _ensure_mail_tables():
           recipient TEXT NOT NULL, provider_id TEXT, status TEXT NOT NULL,
           created_at TEXT NOT NULL, error_code TEXT)""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_email_delivery_created ON email_delivery_log(created_at)")
+        # Prevent concurrent duplicate sends for the same approved draft/recipient.
+        # Failed attempts release the reservation and may be retried after diagnosis.
+        c.execute("""CREATE UNIQUE INDEX IF NOT EXISTS uq_email_delivery_active
+                     ON email_delivery_log(approval_id, recipient)
+                     WHERE status IN ('sending', 'sent')""")
 
 def _unsubscribe_token(email: str) -> str:
     secret = os.getenv("UNSUBSCRIBE_SECRET", "")
@@ -954,8 +960,15 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         unsubscribe_url = public_base + "/email/unsubscribe?token=" + token
         body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
         # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
-        c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
-                  (req.approval_id, recipient, "sending", now()))
+        try:
+            c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
+                      (req.approval_id, recipient, "sending", now()))
+        except Exception as e:
+            # The unique partial index is the final guard against simultaneous requests.
+            message = str(e).lower()
+            if "unique" in message or "duplicate key" in message:
+                raise HTTPException(409, "A send attempt for this approved draft and recipient is already active or was already accepted.")
+            raise
     try:
         async with httpx.AsyncClient(timeout=25) as client:
             response = await client.post("https://api.resend.com/emails",
@@ -973,8 +986,8 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         with db() as c:
             c.execute("UPDATE email_delivery_log SET status='sent',provider_id=? WHERE approval_id=? AND recipient=? AND status='sending'",
                       (provider_id, req.approval_id, recipient))
-        return {"status":"sent", "approval_id":req.approval_id, "provider":"Resend",
-                "provider_id":provider_id, "daily_limit":20, "note":"Sent to the explicitly supplied recipient."}
+        return {"status":"accepted", "approval_id":req.approval_id, "provider":"Resend",
+                "provider_id":provider_id, "daily_limit":20, "note":"Resend accepted the request; inbox delivery is not confirmed."}
     except HTTPException:
         raise
     except Exception:
