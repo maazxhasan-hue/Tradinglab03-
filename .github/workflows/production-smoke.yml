@@ -1,0 +1,89 @@
+name: Production Smoke Checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "vercel.json"
+      - "private-hq/**"
+      - "harvey-worker/**"
+      - ".github/workflows/production-smoke.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check public website availability
+        env:
+          PUBLIC_URL: https://nexora-ai-sooty-two.vercel.app
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$PUBLIC_URL/" -o /tmp/nexora-home.html
+          grep -qi "Nexora" /tmp/nexora-home.html
+          echo "Public Nexora website returned HTTP 200 and contains the expected brand."
+
+      - name: Confirm private static paths return 404
+        env:
+          PUBLIC_URL: https://nexora-ai-sooty-two.vercel.app
+        run: |
+          set -euo pipefail
+          for path in /private-hq /private-hq/ /private-hq/index.html /private-hq/harvey.html /owner-console/inbox.html; do
+            code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 25 "$PUBLIC_URL$path")"
+            if [ "$code" != "404" ]; then
+              echo "::error::Expected HTTP 404 for $path but received $code"
+              exit 1
+            fi
+            echo "PASS $path -> HTTP 404"
+          done
+
+      - name: Verify Harvey health and safe email state
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          url = "https://tradinglab03.onrender.com/health"
+          request = urllib.request.Request(url, headers={"Accept": "application/json", "Cache-Control": "no-cache"})
+          try:
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  if response.status != 200:
+                      raise SystemExit(f"Harvey health returned HTTP {response.status}")
+                  data = json.load(response)
+          except (urllib.error.URLError, TimeoutError) as exc:
+              raise SystemExit(f"Harvey health check failed: {exc}") from exc
+
+          if data.get("status") != "ready":
+              raise SystemExit(f"Harvey is not ready: {data.get('status')!r}")
+          if data.get("email_sending") != "disabled":
+              raise SystemExit("Safety gate failed: production email sending must remain disabled until sender verification and a safe test are complete.")
+          required = ("service", "database", "prospects", "pending_approvals", "tasks_recorded")
+          missing = [key for key in required if key not in data]
+          if missing:
+              raise SystemExit(f"Harvey health response is missing fields: {', '.join(missing)}")
+          print("PASS Harvey health: ready")
+          print(f"Database: {data['database']}; prospects: {data['prospects']}; pending approvals: {data['pending_approvals']}; tasks recorded: {data['tasks_recorded']}")
+          print("PASS production email sending remains disabled")
+          PY
+
+      - name: Publish smoke-check summary
+        if: always()
+        run: |
+          {
+            echo "## Nexora production smoke checks"
+            echo
+            echo "- Public website and private-path guard were checked against the current production alias."
+            echo "- Harvey health and the email-sending safety gate were checked against the live worker."
+            echo "- This is a smoke check, not proof that every agent role, social integration, or payment flow is autonomous."
+          } >> "$GITHUB_STEP_SUMMARY"
