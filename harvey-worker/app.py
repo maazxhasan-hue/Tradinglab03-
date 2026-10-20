@@ -3,7 +3,7 @@ No email is sent by this service. Outreach remains a draft until a separate, exp
 configured mail provider and approval flow are implemented.
 """
 from __future__ import annotations
-import os, sqlite3, secrets
+import os, sqlite3, secrets, re
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import FastAPI, Header, HTTPException
@@ -13,8 +13,50 @@ import httpx
 
 APP_NAME = "Nexora Harvey Worker"
 DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 API_KEY = os.getenv("HARVEY_API_KEY", "")
-app = FastAPI(title=APP_NAME, version="0.1.0")
+app = FastAPI(title=APP_NAME, version="0.2.0")
+
+class PostgresCursorCompat:
+    def __init__(self, cursor, lastrowid=None):
+        self._cursor = cursor
+        self.lastrowid = lastrowid
+    def fetchone(self): return self._cursor.fetchone()
+    def fetchall(self): return self._cursor.fetchall()
+    @property
+    def rowcount(self): return self._cursor.rowcount
+
+class PostgresConnectionCompat:
+    def __init__(self, conn): self._conn = conn
+    def __enter__(self): return self
+    def __exit__(self, typ, value, tb):
+        if typ is None: self._conn.commit()
+        else: self._conn.rollback()
+        self._conn.close()
+    def execute(self, sql, params=()):
+        import psycopg2.extras
+        statement = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
+        statement = re.sub(r"INSERT OR IGNORE INTO", "INSERT INTO", statement, flags=re.I)
+        if re.match(r"\\s*INSERT INTO", statement, re.I) and "ON CONFLICT" not in statement.upper():
+            statement = statement.rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
+        wants_id = bool(re.match(r"\\s*INSERT INTO", statement, re.I)) and "RETURNING" not in statement.upper()
+        if wants_id: statement += " RETURNING id"
+        statement = statement.replace("?", "%s")
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(statement, params)
+        lastrowid = None
+        if wants_id:
+            inserted = cur.fetchone()
+            lastrowid = inserted["id"] if inserted else None
+        return PostgresCursorCompat(cur, lastrowid)
+
+def db():
+    if DATABASE_URL:
+        import psycopg2
+        return PostgresConnectionCompat(psycopg2.connect(DATABASE_URL, sslmode="require", connect_timeout=10))
+    conn = sqlite3.connect(DB_PATH, timeout=15)
+    conn.row_factory = sqlite3.Row
+    return conn
 ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app,https://nexora-internal-hq.onrender.com").split(",") if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=False, allow_methods=["GET","POST","OPTIONS"], allow_headers=["Content-Type","X-API-Key"])
 
@@ -85,7 +127,8 @@ def health():
         pending = c.execute("SELECT COUNT(*) n FROM approvals WHERE status='pending'").fetchone()["n"]
         tasks = c.execute("SELECT COUNT(*) n FROM tasks").fetchone()["n"]
     return {"service": APP_NAME, "status": "ready", "time": now(),
-            "database": "connected", "prospects": prospects, "pending_approvals": pending,
+            "database": "postgresql" if DATABASE_URL else "sqlite",
+            "prospects": prospects, "pending_approvals": pending,
             "tasks_recorded": tasks, "email_sending": "disabled"}
 
 @app.get("/metrics")
@@ -575,7 +618,7 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
             c.execute("UPDATE projects SET status='completed',manifest_json=?,archive=?,updated_at=? WHERE id=?",
                       (json.dumps({"summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
                                    "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files]}),
-                       sqlite3.Binary(archive_bytes), now(), project_id))
+                       archive_bytes, now(), project_id))
         return {"project_id":project_id,"name":req.name,"status":"completed","model":model,
                 "summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
                 "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files],
