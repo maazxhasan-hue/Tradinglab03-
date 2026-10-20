@@ -1,6 +1,7 @@
-"""Harvey worker API: persistent prospect queue, safe discovery, approval-gated outreach.
-No email is sent by this service. Outreach remains a draft until a separate, explicitly
-configured mail provider and approval flow are implemented.
+"""Harvey worker API: persistent prospect queue and approval-gated outreach.
+Resend delivery is fail-closed: it requires an approved draft, explicit per-send
+confirmation, server-side credentials, a configured sender, unsubscribe protection,
+suppression checks, duplicate-send protection, and a daily limit.
 """
 from __future__ import annotations
 import os, sqlite3, secrets, re
@@ -126,7 +127,7 @@ def health():
     return {"service": APP_NAME, "status": "ready", "time": now(),
             "database": "postgresql" if DATABASE_URL else "sqlite",
             "prospects": prospects, "pending_approvals": pending,
-            "tasks_recorded": tasks, "email_sending": "disabled"}
+            "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled")}
 
 @app.get("/metrics")
 def metrics(x_api_key: Optional[str] = Header(default=None)):
@@ -985,8 +986,8 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         with db() as c:
             c.execute("UPDATE email_delivery_log SET status='sent',provider_id=? WHERE approval_id=? AND recipient=? AND status='sending'",
                       (provider_id, req.approval_id, recipient))
-        return {"status":"sent", "approval_id":req.approval_id, "provider":"Resend",
-                "provider_id":provider_id, "daily_limit":20, "note":"Sent to the explicitly supplied recipient."}
+        return {"status":"accepted", "approval_id":req.approval_id, "provider":"Resend",
+                "provider_id":provider_id, "daily_limit":20, "note":"Resend accepted the request; inbox delivery is not confirmed."}
     except HTTPException:
         raise
     except Exception:
