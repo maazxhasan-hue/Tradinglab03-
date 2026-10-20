@@ -44,6 +44,11 @@ def init_db():
           FOREIGN KEY(prospect_id) REFERENCES prospects(id))""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_tasks_status ON tasks(status)")
         c.execute("CREATE INDEX IF NOT EXISTS ix_approvals_status ON approvals(status)")
+        c.execute("""CREATE TABLE IF NOT EXISTS projects(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, brief TEXT NOT NULL,
+          status TEXT NOT NULL, model TEXT, manifest_json TEXT, archive BLOB, error TEXT,
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_projects_status ON projects(status)")
 init_db()
 
 def require_key(x_api_key: Optional[str]):
@@ -272,6 +277,149 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
             c.execute("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
                       ("Model invocation failed; inspect provider configuration and server logs.", now(), task_id))
         raise HTTPException(502, "Agent run failed; task recorded. Check provider configuration and service logs.")
+
+
+# Project builder: generate a multi-file source artifact with a downloadable ZIP.
+# Generated code is never executed by this API. Users must inspect and run it in their own sandbox.
+class ProjectBuildRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    brief: str = Field(min_length=20, max_length=8000)
+    constraints: str = Field(default="Prefer simple, maintainable code. Include README and tests where practical. Never include secrets.", max_length=3000)
+
+def _safe_project_path(path: str) -> str:
+    import pathlib
+    p = pathlib.PurePosixPath(path)
+    if not path or p.is_absolute() or any(part in ("", ".", "..") for part in p.parts):
+        raise ValueError("Unsafe project file path")
+    if any(part.lower() in {".git", "node_modules", "__pycache__"} for part in p.parts):
+        raise ValueError("Generated project may not include dependency caches or VCS metadata")
+    if p.name.lower() in {".env", ".env.local", "id_rsa", "id_ed25519"}:
+        raise ValueError("Generated project may not contain secret files")
+    if len(path) > 180:
+        raise ValueError("Project file path is too long")
+    return str(p)
+
+@app.post("/projects/build")
+async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    api_key = os.getenv("LLM_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "")
+    base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    if not api_key or not model:
+        raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
+    with db() as c:
+        project_id = c.execute(
+            "INSERT INTO projects(name,brief,status,model,created_at,updated_at) VALUES(?,?,?,?,?,?)",
+            (req.name.strip(), req.brief, "running", model, now(), now())
+        ).lastrowid
+    system = (
+        "You are Nexora's senior software delivery agent. Generate a useful, coherent, runnable multi-file project. "
+        "Return ONLY valid JSON, no markdown fences, with schema: "
+        '{"summary":"...","run_instructions":["..."],"files":[{"path":"relative/path","content":"complete file contents"}]}. '
+        "Include a README and practical tests where appropriate. Keep files self-contained and mutually consistent. "
+        "Never include credentials, real secrets, fabricated integrations, or claim tests were run. "
+        "Do not create deployment workflows that expose secrets or automatically deploy. "
+        "The output is untrusted source code and will be packaged but NOT executed by this service."
+    )
+    user = "PROJECT NAME:\n" + req.name + "\n\nPROJECT BRIEF:\n" + req.brief + "\n\nCONSTRAINTS:\n" + req.constraints
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                base_url + "/chat/completions",
+                headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+                json={"model": model, "temperature": 0.15,
+                      "messages": [{"role":"system","content":system},{"role":"user","content":user}]}
+            )
+            response.raise_for_status()
+            data = response.json()
+        raw = data["choices"][0]["message"]["content"]
+        if not isinstance(raw, str) or not raw.strip():
+            raise ValueError("Model returned an empty response")
+        import json, zipfile, io
+        text_out = raw.strip()
+        if text_out.startswith("```"):
+            text_out = text_out.split("\n",1)[-1]
+            if text_out.endswith("```"): text_out = text_out[:-3].strip()
+        start, end = text_out.find("{"), text_out.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("Model response was not a JSON project manifest")
+        manifest = json.loads(text_out[start:end+1])
+        files = manifest.get("files")
+        if not isinstance(files, list) or not files or len(files) > 30:
+            raise ValueError("Manifest must contain between 1 and 30 files")
+        clean_files, total = [], 0
+        seen = set()
+        for item in files:
+            if not isinstance(item, dict) or not isinstance(item.get("content"), str):
+                raise ValueError("Each file must contain a path and text content")
+            path = _safe_project_path(item.get("path", ""))
+            if path in seen: raise ValueError("Duplicate file path in project manifest")
+            seen.add(path)
+            data_bytes = item["content"].encode("utf-8")
+            total += len(data_bytes)
+            if total > 1_500_000: raise ValueError("Generated project exceeds 1.5 MB")
+            clean_files.append({"path":path,"content":item["content"]})
+        if not any(x["path"].lower().endswith("readme.md") for x in clean_files):
+            clean_files.append({"path":"README.md","content":"# "+req.name+"\n\nGenerated project artifact. Review all source files before running.\n\n## Model summary\n"+str(manifest.get("summary",""))+"\n\n## Run instructions\n"+"\n".join("- "+str(x) for x in manifest.get("run_instructions",[]))+"\n"})
+        mem = io.BytesIO()
+        with zipfile.ZipFile(mem, "w", zipfile.ZIP_DEFLATED) as archive:
+            for item in clean_files:
+                archive.writestr(item["path"], item["content"])
+            archive.writestr("NEXORA_BUILD_REPORT.json", json.dumps({
+                "project_id":project_id,"name":req.name,"summary":manifest.get("summary",""),
+                "run_instructions":manifest.get("run_instructions",[]),
+                "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files],
+                "model":model,"tests_executed":False,
+                "security_note":"Generated source was packaged, not executed. Review before running."
+            }, indent=2))
+        archive_bytes = mem.getvalue()
+        with db() as c:
+            c.execute("UPDATE projects SET status='completed',manifest_json=?,archive=?,updated_at=? WHERE id=?",
+                      (json.dumps({"summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
+                                   "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files]}),
+                       sqlite3.Binary(archive_bytes), now(), project_id))
+        return {"project_id":project_id,"name":req.name,"status":"completed","model":model,
+                "summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
+                "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files],
+                "download_url":"/projects/"+str(project_id)+"/download",
+                "tests_executed":False,
+                "note":"Source files were generated and packaged, not executed. Review the ZIP before running."}
+    except httpx.HTTPStatusError as e:
+        with db() as c:
+            c.execute("UPDATE projects SET status='failed',error=?,updated_at=? WHERE id=?",
+                      ("Model provider returned HTTP "+str(e.response.status_code),now(),project_id))
+        raise HTTPException(502,"Project generation failed at the model provider. Check model access and free-tier limits.")
+    except Exception as e:
+        with db() as c:
+            c.execute("UPDATE projects SET status='failed',error=?,updated_at=? WHERE id=?",
+                      (str(e)[:500],now(),project_id))
+        raise HTTPException(502,"Project generation failed while validating the model output. The failure is recorded; retry with a smaller brief.")
+
+@app.get("/projects/{project_id}")
+def get_project(project_id: int, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    with db() as c:
+        row = c.execute("SELECT id,name,brief,status,model,manifest_json,error,created_at,updated_at FROM projects WHERE id=?",(project_id,)).fetchone()
+    if not row: raise HTTPException(404,"Project not found.")
+    import json
+    out = dict(row)
+    if out.get("manifest_json"): out["manifest"] = json.loads(out.pop("manifest_json"))
+    return out
+
+@app.get("/projects/{project_id}/download")
+def download_project(project_id: int, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    from fastapi.responses import Response
+    with db() as c:
+        row = c.execute("SELECT name,status,archive FROM projects WHERE id=?",(project_id,)).fetchone()
+    if not row: raise HTTPException(404,"Project not found.")
+    if row["status"] != "completed" or not row["archive"]:
+        raise HTTPException(409,"Project archive is not ready.")
+    import re
+    filename = re.sub(r"[^A-Za-z0-9._-]+","-",row["name"]).strip("-._")[:70] or "nexora-project"
+    return Response(content=bytes(row["archive"]), media_type="application/zip",
+                    headers={"Content-Disposition":'attachment; filename="'+filename+'.zip"',
+                             "Cache-Control":"no-store"})
 
 
 # OmniReverse: defensive reverse-engineering and documentation workspace.
