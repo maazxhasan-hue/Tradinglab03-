@@ -749,7 +749,6 @@ async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] 
 # Resend delivery integration. Disabled by default; enable only after sender/domain and
 # suppression workflow are configured in the Render environment.
 import hashlib, hmac, base64
-from pydantic import EmailStr
 
 class SendApprovedEmailRequest(BaseModel):
     approval_id: int = Field(ge=1)
@@ -795,6 +794,7 @@ def _decode_unsubscribe_token(token: str) -> str:
     except Exception:
         raise HTTPException(400, "Invalid unsubscribe link.")
 
+@app.get("/email/unsubscribe")
 @app.post("/email/unsubscribe")
 def unsubscribe(token: str):
     email = _decode_unsubscribe_token(token)
@@ -865,7 +865,7 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         unsubscribe_url = public_base + "/email/unsubscribe?token=" + token
         body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
         # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
-        c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?,?)".replace("VALUES(?,?,?,?,?)","VALUES(?,?,?,?)"),
+        c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
                   (req.approval_id, recipient, "sending", now()))
     try:
         async with httpx.AsyncClient(timeout=25) as client:
