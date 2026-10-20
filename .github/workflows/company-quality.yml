@@ -69,7 +69,7 @@ jobs:
         run: |
           python - <<'PY'
           import pathlib, re, subprocess
-          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/marketing.html")]
+          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("dashboard/inbox.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/marketing.html")]
           for page in pages:
               html = page.read_text(encoding="utf-8")
               script_blocks = re.findall(r"<script([^>]*)>(.*?)</script>", html, re.I | re.S)
@@ -82,6 +82,12 @@ jobs:
                   subprocess.run(["node", "--check", str(path)], check=True)
           worker = pathlib.Path("worker/index.js").read_text(encoding="utf-8")
           subprocess.run(["node", "--input-type=module", "--check"], input=worker, text=True, check=True)
+          inbox = pathlib.Path("dashboard/inbox.html").read_text(encoding="utf-8").lower()
+          if "https://nexora-private-hq.vercel.app/" not in inbox or "location.replace" not in inbox:
+              raise SystemExit("Public owner inbox must redirect to the access-protected private HQ")
+          if "fetch(" in inbox or "api-key" in inbox or "owner inbox" in inbox and "redirect" not in inbox:
+              raise SystemExit("Public owner inbox must not include the old interactive inbox application")
+          print("Public owner inbox redirect and browser scripts validated.")
           print("Browser JavaScript and Worker module syntax passed.")
           PY
       - name: Run intake Worker behavior tests
