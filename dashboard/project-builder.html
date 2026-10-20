@@ -27,15 +27,22 @@ $('#build').onclick=async()=>{
   if(!/^https?:\/\//i.test(base))throw new Error('Enter a valid backend URL.');
   const payload={name:$('#name').value.trim(),brief:$('#brief').value.trim(),constraints:$('#constraints').value.trim()};
   if(payload.name.length<2||payload.brief.length<20)throw new Error('Enter a project name and a brief of at least 20 characters.');
-  show('Submitting project build… Waiting for the configured AI model. The free Render service may take a moment to wake up.');
-  const res=await fetch(base+'/projects/build',{method:'POST',headers,body:JSON.stringify(payload)});
-  const data=await res.json().catch(()=>({detail:'Backend returned a non-JSON response.'}));
-  if(!res.ok)throw new Error(data.detail||('Backend HTTP '+res.status));
+  show('Checking backend reachability…');
+  let res;
+  try {
+    res=await fetch(base+'/projects/build',{method:'POST',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(150000)});
+  } catch (networkError) {
+    const msg=String(networkError && networkError.message || networkError);
+    if (networkError && networkError.name==='TimeoutError') throw new Error('The request timed out after 150 seconds. The model provider may be slow or unavailable. Check Render logs before retrying.');
+    throw new Error('Browser could not read a response from the backend ('+msg+'). CORS preflight is known to pass, so check browser/network connectivity, the backend URL, or whether the host closed the request. No API key or provider secret is shown here.');
+  }
+  const data=await res.json().catch(()=>({detail:'Backend returned a non-JSON response (HTTP '+res.status+'). Check Render logs.'}));
+  if(!res.ok)throw new Error('Backend HTTP '+res.status+': '+(data.detail||'No error details returned.'));
   currentProject=data.project_id;$('#summary').textContent=(data.summary||'Project generated.')+' · Model: '+data.model+' · Status: '+data.status;
   $('#files').innerHTML='';(data.files||[]).forEach(f=>{const d=document.createElement('div');d.className='file';d.textContent=f.path+' — '+f.bytes+' bytes';$('#files').appendChild(d)});
   $('#verify').textContent=data.note||'Source generated; execution and tests not yet verified.';
   $('#result').hidden=false;show('Build completed. Project ID: '+data.project_id+'\nFiles: '+(data.files||[]).length+'\nThe ZIP is ready to download. Source has not been executed.');
- }catch(e){show('BUILD FAILED\n'+String(e.message||e)+'\n\nCheck that the backend has deployed the project-builder endpoint, the worker key is correct, and the model has free-tier capacity.')}
+ }catch(e){show('BUILD FAILED\n'+String(e.message||e)+'\n\nIf the message names an HTTP status, the backend responded. If it says the browser could not read a response, check connectivity/request timeout in Render logs. Never paste API keys into a screenshot.')}
  finally{btn.disabled=false}
 };
 $('#download').onclick=async()=>{
