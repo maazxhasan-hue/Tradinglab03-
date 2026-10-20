@@ -744,3 +744,152 @@ async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] 
             c.execute("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
                 ("OmniReverse analysis failed; inspect provider settings and service logs.",now(),task_id))
         raise HTTPException(502,"Analysis failed; task recorded. Check model configuration and logs.")
+
+
+# Resend delivery integration. Disabled by default; enable only after sender/domain and
+# suppression workflow are configured in the Render environment.
+import hashlib, hmac, base64
+from pydantic import EmailStr
+
+class SendApprovedEmailRequest(BaseModel):
+    approval_id: int = Field(ge=1)
+    recipient: str = Field(min_length=5, max_length=254)
+    # Explicit operator confirmation, in addition to the stored approval decision.
+    confirm_send: bool = False
+
+def _email_normalize(value: str) -> str:
+    value = value.strip().lower()
+    if len(value) > 254 or not re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", value):
+        raise HTTPException(422, "Enter a valid recipient email address.")
+    return value
+
+def _ensure_mail_tables():
+    with db() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS email_suppressions(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE,
+          reason TEXT NOT NULL, created_at TEXT NOT NULL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS email_delivery_log(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, approval_id INTEGER NOT NULL,
+          recipient TEXT NOT NULL, provider_id TEXT, status TEXT NOT NULL,
+          created_at TEXT NOT NULL, error_code TEXT)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_email_delivery_created ON email_delivery_log(created_at)")
+
+def _unsubscribe_token(email: str) -> str:
+    secret = os.getenv("UNSUBSCRIBE_SECRET", "")
+    if not secret:
+        raise HTTPException(503, "Email is locked: configure UNSUBSCRIBE_SECRET in the server environment.")
+    raw = email.encode("utf-8")
+    sig = hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=") + "." + base64.urlsafe_b64encode(sig).decode().rstrip("=")
+
+def _decode_unsubscribe_token(token: str) -> str:
+    secret = os.getenv("UNSUBSCRIBE_SECRET", "")
+    try:
+        part, sigpart = token.split(".", 1)
+        raw = base64.urlsafe_b64decode(part + "=" * (-len(part) % 4))
+        sig = base64.urlsafe_b64decode(sigpart + "=" * (-len(sigpart) % 4))
+        expected = hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).digest()
+        if not secret or not hmac.compare_digest(sig, expected):
+            raise ValueError("bad signature")
+        return _email_normalize(raw.decode("utf-8"))
+    except Exception:
+        raise HTTPException(400, "Invalid unsubscribe link.")
+
+@app.post("/email/unsubscribe")
+def unsubscribe(token: str):
+    email = _decode_unsubscribe_token(token)
+    _ensure_mail_tables()
+    with db() as c:
+        c.execute("INSERT OR IGNORE INTO email_suppressions(email,reason,created_at) VALUES(?,?,?)",
+                  (email, "recipient_unsubscribe", now()))
+    return {"status": "unsubscribed", "message": "This address has been added to the suppression list."}
+
+@app.get("/email/status")
+def email_status(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    _ensure_mail_tables()
+    with db() as c:
+        sent_today = c.execute("SELECT COUNT(*) n FROM email_delivery_log WHERE status='sent' AND created_at >= ?",
+                               (datetime.now(timezone.utc).date().isoformat(),)).fetchone()["n"]
+        suppressed = c.execute("SELECT COUNT(*) n FROM email_suppressions").fetchone()["n"]
+    return {"sending_enabled": os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true",
+            "provider": "Resend", "sender_configured": bool(os.getenv("RESEND_FROM_EMAIL")),
+            "api_key_configured": bool(os.getenv("RESEND_API_KEY")),
+            "unsubscribe_secret_configured": bool(os.getenv("UNSUBSCRIBE_SECRET")),
+            "sent_today": sent_today, "daily_limit": 20, "suppressed_addresses": suppressed,
+            "note": "Sending remains locked unless all required server-side settings are present and a draft is approved."}
+
+@app.post("/email/send-approved")
+async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    if not req.confirm_send:
+        raise HTTPException(400, "Explicit confirm_send=true is required.")
+    if os.getenv("EMAIL_SENDING_ENABLED", "").lower() != "true":
+        raise HTTPException(503, "Email sending is disabled. Configure and verify the sender before enabling it.")
+    api_key = os.getenv("RESEND_API_KEY", "")
+    sender = os.getenv("RESEND_FROM_EMAIL", "").strip()
+    public_base = os.getenv("PUBLIC_API_BASE_URL", "https://tradinglab03.onrender.com").rstrip("/")
+    if not api_key or not sender or not os.getenv("UNSUBSCRIBE_SECRET"):
+        raise HTTPException(503, "Email locked: configure RESEND_API_KEY, RESEND_FROM_EMAIL and UNSUBSCRIBE_SECRET.")
+    recipient = _email_normalize(req.recipient)
+    if _email_normalize(sender.split("<")[-1].replace(">", "")) == recipient:
+        raise HTTPException(400, "Recipient must not be the sender address.")
+    _ensure_mail_tables()
+    with db() as c:
+        approval = c.execute("SELECT * FROM approvals WHERE id=?", (req.approval_id,)).fetchone()
+        if not approval:
+            raise HTTPException(404, "Approval not found.")
+        if approval["status"] != "approved":
+            raise HTTPException(409, "Only a previously approved draft may be sent.")
+        suppressed = c.execute("SELECT id FROM email_suppressions WHERE email=?", (recipient,)).fetchone()
+        if suppressed:
+            raise HTTPException(409, "Recipient is on the suppression list; sending is blocked.")
+        duplicate = c.execute("SELECT id FROM email_delivery_log WHERE approval_id=? AND recipient=? AND status='sent'",
+                              (req.approval_id, recipient)).fetchone()
+        if duplicate:
+            raise HTTPException(409, "This approved draft has already been sent to this recipient.")
+        today = datetime.now(timezone.utc).date().isoformat()
+        sent_today = c.execute("SELECT COUNT(*) n FROM email_delivery_log WHERE status='sent' AND created_at >= ?",
+                               (today,)).fetchone()["n"]
+        if sent_today >= 20:
+            raise HTTPException(429, "Daily email limit reached (20).")
+        # Fail closed if no explicit subject/body split is available.
+        content = approval["content"]
+        lines = content.splitlines()
+        subject_line = next((line for line in lines if line.lower().startswith("subject:")), "")
+        if not subject_line:
+            raise HTTPException(422, "Approved draft has no Subject line.")
+        subject = subject_line.split(":", 1)[1].strip()
+        body = content.split(subject_line, 1)[1].strip()
+        token = _unsubscribe_token(recipient)
+        unsubscribe_url = public_base + "/email/unsubscribe?token=" + token
+        body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
+        # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
+        c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?,?)".replace("VALUES(?,?,?,?,?)","VALUES(?,?,?,?)"),
+                  (req.approval_id, recipient, "sending", now()))
+    try:
+        async with httpx.AsyncClient(timeout=25) as client:
+            response = await client.post("https://api.resend.com/emails",
+                headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+                json={"from": sender, "to": [recipient], "subject": subject, "text": body,
+                      "headers": {"List-Unsubscribe": "<" + unsubscribe_url + ">",
+                                  "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}})
+        if response.status_code >= 400:
+            with db() as c:
+                c.execute("UPDATE email_delivery_log SET status='failed',error_code=? WHERE approval_id=? AND recipient=? AND status='sending'",
+                          ("resend_http_" + str(response.status_code), req.approval_id, recipient))
+            raise HTTPException(502, "Resend rejected the email. Check sender verification, recipient permissions, and provider logs.")
+        result = response.json()
+        provider_id = result.get("id")
+        with db() as c:
+            c.execute("UPDATE email_delivery_log SET status='sent',provider_id=? WHERE approval_id=? AND recipient=? AND status='sending'",
+                      (provider_id, req.approval_id, recipient))
+        return {"status":"sent", "approval_id":req.approval_id, "provider":"Resend",
+                "provider_id":provider_id, "daily_limit":20, "note":"Sent to the explicitly supplied recipient."}
+    except HTTPException:
+        raise
+    except Exception:
+        with db() as c:
+            c.execute("UPDATE email_delivery_log SET status='failed',error_code='provider_request_failed' WHERE approval_id=? AND recipient=? AND status='sending'",
+                      (req.approval_id, recipient))
+        raise HTTPException(502, "Email provider request failed. Check service logs; do not blindly retry.")
