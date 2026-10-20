@@ -746,6 +746,59 @@ async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] 
         raise HTTPException(502,"Analysis failed; task recorded. Check model configuration and logs.")
 
 
+# Safe self-only Resend smoke test. This never sends to a prospect and does not
+# enable the production /email/send-approved route.
+class ResendSelfTestRequest(BaseModel):
+    confirm_send: bool = False
+
+@app.post("/email/test-resend")
+async def resend_self_test(req: ResendSelfTestRequest, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    if not req.confirm_send:
+        raise HTTPException(400, "Set confirm_send=true to send the test message.")
+    api_key = os.getenv("RESEND_API_KEY", "").strip()
+    recipient = os.getenv("RESEND_TEST_RECIPIENT", "").strip().lower()
+    if not api_key or not recipient:
+        raise HTTPException(503, "Test is locked. Configure RESEND_API_KEY and RESEND_TEST_RECIPIENT in Render environment variables.")
+    recipient = _email_normalize(recipient)
+    _ensure_mail_tables()
+    with db() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS email_test_log(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, recipient TEXT NOT NULL,
+          status TEXT NOT NULL, created_at TEXT NOT NULL, error_code TEXT)""")
+        today = datetime.now(timezone.utc).date().isoformat()
+        count = c.execute("SELECT COUNT(*) n FROM email_test_log WHERE created_at >= ?",
+                          (today,)).fetchone()["n"]
+        if count >= 3:
+            raise HTTPException(429, "Self-test limit reached: maximum 3 test emails per UTC day.")
+        c.execute("INSERT INTO email_test_log(recipient,status,created_at) VALUES(?,?,?)",
+                  (recipient, "sending", now()))
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.post("https://api.resend.com/emails",
+                headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+                json={"from": "Nexora AI test <onboarding@resend.dev>", "to": [recipient],
+                      "subject": "Nexora AI — email delivery test",
+                      "text": "This is a self-test of the Nexora AI email integration. No prospect outreach was sent.\n\nIf you received this, the Resend API connection is working."})
+        if response.status_code >= 400:
+            with db() as c:
+                c.execute("UPDATE email_test_log SET status='failed',error_code=? WHERE recipient=? AND status='sending'",
+                          ("resend_http_" + str(response.status_code), recipient))
+            raise HTTPException(502, "Resend test failed. Check the API key and that RESEND_TEST_RECIPIENT matches the email used for your Resend account.")
+        result = response.json()
+        with db() as c:
+            c.execute("UPDATE email_test_log SET status='sent' WHERE recipient=? AND status='sending'",
+                      (recipient,))
+        return {"status": "accepted", "provider": "Resend", "recipient": recipient,
+                "provider_id": result.get("id"), "note": "Self-test only; production prospect sending remains disabled unless separately configured."}
+    except HTTPException:
+        raise
+    except Exception:
+        with db() as c:
+            c.execute("UPDATE email_test_log SET status='failed',error_code='network_error' WHERE recipient=? AND status='sending'",
+                      (recipient,))
+        raise HTTPException(502, "Could not reach Resend. Check backend logs and provider configuration.")
+
 # Resend delivery integration. Disabled by default; enable only after sender/domain and
 # suppression workflow are configured in the Render environment.
 import hashlib, hmac, base64
