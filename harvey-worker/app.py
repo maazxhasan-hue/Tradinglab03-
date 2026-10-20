@@ -321,6 +321,37 @@ AGENT_MANDATES = {
  "Reverse Writing Agent":"Reconstruct specifications and documentation from provided artifacts; label uncertainty."
 }
 
+COMPANY_DEPENDENCIES = {
+ "Market Intelligence": ["CEO Strategy"],
+ "Brand & Positioning": ["Market Intelligence"],
+ "Product Manager": ["Market Intelligence", "Client Success"],
+ "Lead Discovery": ["Market Intelligence", "Brand & Positioning"],
+ "Sales Qualification": ["Lead Discovery"],
+ "Proposal & Pricing": ["Sales Qualification", "Finance & Revenue"],
+ "Content Strategy": ["Brand & Positioning"],
+ "Copywriting": ["Content Strategy", "Brand & Positioning"],
+ "Social & Community": ["Content Strategy", "Copywriting"],
+ "SEO & Website Growth": ["Content Strategy", "Brand & Positioning"],
+ "UX/UI Design": ["Product Manager"],
+ "Frontend Development": ["UX/UI Design", "Product Manager"],
+ "Backend & Integrations": ["Product Manager", "Security & Privacy"],
+ "Testing & QA": ["Frontend Development", "Backend & Integrations"],
+ "Security & Privacy": ["CEO Strategy"],
+ "Documentation": ["Frontend Development", "Backend & Integrations"],
+ "Release & DevOps": ["Testing & QA", "Security & Privacy"],
+ "Client Success": ["CEO Strategy", "Brand & Positioning"],
+ "Growth Analytics": ["SEO & Website Growth", "Sales Qualification"],
+ "Finance & Revenue": ["CEO Strategy"],
+ "Policy & Compliance": ["CEO Strategy"],
+ "Knowledge & Memory": ["CEO Strategy"],
+ "Workflow Automation": ["Backend & Integrations", "Security & Privacy"],
+ "Customer Support": ["Client Success", "Knowledge & Memory"],
+ "Experiment & Learning": ["Growth Analytics"],
+ "Project Operations": ["CEO Strategy", "Knowledge & Memory"],
+ "Trading Systems Monitor": ["Security & Privacy", "Testing & QA"],
+ "Reverse Writing Agent": ["Documentation"]
+}
+
 class CompanyDispatchRequest(BaseModel):
     mission: str = Field(min_length=10, max_length=4000)
     context: str = Field(default="", max_length=8000)
@@ -384,6 +415,13 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
         if not row: raise HTTPException(404,"Company job not found.")
         if row["status"]=="completed": raise HTTPException(409,"This job is already completed.")
         if row["status"]=="running": raise HTTPException(409,"This job is already running.")
+        deps=COMPANY_DEPENDENCIES.get(row["role"], [])
+        completed_roles={r["role"] for r in c.execute("SELECT role FROM company_jobs WHERE cycle_id=? AND status='completed'",(row["cycle_id"],)).fetchall()}
+        blocked=[role for role in deps if role not in completed_roles]
+        if blocked:
+            raise HTTPException(409,"Dependency gate: complete these roles first: "+", ".join(blocked))
+        handoffs=c.execute("SELECT role,output_json FROM company_jobs WHERE cycle_id=? AND status='completed' AND role IN ("+
+            (",".join("?" for _ in deps) if deps else "NULL")+")", (row["cycle_id"],*deps)).fetchall() if deps else []
         c.execute("UPDATE company_jobs SET status='running',error=NULL,updated_at=? WHERE id=?", (now(),job_id))
     system=("You are Nexora's specialist agent. Own only the assigned role and produce a concrete, "
             "evidence-aware deliverable. Clearly separate facts, assumptions, and recommendations. "
@@ -391,7 +429,12 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
             "spending, trading, and irreversible actions require explicit human approval. "
             "Return headings: Objective, Deliverable, Evidence/Assumptions, Verification, Risks, Handoffs. "
             "Role: "+row["role"]+"\nMandate: "+row["mandate"])
-    user="COMPANY MISSION:\n"+row["goal"]+"\n\nCONTEXT:\n"+(row["context"] or "(none)")+"\n\nGUARDRAILS:\nNo fabricated facts; provide actionable work and explicit dependencies."
+    handoff_text=[]
+    for h in handoffs:
+        try: handoff_output=json.loads(h["output_json"]).get("output","")
+        except Exception: handoff_output=""
+        handoff_text.append("COMPLETED HANDOFF FROM "+h["role"]+":\n"+str(handoff_output)[:3500])
+    user="COMPANY MISSION:\n"+row["goal"]+"\n\nCONTEXT:\n"+(row["context"] or "(none)")+"\n\nUPSTREAM HANDOFFS:\n"+("\n\n".join(handoff_text) if handoff_text else "(No prerequisite handoffs)")+"\n\nGUARDRAILS:\nNo fabricated facts; provide actionable work and explicit dependencies."
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             response=await client.post(base_url+"/chat/completions",
@@ -413,6 +456,26 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
         with db() as c:
             c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Specialist execution failed; inspect server logs.",now(),job_id))
         raise HTTPException(502,"Specialist execution failed; the job is recorded for diagnosis.")
+
+@app.post("/company/jobs/retry-failed")
+def retry_failed_company_jobs(cycle_id: str, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    with db() as c:
+        cur=c.execute("UPDATE company_jobs SET status='queued',error=NULL,updated_at=? WHERE cycle_id=? AND status='failed'",(now(),cycle_id))
+        count=cur.rowcount
+    return {"cycle_id":cycle_id,"requeued":count,"status":"queued"}
+
+@app.post("/company/jobs/run-next")
+async def run_next_company_job(cycle_id: str, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    with db() as c:
+        rows=c.execute("SELECT * FROM company_jobs WHERE cycle_id=? AND status='queued' ORDER BY id",(cycle_id,)).fetchall()
+        completed={r["role"] for r in c.execute("SELECT role FROM company_jobs WHERE cycle_id=? AND status='completed'",(cycle_id,)).fetchall()}
+        ready=[r for r in rows if all(dep in completed for dep in COMPANY_DEPENDENCIES.get(r["role"],[]))]
+        if not ready:
+            return {"cycle_id":cycle_id,"status":"blocked" if rows else "finished","queued":len(rows),"message":"No dependency-ready job exists. Resolve failed prerequisite jobs or inspect the cycle."}
+        job_id=ready[0]["id"]
+    return await run_company_job(job_id,x_api_key)
 
 # Project builder: generate a multi-file source artifact with a downloadable ZIP.
 # Generated code is never executed by this API. Users must inspect and run it in their own sandbox.
