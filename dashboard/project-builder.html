@@ -27,14 +27,25 @@ $('#build').onclick=async()=>{
   if(!/^https?:\/\//i.test(base))throw new Error('Enter a valid backend URL.');
   const payload={name:$('#name').value.trim(),brief:$('#brief').value.trim(),constraints:$('#constraints').value.trim()};
   if(payload.name.length<2||payload.brief.length<20)throw new Error('Enter a project name and a brief of at least 20 characters.');
-  show('Checking backend reachability…');
+  show('Step 1/2 · Checking backend health…');
+  let health;
+  try {
+    const hr=await fetch(base+'/health',{method:'GET',cache:'no-store',signal:AbortSignal.timeout(20000)});
+    if(!hr.ok)throw new Error('Health endpoint returned HTTP '+hr.status);
+    health=await hr.json();
+  } catch (networkError) {
+    const msg=String(networkError && networkError.message || networkError);
+    if (networkError && networkError.name==='TimeoutError') throw new Error('Backend health check timed out after 20 seconds. The service may be waking up; reload and retry once.');
+    throw new Error('Could not reach backend health endpoint ('+msg+'). Check the backend URL and network. No API key or provider secret is shown here.');
+  }
+  show('Step 2/2 · Backend is reachable ('+(health.status||'responding')+'). Waiting for the AI provider; this may take up to 2 minutes…');
   let res;
   try {
     res=await fetch(base+'/projects/build',{method:'POST',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(150000)});
   } catch (networkError) {
     const msg=String(networkError && networkError.message || networkError);
-    if (networkError && networkError.name==='TimeoutError') throw new Error('The request timed out after 150 seconds. The model provider may be slow or unavailable. Check Render logs before retrying.');
-    throw new Error('Browser could not read a response from the backend ('+msg+'). CORS preflight is known to pass, so check browser/network connectivity, the backend URL, or whether the host closed the request. No API key or provider secret is shown here.');
+    if (networkError && networkError.name==='TimeoutError') throw new Error('The project request timed out after 150 seconds. Backend health passed, so check provider latency/capacity and Render logs before retrying.');
+    throw new Error('Backend health passed, but the browser could not read the build response ('+msg+'). Check browser connectivity and Render request logs. No API key or provider secret is shown here.');
   }
   const data=await res.json().catch(()=>({detail:'Backend returned a non-JSON response (HTTP '+res.status+'). Check Render logs.'}));
   if(!res.ok)throw new Error('Backend HTTP '+res.status+': '+(data.detail||'No error details returned.'));
