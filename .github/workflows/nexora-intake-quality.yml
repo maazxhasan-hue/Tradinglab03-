@@ -17,6 +17,7 @@ on:
     paths:
       - "worker/**"
       - "dashboard/inbox.html"
+      - "private-hq/inbox.html"
       - "dashboard/login.html"
       - "dashboard/website.html"
       - "dashboard/marketing.html"
