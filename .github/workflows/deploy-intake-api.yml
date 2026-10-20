@@ -213,6 +213,32 @@ jobs:
           else:
               raise SystemExit("Intake health check failed after 3 attempts: " + str(last_error))
           PY
+      - name: Verify live website AI chat
+        env:
+          INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
+          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          endpoint = os.environ["INTAKE_ENDPOINT"].rstrip("/")
+          origin = os.environ["SITE_ORIGINS"].split(",")[0].strip().rstrip("/")
+          payload = {"message": "Reply with a brief greeting for a Nexora website visitor.", "history": []}
+          request = urllib.request.Request(
+              endpoint + "/api/chat",
+              data=json.dumps(payload).encode(),
+              headers={"Accept": "application/json", "Origin": origin, "Content-Type": "application/json", "User-Agent": "Nexora-AI-Chat-Smoke/1.0"},
+              method="POST"
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=35) as response:
+                  body = json.load(response)
+                  if response.status != 200 or not isinstance(body.get("reply"), str) or len(body["reply"].strip()) < 2:
+                      raise SystemExit("Live AI chat did not return a usable reply.")
+          except urllib.error.HTTPError as exc:
+              detail = exc.read().decode("utf-8", "replace")[:400]
+              raise SystemExit("Live AI chat returned HTTP " + str(exc.code) + ": " + detail)
+          print("PASS: live website AI chat returned a non-empty reply.")
+          PY
       - name: End-to-end synthetic enquiry save and cleanup
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}

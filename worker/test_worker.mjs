@@ -109,3 +109,33 @@ test("rejects anonymous intake and supports login and logout", async () => {
   const logout=await worker.fetch(new Request("https://worker.test/api/auth/logout",{method:"POST",headers:{Origin:origin,Authorization:"Bearer "+loginBody.token}}),env); assert.equal(logout.status,200);
   const after=await worker.fetch(new Request("https://worker.test/api/auth/me",{headers:{Origin:origin,Authorization:"Bearer "+loginBody.token}}),env); assert.equal(after.status,401);
 });
+
+
+test("serves website AI chat through the Workers AI binding", async () => {
+  const env = makeEnv();
+  env.AI = {
+    run: async (model, options) => {
+      assert.equal(model, "@cf/meta/llama-3.1-8b-instruct");
+      assert.ok(options.messages.some(item => item.role === "user" && item.content === "What does Nexora do?"));
+      return { response: "Nexora helps businesses with websites and automation." };
+    }
+  };
+  const res = await worker.fetch(new Request("https://worker.test/api/chat", {
+    method: "POST",
+    headers: { Origin: origin, "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "What does Nexora do?", history: [] })
+  }), env);
+  assert.equal(res.status, 200);
+  assert.match((await res.json()).reply, /Nexora helps businesses/);
+});
+
+test("reports a clear service error when the Workers AI binding is absent", async () => {
+  const env = makeEnv();
+  const res = await worker.fetch(new Request("https://worker.test/api/chat", {
+    method: "POST",
+    headers: { Origin: origin, "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "Hello", history: [] })
+  }), env);
+  assert.equal(res.status, 503);
+  assert.match((await res.json()).error, /AI chat is not configured/);
+});
