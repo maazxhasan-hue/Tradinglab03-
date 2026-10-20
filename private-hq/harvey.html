@@ -50,13 +50,17 @@
  let key = "";
  const setStatus = (el, message, type="") => { el.className = "status" + (type ? " " + type : ""); el.textContent = message; };
  const render = (data) => { $("output").textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2); };
- const getConnection = () => {
+ const getBase = () => {
    const raw = $("apiBase").value.trim();
    let u;
    try { u = new URL(raw); } catch { throw new Error("Enter a valid worker URL using HTTPS."); }
    if (u.protocol !== "https:" && u.hostname !== "localhost" && u.hostname !== "127.0.0.1") throw new Error("The worker URL must use HTTPS.");
    if (u.username || u.password || u.search || u.hash) throw new Error("Worker URL must not contain credentials, query parameters, or fragments.");
-   base = u.origin + u.pathname.replace(/\/+$/, "");
+   base = u.origin + u.pathname.replace(/\\/+$/, "");
+   return base;
+ };
+ const getConnection = () => {
+   getBase();
    key = $("apiKey").value;
    if (!key) throw new Error("Paste the HARVEY_API_KEY for protected actions.");
  };
@@ -77,7 +81,7 @@
    catch (e) { setStatus($("resultStatus"), label + " failed: " + (e && e.message ? e.message : String(e)), "err"); render({error: e && e.message ? e.message : String(e)}); }
  };
  $("healthBtn").addEventListener("click", () => {
-   run("Worker health check", async () => { getConnection(); const data = await request("/health", "GET", undefined, false); setStatus($("connection"), "Worker health endpoint responded. Protected API still requires a valid key.", "ok"); return data; });
+   run("Worker health check", async () => { getBase(); const data = await request("/health", "GET", undefined, false); setStatus($("connection"), "Worker health endpoint responded. Protected API still requires a valid key.", "ok"); return data; });
  });
  $("connectBtn").addEventListener("click", () => {
    run("Connection check", async () => { getConnection(); const data = await request("/metrics"); setStatus($("connection"), "Connected to Harvey Worker. Protected metrics loaded.", "ok"); return data; });
