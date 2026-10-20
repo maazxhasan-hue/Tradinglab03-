@@ -68,9 +68,21 @@ img,canvas,svg{image-rendering:pixelated}
 @media(max-width:900px){.wrap{padding:1rem}.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.layout{grid-template-columns:1fr!important}header{padding:1rem;flex-wrap:wrap}h1{font-size:18px}}
 @media(max-width:480px){.grid{grid-template-columns:1fr!important}.wrap{padding:.8rem}.card{padding:12px}.logo{font-size:10px}}
 </style></head><body>
-<header><div class="logo">NEXORA<span> AI</span> / COMPANY HQ</div><div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap"><a class="button secondary" style="text-decoration:none" href="https://tradinglab03.vercel.app/">Public website ↗</a><span class="pill">HQ · WORKFLOWS & REPORTS</span></div></header>
+<header><div class="logo">NEXORA<span> AI</span> / COMPANY HQ</div><div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap"><a class="button secondary" style="text-decoration:none" href="https://nexora-ai-sooty-two.vercel.app/">Public website ↗</a><span class="pill">HQ · WORKFLOWS & REPORTS</span></div></header>
 <main class="wrap"><div class="eyebrow">AI services operations</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
-<div class="notice">Public services website: <a href="https://tradinglab03.vercel.app/" style="color:var(--cyan)">open Nexora AI website</a>. Hourly public opportunity discovery and draft workflows run through GitHub Actions. The public project form submits to the configured Cloudflare intake API and saves enquiries to the protected owner inbox when the API confirms receipt. Email alerts depend on the configured Resend sender and delivery status. Instagram is a separate marketing/contact channel: queued posts are not proof of publication, and DMs are not read or sent automatically. No bids, payments, or client deployments are claimed.</div>
+<div class="notice">Public services website: <a href="https://nexora-ai-sooty-two.vercel.app/" style="color:var(--cyan)">open Nexora AI website</a>. Hourly public opportunity discovery and draft workflows run through GitHub Actions. The public project form submits to the configured Cloudflare intake API and saves enquiries to the protected owner inbox when the API confirms receipt. Email alerts depend on the configured Resend sender and delivery status. Instagram is a separate marketing/contact channel: queued posts are not proof of publication, and DMs are not read or sent automatically. No bids, payments, or client deployments are claimed.</div>
+<section class="card" id="liveConnections" style="margin:1rem 0" aria-labelledby="liveConnectionsTitle">
+<h2 id="liveConnectionsTitle">Live connections &amp; workspace shortcuts</h2>
+<p class="muted">This panel checks the real Harvey backend. It does not pretend that every role is an independently running agent.</p>
+<div style="display:flex;flex-wrap:wrap;gap:.6rem;margin:.8rem 0">
+<a class="button" style="display:inline-block;text-decoration:none" href="./agent-town.html">Open Pixel Agent HQ</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="./harvey.html">Open Harvey Workspace</a>
+<button class="button secondary" id="checkHarveyHealth" type="button">Refresh Harvey health</button>
+</div>
+<p id="harveyHealthStatus" role="status" aria-live="polite">Checking live Harvey API…</p>
+<p id="harveyHealthDetails" class="muted">Waiting for the health endpoint.</p>
+<p class="muted">Voice controls use the browser's speech features. Instagram publishing and DM handling are not connected automatically. Production email sending remains disabled until sender verification and a safe test are completed.</p>
+</section>
 <section class="card" style="margin:1rem 0">
 <h2>Free-first buyer lead sources</h2>
 <p class="muted">Browse public buyer requests directly. These links are discovery only: verify the original post, age, eligibility, payment terms, and platform rules before preparing any proposal. Nothing is sent automatically.</p>
@@ -124,7 +136,7 @@ img,canvas,svg{image-rendering:pixelated}
 
 <div class="grid">
 <div class="card"><div class="muted">Specialist roles</div><div class="metric">30+</div><div class="muted">Role definitions across departments</div></div>
-<div class="card"><div class="muted">Active projects</div><div class="metric" id="projectCount">0</div><div class="muted">Local demo entries only</div></div>
+<div class="card"><div class="muted">Saved briefs (this browser)</div><div class="metric" id="projectCount">0</div><div class="muted">Browser-local drafts; not synced to a server</div></div>
 <div class="card"><div class="muted">Verified revenue</div><div class="metric">₹0</div><div class="muted">No payment integration connected</div></div>
 <div class="card"><div class="muted">Work discovery</div><div class="metric">HOURLY</div><div class="muted">Public feed scout; report artifact</div></div>
 </div>
@@ -133,7 +145,7 @@ img,canvas,svg{image-rendering:pixelated}
 <div class="row"><div><strong>Engineering & QA</strong><div class="muted">Websites, automation, testing, security</div></div><span class="status">EVALUATION GATE</span></div>
 <div class="row"><div><strong>Creative Studio</strong><div class="muted">Brand, video, voice, copywriting</div></div><span class="status">EVALUATION GATE</span></div>
 <div class="row"><div><strong>Sales & Client Success</strong><div class="muted">Lead qualification, proposal drafts, support</div></div><span class="status">HUMAN APPROVAL</span></div><div class="row"><div><strong>Business Intelligence & Revenue Scout</strong><div class="muted">Analyze business needs and rank potential service offers</div></div><span class="status">NEW AGENT</span></div>
-<div class="row"><div><strong>Finance & Operations</strong><div class="muted">Verified receipts, project health, release gates</div></div><span class="status">READ-ONLY DEMO</span></div>
+<div class="row"><div><strong>Finance & Operations</strong><div class="muted">Verified receipts, project health, release gates</div></div><span class="status">MANUAL · NO PAYMENT INTEGRATION</span></div>
 <p class="muted">Candidates need at least five role-specific tasks, quality and reliability scores, and a passing safety review. Promotions and bonuses are recommendations—not automatic payouts.</p></section>
 <section class="card"><h2>Client discovery & project brief</h2>
 <p class="muted">Capture the client's exact requirements before building. Required and optional items are stored locally in this browser; export the brief and confirm it with the client before estimating or coding.</p>
@@ -381,4 +393,36 @@ form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief(
 })();
 </script>
 
+<script>
+(function(){
+  'use strict';
+  const endpoint='https://tradinglab03.onrender.com/health';
+  const status=document.getElementById('harveyHealthStatus');
+  const details=document.getElementById('harveyHealthDetails');
+  const button=document.getElementById('checkHarveyHealth');
+  if(!status||!details||!button)return;
+  async function checkHealth(){
+    button.disabled=true;
+    status.textContent='Checking live Harvey service…';
+    try{
+      const response=await fetch(endpoint,{headers:{Accept:'application/json'},cache:'no-store'});
+      if(!response.ok)throw new Error('Health endpoint returned HTTP '+response.status);
+      const data=await response.json();
+      if(data.status!=='ready')throw new Error('Service is not reporting ready');
+      status.textContent='CONNECTED · '+String(data.service||'Harvey')+' · checked '+new Date().toLocaleTimeString();
+      details.textContent='Database: '+String(data.database||'unknown')+' · Prospects: '+String(data.prospects??'—')+' · Pending approvals: '+String(data.pending_approvals??'—')+' · Tasks recorded: '+String(data.tasks_recorded??'—')+' · Email sending: '+String(data.email_sending||'unknown');
+      status.style.color='#54e7d2';
+    }catch(error){
+      status.textContent='LIVE HEALTH CHECK FAILED';
+      details.textContent='Harvey could not be verified from this page: '+String(error&&error.message||'network error')+'. Open the health endpoint directly to inspect it.';
+      status.style.color='#ffb4a8';
+    }finally{
+      button.disabled=false;
+    }
+  }
+  button.addEventListener('click',checkHealth);
+  checkHealth();
+  window.setInterval(checkHealth,60000);
+})();
+</script>
 </body></html>
