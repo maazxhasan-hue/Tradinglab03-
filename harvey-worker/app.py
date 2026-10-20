@@ -423,6 +423,26 @@ def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[st
             "queued_jobs": len(AGENT_MANDATES),
             "message": "Each specialist has a distinct mandate and persisted work item. Jobs are queued, not running yet; execute them with /company/jobs/{job_id}/run. No external actions are taken."}
 
+@app.post("/company/recover-empty-cycle")
+def recover_empty_company_cycle(cycle_id: str, req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
+    """Safely requeue a missing mission only when its cycle has no records."""
+    require_key(x_api_key)
+    import re
+    if not re.fullmatch(r"[a-fA-F0-9-]{16,64}", cycle_id):
+        raise HTTPException(400, "Invalid cycle ID.")
+    with db() as c:
+        n = c.execute("SELECT COUNT(*) AS n FROM company_jobs WHERE cycle_id=?", (cycle_id,)).fetchone()["n"]
+        if n:
+            raise HTTPException(409, f"Cycle already has {n} job records; refusing to duplicate work.")
+        for role, mandate in AGENT_MANDATES.items():
+            c.execute("""INSERT INTO company_jobs
+              (cycle_id,role,mandate,goal,context,status,created_at,updated_at)
+              VALUES(?,?,?,?,?,'queued',?,?)""",
+              (cycle_id, role, mandate, req.mission, req.context, now(), now()))
+        n = c.execute("SELECT COUNT(*) AS n FROM company_jobs WHERE cycle_id=?", (cycle_id,)).fetchone()["n"]
+    return {"cycle_id": cycle_id, "status": "queued", "roles_assigned": n, "queued_jobs": n,
+            "recovered_queue": True, "previous_outputs_recovered": False}
+
 @app.get("/company/jobs")
 def list_company_jobs(cycle_id: Optional[str] = None, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
