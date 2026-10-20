@@ -1,33 +1,45 @@
 # Harvey Worker (Nexora)
 
-A small persistent API for business-listing discovery, saved prospect records, task history, and approval-gated outreach drafts.
+A persistent API for prospect discovery, saved prospect records, task history, human-reviewed outreach drafts, and a guarded Resend delivery path.
 
-## Deploy with Render
+## Current deployment
 
-1. In Render, create a **Blueprint** from this repository and select the root `render.yaml`.
-2. Render will create a private API key value for `HARVEY_API_KEY` and a persistent disk for SQLite.
-3. After deployment, test `https://YOUR-SERVICE.onrender.com/health`.
-4. In the private Harvey dashboard, set the runtime URL to that HTTPS service and paste the generated `HARVEY_API_KEY` in the token field.
-5. Test prospect discovery and inspect saved prospects and draft approvals.
+The live Render service is `https://tradinglab03.onrender.com`. Its active source is built from the repository root `Dockerfile`, which packages `harvey-worker/app.py`. The separate `harvey-worker/render.yaml` is a Blueprint definition; it does not create another service unless applied in Render.
 
-The blueprint is committed as configuration; it does not create a Render service until the repository is connected and the Blueprint is applied in Render.
+## Core endpoints
 
-## Endpoints
-
-- `GET /health` — unauthenticated health check; reports that email sending is disabled.
+- `GET /health` — service/database status and whether the send feature flag is enabled. This does not prove Resend credentials or inbox delivery.
 - `GET /metrics` — authenticated counts.
 - `POST /prospects/discover` — authenticated OpenStreetMap listing discovery. JSON: `{"city":"Bengaluru","category":"business","limit":15}`.
 - `GET /prospects` — authenticated saved prospects.
 - `POST /outreach/draft` — authenticated draft creation. JSON: `{"prospect_id":1,"service":"website improvements","value_proposition":"A concrete value proposition."}`.
 - `GET /approvals` — authenticated draft approval queue.
-- `POST /approvals/{id}/decision` — authenticated `{"decision":"approve"}` or `{"decision":"reject"}`.
+- `POST /approvals/{id}/decision` — authenticated `{"decision":"approve"}` or `{"decision":"reject"}`. Approval alone never sends.
 - `GET /tasks` — authenticated task history.
+- `GET /email/status` — authenticated Resend configuration status, suppression count, and daily count.
+- `POST /email/test-resend` — authenticated self-test only. Requires `{"confirm_send":true}`, `RESEND_API_KEY`, and `RESEND_TEST_RECIPIENT`; limited to three test attempts per UTC day. It uses Resend's onboarding sender and does not send to a prospect.
+- `POST /email/send-approved` — authenticated delivery for one explicitly supplied recipient. Requires `{"approval_id":1,"recipient":"recipient@example.com","confirm_send":true}`, a previously approved draft, and all production environment settings below.
+- `GET /email/unsubscribe?token=...` and `POST /email/unsubscribe?token=...` — signed unsubscribe endpoint; adds the address to the suppression list.
 
-All protected routes require the `X-API-Key` header. CORS is limited to the Nexora HQ production origins configured in `ALLOWED_ORIGINS` (override that environment variable if the dashboard has a different URL).
+All protected routes require the `X-API-Key` header. CORS is restricted to configured Nexora HQ origins.
+
+## Required server-side configuration
+
+Never put credentials in the browser or commit them to Git.
+
+- `HARVEY_API_KEY` — required API authentication key.
+- `RESEND_API_KEY` — Resend API key stored only in the Render environment.
+- `RESEND_FROM_EMAIL` — sender identity from a domain verified in Resend for production outreach. The Resend onboarding sender is for limited testing and is not a production sender for prospect outreach.
+- `UNSUBSCRIBE_SECRET` — long, random secret used to sign unsubscribe tokens.
+- `EMAIL_SENDING_ENABLED=true` — explicit feature flag; leave unset/false until the sender is verified and configuration is checked.
+- `PUBLIC_API_BASE_URL` — public HTTPS base URL used in unsubscribe links; defaults to `https://tradinglab03.onrender.com`.
+- `RESEND_TEST_RECIPIENT` — an inbox controlled by the operator for the self-test only.
+
+The production send route fails closed unless the flag, API key, sender, and unsubscribe secret are present. Each send also requires an approved draft and explicit confirmation. It checks suppression, prevents concurrent duplicate sends for the same draft/recipient, and enforces a 20-per-UTC-day limit. Provider acceptance is not the same as inbox delivery; verify delivery in Resend's event log and the recipient mailbox.
 
 ## Safety boundaries
 
-This service does not send email, purchase leads, or access private accounts. Prospect data from OpenStreetMap may be incomplete; verify listings before contact. Email drafts require human review. Approval is a record only, not a send action. Use only compliant, honest outreach and honor opt-outs.
+Prospect discovery data may be incomplete and must be verified. Do not send unsolicited bulk campaigns. Use truthful, relevant outreach, a verified sender domain, applicable legal compliance, and prompt opt-out handling. The API only sends to the recipient explicitly supplied by the authenticated operator after draft approval and per-send confirmation. A successful provider API response is reported as **accepted**, not guaranteed delivered.
 
 ## Local test
 
@@ -35,7 +47,5 @@ This service does not send email, purchase leads, or access private accounts. Pr
 python -m venv .venv
 . .venv/bin/activate
 pip install -r harvey-worker/requirements.txt
-HARVEY_API_KEY=local-test-key DATABASE_PATH=./harvey.db uvicorn harvey-worker.app:app --reload
+HARVEY_API_KEY=local-test-key DATABASE_PATH=./harvey.db uvicorn app:app --app-dir harvey-worker --reload
 ```
-
-For local execution, run from the repository root with `uvicorn app:app --app-dir harvey-worker --reload` instead of the module form above, because the directory name contains a hyphen.
