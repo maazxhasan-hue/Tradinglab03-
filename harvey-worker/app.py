@@ -15,7 +15,7 @@ APP_NAME = "Nexora Harvey Worker"
 DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
 API_KEY = os.getenv("HARVEY_API_KEY", "")
 app = FastAPI(title=APP_NAME, version="0.1.0")
-ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app").split(",") if x.strip()]
+ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app,https://nexora-internal-hq.onrender.com").split(",") if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=False, allow_methods=["GET","POST","OPTIONS"], allow_headers=["Content-Type","X-API-Key"])
 
 def now() -> str:
