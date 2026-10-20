@@ -958,7 +958,7 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         body = content.split(subject_line, 1)[1].strip()
         token = _unsubscribe_token(recipient)
         unsubscribe_url = public_base + "/email/unsubscribe?token=" + token
-        body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
+        body += "\n\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
         # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
         try:
             reservation = c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
