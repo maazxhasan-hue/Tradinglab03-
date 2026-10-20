@@ -64,6 +64,9 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 def db():
+    if DATABASE_URL:
+        import psycopg2
+        return PostgresConnectionCompat(psycopg2.connect(DATABASE_URL, sslmode="require", connect_timeout=10))
     conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
     return conn
