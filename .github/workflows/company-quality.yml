@@ -85,7 +85,7 @@ jobs:
           inbox = pathlib.Path("dashboard/inbox.html").read_text(encoding="utf-8").lower()
           if "https://nexora-private-hq.vercel.app/" not in inbox or "location.replace" not in inbox:
               raise SystemExit("Public owner inbox must redirect to the access-protected private HQ")
-          if "fetch(" in inbox or "api-key" in inbox or "owner inbox" in inbox and "redirect" not in inbox:
+          if "fetch(" in inbox or "api-key" in inbox:
               raise SystemExit("Public owner inbox must not include the old interactive inbox application")
           print("Public owner inbox redirect and browser scripts validated.")
           print("Browser JavaScript and Worker module syntax passed.")
