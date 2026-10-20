@@ -37,9 +37,9 @@ class PostgresConnectionCompat:
         import psycopg2.extras
         statement = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
         statement = re.sub(r"INSERT OR IGNORE INTO", "INSERT INTO", statement, flags=re.I)
-        if re.match(r"\\s*INSERT INTO", statement, re.I) and "ON CONFLICT" not in statement.upper():
+        if re.match(r"\s*INSERT INTO", statement, re.I) and "ON CONFLICT" not in statement.upper():
             statement = statement.rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
-        wants_id = bool(re.match(r"\\s*INSERT INTO", statement, re.I)) and "RETURNING" not in statement.upper()
+        wants_id = bool(re.match(r"\s*INSERT INTO", statement, re.I)) and "RETURNING" not in statement.upper()
         if wants_id: statement += " RETURNING id"
         statement = statement.replace("?", "%s")
         cur = self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
