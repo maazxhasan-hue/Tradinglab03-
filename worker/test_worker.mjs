@@ -115,7 +115,7 @@ test("serves website AI chat through the Workers AI binding", async () => {
   const env = makeEnv();
   env.AI = {
     run: async (model, options) => {
-      assert.equal(model, "@cf/meta/llama-3.1-8b-instruct");
+      assert.equal(model, "@cf/meta/llama-3.1-8b-instruct-fast");
       assert.ok(options.messages.some(item => item.role === "user" && item.content === "What does Nexora do?"));
       return { response: "Nexora helps businesses with websites and automation." };
     }

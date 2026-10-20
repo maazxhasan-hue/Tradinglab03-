@@ -385,7 +385,7 @@ export default {
         "If information is not available, say so rather than guessing. Do not claim to have sent an enquiry or taken external action."
       ].join(" ");
       try {
-        const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+        const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
           messages: [{ role: "system", content: system }, ...history.filter(item => item.content !== message), { role: "user", content: message }],
           max_tokens: 450,
           temperature: 0.35
