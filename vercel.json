@@ -38,5 +38,14 @@
         }
       ]
     }
+  ],
+  "routes": [
+    {
+      "src": "^/(private-hq|owner-console)(/.*)?$",
+      "status": 404
+    },
+    {
+      "handle": "filesystem"
+    }
   ]
 }
