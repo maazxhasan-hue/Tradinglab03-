@@ -35,7 +35,7 @@ class PostgresConnectionCompat:
         self._conn.close()
     def execute(self, sql, params=()):
         import psycopg2.extras
-        statement = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
+        statement = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY").replace("archive BLOB", "archive BYTEA")
         statement = re.sub(r"INSERT OR IGNORE INTO", "INSERT INTO", statement, flags=re.I)
         if re.match(r"\s*INSERT INTO", statement, re.I) and "ON CONFLICT" not in statement.upper():
             statement = statement.rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
@@ -63,13 +63,7 @@ app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credenti
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
-def db():
-    if DATABASE_URL:
-        import psycopg2
-        return PostgresConnectionCompat(psycopg2.connect(DATABASE_URL, sslmode="require", connect_timeout=10))
-    conn = sqlite3.connect(DB_PATH, timeout=15)
-    conn.row_factory = sqlite3.Row
-    return conn
+
 
 def init_db():
     with db() as c:
