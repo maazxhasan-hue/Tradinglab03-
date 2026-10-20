@@ -7,7 +7,47 @@
 @keyframes type{to{transform:translateY(3px)}}@keyframes walk{to{transform:translateX(12px)}}@keyframes read{50%{filter:brightness(1.7)}}@keyframes glow{50%{outline-color:#2c715f}}
 @media(max-width:1100px){.floor{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.station{min-height:145px}}@media(max-width:850px){.shell{grid-template-columns:1fr}aside{display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:3px solid #344a60;padding:6px}aside button{width:auto;white-space:nowrap;font-size:8px;margin:0}.activity{display:none}.stats{grid-template-columns:repeat(2,1fr)}.floor{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 9px}.wall{height:120px}.windows{left:28%;width:35%}.lower{grid-template-columns:1fr}}@media(max-width:480px){.facility-strip{grid-template-columns:1fr}.facility-name{font-size:7px}header{padding:8px 10px;height:auto;min-height:58px;flex-wrap:wrap}.brand{font-size:12px}.health{font-size:8px}main{padding:10px}.floor{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.station{min-height:142px;padding:5px}.station h3{font-size:6px;overflow-wrap:anywhere}.server{width:22%}.windows{width:34%;left:30%}.top h1{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.worker,.station.busy{animation:none}}
-</style></head><body>
+</style>
+<style id="nexora-reference-scene">
+/* Reference-matched warm pixel office skin: private HQ only */
+:root{--ink:#211a20;--panel:#3a2928;--line:#80533e;--cyan:#5de7ff;--gold:#ffc56f;--text:#fff2d9;--muted:#e2c8a6;--green:#8af5a2}
+body{background:#171723;color:#fff1d7}
+header{background:#211b28;border-bottom:4px solid #9b603f;box-shadow:0 4px 0 #100e17}
+.brand{color:#f5d28a;text-shadow:3px 3px #6c392d}
+.shell{grid-template-columns:174px minmax(0,1fr)}
+aside{background:#281e25;border-color:#895239}
+aside button.active{background:#533328;border-color:#d68d4e;color:#ffe2a1}
+.activity,.stat,.panel{background:#392824;border-color:#9b6243}
+.activity h3,.label,.panel h2{color:#ffd27d}
+main{padding:18px}
+.stats{gap:8px}
+.stat{box-shadow:4px 4px #171018}
+.stat b{color:#63eaff}
+.scene{border:5px solid #704632;box-shadow:8px 8px #120e16;background:#b77a4c}
+.wall{height:clamp(155px,18vw,220px);background:repeating-linear-gradient(0deg,#a9583d 0 20px,#63362f 20px 24px,#c1744d 24px 28px);border-bottom:8px solid #513329}
+.windows{height:calc(100% - 24px);background:linear-gradient(180deg,#6d78a6 0%,#d77d8a 38%,#ffb66e 70%,#65465b 100%);border-color:#694632;box-shadow:inset 0 0 0 3px #d6a06c}
+.windows:after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(90deg,transparent 0 4%,#39405b 4% 10%,transparent 10% 18%,#34374e 18% 24%,transparent 24% 34%,#3e3a51 34% 43%,transparent 43% 52%,#31334a 52% 60%,transparent 60% 70%,#34354b 70% 79%,transparent 79%);opacity:.8}
+.sign{background:#172331;border-color:#8d5d3e;color:#f7e6c5;box-shadow:4px 4px #442c27}
+.server{background:#1b2837;border-color:#9a7258}
+.server i{background:repeating-linear-gradient(0deg,#203b4a 0 9px,#59e8dc 9px 11px,#101923 11px 18px)}
+.floor{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;padding:20px 16px 24px;background:repeating-linear-gradient(0deg,#bd8754 0 24px,#81503b 24px 28px,#d39b62 28px 32px),#bb8454}
+.station{min-height:155px;background:linear-gradient(180deg,#e0a66b 0 8%,#9b6241 8% 13%,#6f4937 13% 100%);border-color:#684331;box-shadow:5px 6px #51352e}
+.station h3{background:#1d3344;border-color:#a07a5b;color:#fff0d5}
+.monitor{background:repeating-linear-gradient(0deg,#0b2c39 0 6px,#175b60 6px 9px);border-color:#7b9299}
+.station p{color:#ffedcf}
+.state{color:#a8ffd0}
+.station.busy{outline-color:#6dffad}
+.facility-strip{background:#39261f;border-color:#704632}
+.facility{background:#4a3026;border-color:#9a6745}
+.facility-name{color:#ffcf79}
+.mihrab{border-color:#d8b77c;background:linear-gradient(180deg,#184452,#0b1b2a)}
+.lower{gap:12px}
+.toast{background:#30221f;border-color:#63eaff;color:#fff1d7}
+@media(max-width:1300px){.floor{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.floor{grid-template-columns:repeat(3,minmax(0,1fr))}.wall{height:150px}}
+@media(max-width:560px){main{padding:10px}.floor{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 8px}.station{min-height:148px}.wall{height:125px}.windows{left:28%;width:36%}.sign{font-size:8px;max-width:34%;overflow-wrap:anywhere}.server{width:22%}}
+</style>
+</head><body>
 <header><div class="brand">NEXORA AI</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="./harvey.html" style="text-decoration:none;border:2px solid #64859a;background:#183b4b;padding:8px">HARVEY</a><button id="voiceToggle" type="button" aria-pressed="false">🎙 VOICE CONTROL</button><div class="health">● WORKFLOW EVIDENCE</div></div></header>
 <div class="shell"><aside><button class="active" data-tab="HQ">⌂ HQ</button><button data-tab="Agents">♟ AGENTS</button><button data-tab="Tasks">▣ TASKS</button><button data-tab="Clients">♙ CLIENTS</button><button data-tab="Projects">▤ PROJECTS</button><button data-tab="Opportunities">⌕ OPPORTUNITIES</button><button data-tab="Analytics">▥ ANALYTICS</button><button data-tab="Settings">⚙ SETTINGS</button><div class="activity"><h3>LIVE ACTIVITY</h3><p><span class="green">●</span> Pixel office loaded</p><p id="sideStatus">● Connecting to workflow feed…</p></div></aside>
 <main><div class="top"><div><div class="label">COMPANY / AGENT TOWN</div><h1 id="pageTitle">YOUR TEAM, AT WORK</h1><p class="sub" id="pageSub">Pixel-art company HQ · Select a workstation to inspect its activity.</p></div><button id="refresh">↻ REFRESH WORKFLOWS</button></div>
