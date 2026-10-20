@@ -98,7 +98,7 @@ async function refresh(){
 }
 function toast(msg){$('#toast').textContent=msg;$('#toast').style.display='block';setTimeout(()=>$('#toast').style.display='none',2800)}
 $$('.station').forEach(st=>{
- const activate=()=>{const u=st.dataset.url;if(u)window.open(u,'_blank','noopener');else toast(st.dataset.agent+': '+st.dataset.work+' — no matching live workflow found in the recent run window.')};
+ const activate=()=>{const u=st.dataset.url;if(u)window.open(u,'_blank','noopener');else toast(st.dataset.agent+': '+(taskByDept[st.dataset.dept]||'Specialist workflow')+' — no matching live workflow found in the recent run window.')};
  st.addEventListener('click',activate);
  st.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}});
 });
