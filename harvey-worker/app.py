@@ -961,8 +961,15 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
         # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
         try:
-            c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
-                      (req.approval_id, recipient, "sending", now()))
+            reservation = c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
+                                    (req.approval_id, recipient, "sending", now()))
+            # PostgresConnectionCompat intentionally uses ON CONFLICT DO NOTHING for
+            # inserts. Therefore a uniqueness conflict may return no inserted id
+            # instead of raising; check the returned id so the guard works on both DBs.
+            if getattr(reservation, "lastrowid", None) is None:
+                raise HTTPException(409, "A send attempt for this approved draft and recipient is already active or was already accepted.")
+        except HTTPException:
+            raise
         except Exception as e:
             # The unique partial index is the final guard against simultaneous requests.
             message = str(e).lower()
