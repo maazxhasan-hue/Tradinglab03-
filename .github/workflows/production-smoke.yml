@@ -38,7 +38,7 @@ jobs:
           PUBLIC_URL: https://nexora-ai-sooty-two.vercel.app
         run: |
           set -euo pipefail
-          for path in /private-hq /private-hq/ /private-hq/index.html /private-hq/harvey.html /owner-console/inbox.html; do
+          for path in /private-hq /private-hq/ /private-hq/index.html /private-hq/harvey.html /owner-console/inbox.html /dashboard/index.html /dashboard/marketing.html /dashboard/inbox.html; do
             code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 25 "$PUBLIC_URL$path")"
             if [ "$code" != "404" ]; then
               echo "::error::Expected HTTP 404 for $path but received $code"
@@ -46,6 +46,19 @@ jobs:
             fi
             echo "PASS $path -> HTTP 404"
           done
+
+      - name: Verify Render owner inbox is a protected-HQ redirect
+        env:
+          RENDER_STATIC_URL: https://nexora-internal-hq.onrender.com
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$RENDER_STATIC_URL/inbox.html" -o /tmp/nexora-render-inbox.html
+          grep -Fq 'window.location.replace("https://nexora-private-hq.vercel.app/")' /tmp/nexora-render-inbox.html
+          if grep -Fq '/api/admin/submissions' /tmp/nexora-render-inbox.html; then
+            echo "::error::Public Render inbox unexpectedly contains the interactive owner inbox UI."
+            exit 1
+          fi
+          echo "PASS Render owner inbox serves only the redirect page."
 
       - name: Verify Harvey health and safe email state
         run: |
