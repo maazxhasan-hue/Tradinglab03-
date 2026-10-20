@@ -781,10 +781,20 @@ async def resend_self_test(req: ResendSelfTestRequest, x_api_key: Optional[str] 
                       "subject": "Nexora AI — email delivery test",
                       "text": "This is a self-test of the Nexora AI email integration. No prospect outreach was sent.\n\nIf you received this, the Resend API connection is working."})
         if response.status_code >= 400:
+            # Return the provider's non-secret diagnostic so operators can fix setup
+            # without exposing credentials or dumping raw headers.
+            provider_message = "Unknown provider error"
+            try:
+                provider_error = response.json()
+                if isinstance(provider_error, dict):
+                    provider_message = str(provider_error.get("message") or provider_error.get("name") or provider_error.get("error") or provider_message)
+            except Exception:
+                pass
+            safe_message = re.sub(r"(?i)\b(re_[A-Za-z0-9_-]{12,}|Bearer\s+\S+)\b", "[redacted]", provider_message)[:400]
             with db() as c:
                 c.execute("UPDATE email_test_log SET status='failed',error_code=? WHERE recipient=? AND status='sending'",
                           ("resend_http_" + str(response.status_code), recipient))
-            raise HTTPException(502, "Resend test failed. Check the API key and that RESEND_TEST_RECIPIENT matches the email used for your Resend account.")
+            raise HTTPException(502, f"Resend rejected the test (HTTP {response.status_code}): {safe_message}")
         result = response.json()
         with db() as c:
             c.execute("UPDATE email_test_log SET status='sent' WHERE recipient=? AND status='sending'",
