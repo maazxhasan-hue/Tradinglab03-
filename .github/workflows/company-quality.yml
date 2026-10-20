@@ -10,6 +10,9 @@ on:
       - "dashboard/**"
       - "private-hq/**"
       - "worker/**"
+      - "harvey-worker/**"
+      - "vercel.json"
+      - ".github/workflows/production-smoke.yml"
       - ".github/workflows/deploy-intake-api.yml"
       - ".github/workflows/company-quality.yml"
   pull_request:
@@ -26,6 +29,32 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Validate Vercel private-path guard and security headers
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          config = json.loads(Path("vercel.json").read_text(encoding="utf-8"))
+          routes = config.get("routes", [])
+          assert any(
+              route.get("src") == "^/(private-hq|owner-console)(/.*)?$"
+              and route.get("status") == 404
+              for route in routes
+          ), "Missing public-site private-path 404 rule"
+          assert routes and routes[-1].get("handle") == "filesystem", "Filesystem handler must remain last"
+          headers = {
+              header.get("key"): header.get("value")
+              for group in config.get("headers", [])
+              for header in group.get("headers", [])
+          }
+          for key, expected in {
+              "X-Content-Type-Options": "nosniff",
+              "X-Frame-Options": "DENY",
+              "Referrer-Policy": "strict-origin-when-cross-origin",
+          }.items():
+              assert headers.get(key) == expected, f"Missing or incorrect security header: {key}"
+          print("Vercel private-path guard and baseline security headers passed.")
+          PY
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
