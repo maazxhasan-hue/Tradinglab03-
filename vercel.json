@@ -41,7 +41,7 @@
   ],
   "routes": [
     {
-      "src": "(?i)^/(?:private-hq|owner-console)(?:/.*)?$",
+      "src": "^/(private-hq|owner-console)(/.*)?$",
       "status": 404
     },
     {
