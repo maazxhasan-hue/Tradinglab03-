@@ -861,6 +861,11 @@ def _ensure_mail_tables():
           recipient TEXT NOT NULL, provider_id TEXT, status TEXT NOT NULL,
           created_at TEXT NOT NULL, error_code TEXT)""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_email_delivery_created ON email_delivery_log(created_at)")
+        # Prevent concurrent duplicate sends for the same approved draft/recipient.
+        # Failed attempts release the reservation and may be retried after diagnosis.
+        c.execute("""CREATE UNIQUE INDEX IF NOT EXISTS uq_email_delivery_active
+                     ON email_delivery_log(approval_id, recipient)
+                     WHERE status IN ('sending', 'sent')""")
 
 def _unsubscribe_token(email: str) -> str:
     secret = os.getenv("UNSUBSCRIBE_SECRET", "")
@@ -954,8 +959,15 @@ async def send_approved_email(req: SendApprovedEmailRequest, x_api_key: Optional
         unsubscribe_url = public_base + "/email/unsubscribe?token=" + token
         body += "\\n\\nIf you don't want further emails from Nexora AI, unsubscribe here: " + unsubscribe_url
         # Reserve a sending attempt so concurrent calls cannot bypass the daily cap.
-        c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
-                  (req.approval_id, recipient, "sending", now()))
+        try:
+            c.execute("INSERT INTO email_delivery_log(approval_id,recipient,status,created_at) VALUES(?,?,?,?)",
+                      (req.approval_id, recipient, "sending", now()))
+        except Exception as e:
+            # The unique partial index is the final guard against simultaneous requests.
+            message = str(e).lower()
+            if "unique" in message or "duplicate key" in message:
+                raise HTTPException(409, "A send attempt for this approved draft and recipient is already active or was already accepted.")
+            raise
     try:
         async with httpx.AsyncClient(timeout=25) as client:
             response = await client.post("https://api.resend.com/emails",
