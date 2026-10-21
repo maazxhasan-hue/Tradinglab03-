@@ -1,25 +1,35 @@
 from pathlib import Path
+import unittest
 
 
-def test_video_studio_exposes_real_local_webm_rendering():
-    source = Path("public-site/video-studio.html").read_text(encoding="utf-8")
-    assert 'id="renderDraft"' in source
-    assert 'id="draftPreview"' in source
-    assert 'id="downloadVideo"' in source
-    assert "MediaRecorder" in source
-    assert "captureStream(30)" in source
-    assert "URL.createObjectURL(blob)" in source
+class VideoStudioRegressionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.source = Path("public-site/video-studio.html").read_text(encoding="utf-8")
+        cls.lower = cls.source.lower()
+
+    def test_exposes_real_local_webm_rendering(self):
+        for required in (
+            'id="renderDraft"', 'id="draftPreview"', 'id="downloadVideo"',
+            "MediaRecorder", "captureStream(30)", "URL.createObjectURL(blob)",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.source)
+
+    def test_does_not_claim_cloud_or_ai_video_generation(self):
+        self.assertIn("not an ai-generated photorealistic 3d film", self.lower)
+        self.assertIn("not uploaded automatically", self.lower)
+        self.assertIn("no data is uploaded", self.lower)
+
+    def test_has_required_capability_fallbacks(self):
+        for required in (
+            "does not support local video recording",
+            "cannot encode WebM video",
+            "Local rendering failed:",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.source)
 
 
-def test_video_studio_does_not_claim_cloud_or_ai_video_generation():
-    source = Path("public-site/video-studio.html").read_text(encoding="utf-8").lower()
-    assert "not an ai-generated photorealistic 3d film" in source
-    assert "not uploaded automatically" in source
-    assert "no data is uploaded" in source
-
-
-def test_video_studio_has_required_capability_fallbacks():
-    source = Path("public-site/video-studio.html").read_text(encoding="utf-8")
-    assert "does not support local video recording" in source
-    assert "cannot encode WebM video" in source
-    assert "Local rendering failed:" in source
+if __name__ == "__main__":
+    unittest.main()
