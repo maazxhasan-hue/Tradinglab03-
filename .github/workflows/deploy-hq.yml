@@ -65,4 +65,20 @@ jobs:
                   subprocess.run(["node", "--check", tmp.name], check=True)
               print(f"PASS: HQ inline script {index} syntax")
           print("PASS: 31-role roster, internal creative agent, Instagram station, Namaz room, server room, and voice control")
+
+          # Validate Company HQ inline scripts, including the interactive neural renderer.
+          index_html = Path("private-hq/index.html").read_text(encoding="utf-8")
+          index_scripts = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", index_html, re.I | re.S)
+          if not index_scripts:
+              raise SystemExit("No inline scripts found in Company HQ index")
+          for index, script in enumerate(index_scripts, 1):
+              with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as tmp:
+                  tmp.write(script)
+                  tmp.flush()
+                  subprocess.run(["node", "--check", tmp.name], check=True)
+              print(f"PASS: Company HQ inline script {index} syntax")
+          for required in ('data-neural="agents"', 'data-neural="brain"', "pointermove", "Shared Brain / Memory Topology"):
+              if required not in index_html:
+                  raise SystemExit(f"Missing neural HQ feature: {required}")
+          print("PASS: interactive agent + Brain visualizations and HQ JavaScript syntax")
           PY
