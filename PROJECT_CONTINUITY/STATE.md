@@ -102,3 +102,13 @@ This checkpoint documents the latest known project state from prior work; extern
 - Implementation checkpoint: `PROJECT_CONTINUITY/SHARED_BRAIN_IMPLEMENTATION_2026-10-21.md`.
 - Changelog commit: `5015a342e31e39d2cda0004620fb2a70b8334eb7`.
 - Status: shared memory infrastructure is deployed, but integrations across the existing agents and authenticated end-to-end tests remain incomplete. Do not describe all agents as connected until verified. Concurrency-safe version handling and strict expiry validation are follow-up items.
+
+
+## Shared Brain expansion checkpoint — 2026-10-21
+- Edge Function `shared-brain` now version 2 ACTIVE. It has user-session scope and a separate service-to-service scope. Machine auth is explicitly checked in the function because Supabase JWT verification is disabled for this function; unauthenticated calls are rejected by handler code.
+- Service memory table `public.agent_shared_facts` created; direct anon/authenticated access revoked and RLS enabled. User memory remains in `agent_shared_memory`.
+- Python client supports machine credentials. Company runtime and bounded tool-agent can recall/write when configured. Added a sanitized workflow metadata sync helper, four workflow sync steps, and a registry workflow for major workflow families.
+- REQUIRED MANUAL SECRET SETUP: add a long random `SHARED_BRAIN_AGENT_KEY` to Supabase Edge Function secrets and GitHub repository Actions secrets. Never paste it into chat or commit it. See `docs/SHARED_BRAIN_API.md`.
+- NOT YET VERIFIED: machine secret configuration, authenticated API calls, end-to-end cross-agent recall, all workflow registry names, direct Harvey runtime memory integration, and automated tests. Therefore the whole agent fleet cannot yet be described as fully connected.
+- HQ theme redesign is deferred until shared brain auth and cross-agent tests pass, as requested.
+- Latest changelog commit: `acf84ee90bf77367208de5af617e3671c6b2f51a`.
