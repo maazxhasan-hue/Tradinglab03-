@@ -309,8 +309,9 @@ async function createSubmission(request, env, cors) {
     notification_status: "pending"
   };
   const services = new Set([
-    "Business website", "Landing page", "Website cleanup / QA", "Short-form content kit",
-    "Workflow automation", "Document / data workflow", "Not sure yet"
+    "Trading course", "Business website", "Landing page", "Website cleanup / QA",
+    "Custom AI tool / chatbot", "AI automation", "Short-form content kit",
+    "Workflow automation", "Document / data workflow", "Custom AI project", "Not sure yet"
   ]);
   if (payload.consent !== true || !item.name || !validEmail(item.email) || !services.has(item.service) || item.goal.length < 10 || !validDeadline(item.deadline) || item.reference_url === null) {
     return response({ error: "Please check your name, email, service, project goal, deadline, and HTTPS reference link." }, 422, cors);
