@@ -189,6 +189,40 @@ def health():
             "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
             "api_auth_configured": bool(API_KEY)}
 
+@app.get("/public-status")
+def public_status():
+    """Read-only, privacy-safe operational telemetry for the internal HQ visual panel.
+    Never returns task inputs/outputs, prospect data, approvals content, or secrets.
+    """
+    with db() as c:
+        task_counts = c.execute("SELECT status, COUNT(*) AS n FROM tasks GROUP BY status").fetchall()
+        job_counts = c.execute("SELECT status, COUNT(*) AS n FROM company_jobs GROUP BY status").fetchall()
+        recent_tasks = c.execute(
+            "SELECT kind, status, created_at, updated_at FROM tasks ORDER BY id DESC LIMIT 8"
+        ).fetchall()
+        recent_jobs = c.execute(
+            "SELECT role, status, created_at, updated_at FROM company_jobs ORDER BY id DESC LIMIT 8"
+        ).fetchall()
+        brain_configured = bool(SHARED_BRAIN_AGENT_KEY)
+        model_configured = bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")))
+        return {
+            "service": APP_NAME,
+            "status": "ready",
+            "time": now(),
+            "agents": {"roles_defined": len(AGENT_ROLES), "execution_mode": "on-demand"},
+            "tasks": {"by_status": {str(row["status"]): int(row["n"]) for row in task_counts},
+                      "recent": [{"kind": str(row["kind"]), "status": str(row["status"]),
+                                  "created_at": row["created_at"], "updated_at": row["updated_at"]}
+                                 for row in recent_tasks]},
+            "company_jobs": {"by_status": {str(row["status"]): int(row["n"]) for row in job_counts},
+                             "recent": [{"role": str(row["role"]), "status": str(row["status"]),
+                                         "created_at": row["created_at"], "updated_at": row["updated_at"]}
+                                        for row in recent_jobs]},
+            "shared_brain": "configured" if brain_configured else "not_configured",
+            "model_configured": model_configured,
+            "privacy": "No task inputs, outputs, prospect details, approval content, or secrets are exposed."
+        }
+
 @app.get("/metrics")
 def metrics(x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
