@@ -593,7 +593,7 @@ function setup(stage,index){
   const linkDist=(small?Math.min(w,h)*.105:Math.min(w,h)*.082),limit=small?8:9;
   ctx.lineWidth=.55;
   for(let i=0;i<projected.length;i++){const a=projected[i],neighbors=[];for(let j=i+1;j<projected.length;j++){const b=projected[j];const dx=a.x-b.x,dy=a.y-b.y,dist=Math.hypot(dx,dy);if(dist<linkDist&&(a.node.ci===b.node.ci||dist<linkDist*.52)){neighbors.push({b,dist});if(neighbors.length>=limit)break}}
-   for(const {b,dist} of neighbors){const alpha=Math.max(0,1-dist/linkDist)*(.16+(a.node.ci===b.node.ci?.25:0));const col=colors[(a.node.ci+(a.node.ci===b.node.ci?0:1))%colors.length];ctx.strokeStyle=col;ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
+   for(const {b,dist} of neighbors){const alpha=Math.max(0,1-dist/linkDist)*(.16+(a.node.ci===b.node.ci ? .25 : 0));const col=colors[(a.node.ci+(a.node.ci===b.node.ci?0:1))%colors.length];ctx.strokeStyle=col;ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
   ctx.globalAlpha=1;
   for(const p of projected){const alpha=Math.min(.95,Math.max(.18,.5+p.z*.25));const radius=Math.max(.45,p.node.size*(p.scale/Math.min(w,h)*3.4));ctx.globalAlpha=alpha;ctx.fillStyle=colors[p.node.ci%colors.length];ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();if(radius>1.15){ctx.globalAlpha=alpha*.15;ctx.beginPath();ctx.arc(p.x,p.y,radius*3.1,0,Math.PI*2);ctx.fill()}}
   ctx.globalAlpha=1;
