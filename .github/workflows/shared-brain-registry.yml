@@ -11,27 +11,26 @@ on:
       - Daily Company Operations Report
       - Hourly Opportunity Scout
       - Harvey worker tests
-      - Harvey worker health
+      - Harvey health check
       - Company Health Check
       - Company Health Monitor
-      - Company Operations Health
+      - Company Operations Health Check
       - Company Quality Gate
-      - Daily Client Opportunity Review
-      - Delivery Smoke Tests
-      - End-to-End Delivery
-      - Free Worker Check
-      - Nexora Acceptance
+      - Daily Client Opportunity Draft Queue
+      - Delivery Pipeline Smoke Test
+      - End-to-End Client Delivery Draft
+      - Free Draft Worker Check
+      - Nexora AI Acceptance Checks
       - Nexora Instagram Draft Pack
-      - Nexora Intake Quality
-      - Nexora Live Smoke
-      - Nexora Synthetic E2E
+      - Nexora Intake Quality Gate
+      - Nexora Live Smoke Check
+      - Nexora AI Synthetic End-to-End Delivery Test
       - Opportunity Qualification Tests
-      - Production Smoke Tests
-      - Synthetic Client Validation
-      - Instagram Content Pack
+      - Production Smoke Checks
+      - Synthetic Client Delivery Validation
+      - Instagram Content Pack (Approval Required)
       - Instagram Draft Pack
       - Lead Tracker
-      - Website Draft Builder
     types: [completed]
   workflow_dispatch:
 permissions:
