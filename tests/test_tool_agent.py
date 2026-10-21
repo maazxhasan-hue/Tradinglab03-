@@ -76,9 +76,11 @@ class ToolAgentTests(unittest.TestCase):
         second = fake_response({"candidates": [{"content": {"role": "model", "parts": [
             {"text": "Inspected the workspace; no existing artifacts were found."}
         ]}}]})
-        with tempfile.TemporaryDirectory() as tmp, \\
-             patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True), \\
-             patch("company.tool_agent.urllib.request.urlopen", side_effect=[first, second]) as urlopen:
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True),
+            patch("company.tool_agent.urllib.request.urlopen", side_effect=[first, second]) as urlopen,
+        ):
             result = run_tool_agent(brief={"business_name": "Example"}, workspace=tmp, max_rounds=2)
 
         self.assertEqual(result["status"], "completed")
