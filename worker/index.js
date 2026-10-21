@@ -468,11 +468,11 @@ const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engage
 function aiSourceRegexForDomains(knownDomains) {
   const patterns = Array.from(knownDomains)
     .map(domain => String(domain || "").trim().toLowerCase())
-    .filter(domain => /^[a-z0-9.-]+\\.[a-z]{2,63}$/.test(domain) && !domain.includes(".."))
-    .map(domain => domain.replace(/[.*+?^${}()|[\\]\\]/g, "\\const AI_SOURCE_REGEX = "(chatgpt|openai|perplexity|claude|gemini|copilot|poe\\.com|phind|you\\.com|meta\\.ai|deepseek|mistral|huggingface)";"))
+    .filter(domain => /^[a-z0-9.-]+\.[a-z]{2,63}$/.test(domain) && !domain.includes(".."))
+    .map(domain => domain.split(".").join("\\."))
     .sort((a, b) => b.length - a.length);
-  // Match a configured hostname, or a true subdomain, without substring false positives.
-  // For example, "notchatgpt.com" must not be classified as chatgpt.com.
+  // Match a configured hostname or its subdomains, without substring false positives.
+  // "notchatgpt.com" must not be classified as "chatgpt.com".
   return patterns.length ? "(^|\\.)(?:" + patterns.join("|") + ")$" : "^$";
 }
 
