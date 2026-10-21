@@ -1,6 +1,12 @@
 name: Harvey health check
 
 on:
+  push:
+    paths:
+      - "harvey-worker/**"
+      - "tests/**"
+      - ".github/workflows/harvey-health.yml"
+      - ".github/workflows/harvey-tests.yml"
   workflow_dispatch:
   schedule:
     - cron: "17 * * * *"
@@ -11,15 +17,31 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Check public health endpoint
+      - name: Wait for Harvey health endpoint
+        shell: bash
         run: |
-          set -eu
-          curl --fail --silent --show-error --max-time 30 https://tradinglab03.onrender.com/health -o health.json
-          python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; print('Harvey health OK; database:', d.get('database'), '; email sending:', d.get('email_sending'))"
+          set -uo pipefail
+          ok=0
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 15 https://tradinglab03.onrender.com/health -o health.json; then
+              if python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; print('Harvey health OK; database:', d.get('database'), '; email sending:', d.get('email_sending'))"; then
+                ok=1
+                break
+              fi
+            fi
+            echo "Health attempt $attempt/12 failed; retrying in 10 seconds."
+            sleep 10
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "Harvey did not become healthy after 12 attempts."
+            exit 1
+          fi
       - name: Confirm protected endpoints reject unauthenticated access
+        shell: bash
         run: |
-          set -eu
+          set -euo pipefail
           for path in metrics prospects approvals tasks email/status; do
             code=$(curl --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' "https://tradinglab03.onrender.com/$path")
             if [ "$code" != "401" ] && [ "$code" != "503" ]; then
