@@ -11,6 +11,58 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import httpx
+import json
+import urllib.request
+import urllib.error
+
+SHARED_BRAIN_URL = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain").rstrip("/")
+SHARED_BRAIN_AGENT_KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
+SHARED_BRAIN_AGENT_ID = os.getenv("SHARED_BRAIN_AGENT_ID", "harvey-render-worker")
+
+def shared_brain_request(payload: dict) -> dict:
+    """Best-effort shared memory client. Never logs secrets or stored content."""
+    if not SHARED_BRAIN_AGENT_KEY:
+        raise RuntimeError("Shared brain is not configured")
+    request = urllib.request.Request(
+        SHARED_BRAIN_URL,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "x-agent-key": SHARED_BRAIN_AGENT_KEY,
+            "x-agent-id": SHARED_BRAIN_AGENT_ID,
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            result = json.loads(response.read(128_000).decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        raise RuntimeError("Shared brain request failed") from None
+    if not isinstance(result, dict):
+        raise RuntimeError("Shared brain returned an invalid response")
+    return result
+
+def shared_brain_recall(query: str, limit: int = 5) -> list[dict]:
+    result = shared_brain_request({
+        "action": "recall", "project_key": "nexora",
+        "namespace": "company", "query": query[:120], "limit": min(10, max(1, limit)),
+    })
+    memories = result.get("memories")
+    return memories if isinstance(memories, list) else []
+
+def shared_brain_remember(memory_key: str, summary: str, content: dict, tags: list[str]) -> bool:
+    if not SHARED_BRAIN_AGENT_KEY:
+        return False
+    try:
+        result = shared_brain_request({
+            "action": "remember", "project_key": "nexora",
+            "namespace": "company", "memory_key": memory_key[:180],
+            "source_agent": SHARED_BRAIN_AGENT_ID, "summary": summary[:2000],
+            "content": content, "tags": tags[:10], "confidence": 0.75,
+        })
+        return result.get("saved") is True
+    except Exception:
+        return False
 
 APP_NAME = "Nexora Harvey Worker"
 DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
@@ -127,7 +179,8 @@ def health():
     return {"service": APP_NAME, "status": "ready", "time": now(),
             "database": "postgresql" if DATABASE_URL else "sqlite",
             "prospects": prospects, "pending_approvals": pending,
-            "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled")}
+            "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled"),
+            "shared_brain": "configured" if SHARED_BRAIN_AGENT_KEY else "not_configured"}
 
 @app.get("/metrics")
 def metrics(x_api_key: Optional[str] = Header(default=None)):
@@ -223,6 +276,12 @@ def create_draft(req: DraftRequest, x_api_key: Optional[str] = Header(default=No
         prospect = c.execute("SELECT * FROM prospects WHERE id=?", (req.prospect_id,)).fetchone()
         if not prospect: raise HTTPException(404, "Prospect not found.")
         name = prospect["name"]
+        # Shared memory is reference-only; current request and verified prospect record remain authoritative.
+        memory_count = 0
+        try:
+            memory_count = len(shared_brain_recall(f"{req.service} outreach guidelines", limit=3))
+        except Exception:
+            pass
         content = (f"Subject: A quick idea for {name}\n\n"
                    f"Hi {name} team,\n\nI came across your business while researching local companies. "
                    f"We help with {req.service}. {req.value_proposition}\n\n"
@@ -230,7 +289,16 @@ def create_draft(req: DraftRequest, x_api_key: Optional[str] = Header(default=No
                    "Best,\nNexora")
         approval_id = c.execute("INSERT INTO approvals(prospect_id,kind,content,status,created_at) VALUES(?,?,?,?,?)",
                                 (req.prospect_id, "email_draft", content, "pending", now())).lastrowid
+    shared_brain_remember(
+        f"harvey:draft:{approval_id}",
+        f"Harvey created a human-review outreach draft for {name}",
+        {"approval_id": approval_id, "prospect_id": req.prospect_id, "business_name": name,
+         "service": req.service, "status": "pending_review", "message_sent": False,
+         "shared_context_count": memory_count},
+        ["harvey", "outreach-draft", "human-review"],
+    )
     return {"approval_id": approval_id, "status": "pending", "content": content,
+            "shared_brain": "used" if SHARED_BRAIN_AGENT_KEY and memory_count else ("configured_no_matches" if SHARED_BRAIN_AGENT_KEY else "not_configured"),
             "message": "Draft saved for human review. No message has been sent."}
 
 @app.get("/approvals")
