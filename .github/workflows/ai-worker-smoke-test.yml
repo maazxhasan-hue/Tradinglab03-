@@ -4,10 +4,12 @@ on:
     branches: [main]
     paths:
       - "harvey-worker/**"
+      - "public-site/studio-agent.html"
       - ".github/workflows/ai-worker-smoke-test.yml"
   pull_request:
     paths:
       - "harvey-worker/**"
+      - "public-site/studio-agent.html"
       - ".github/workflows/ai-worker-smoke-test.yml"
   workflow_dispatch:
 permissions:
@@ -31,6 +33,24 @@ jobs:
           python -m pip install -r harvey-worker/requirements.txt pytest
       - name: Compile Python sources
         run: python -m compileall -q harvey-worker
+      - name: Validate Studio Agent inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          source = Path("public-site/studio-agent.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script\\b[^>]*>(.*?)</script\\s*>", source, flags=re.I | re.S)
+          if not scripts:
+              raise SystemExit("No inline scripts found in Studio Agent")
+          out = Path("/tmp/nexora-inline-scripts")
+          out.mkdir(exist_ok=True)
+          for index, script in enumerate(scripts):
+              target = out / f"script-{index}.js"
+              target.write_text(script, encoding="utf-8")
+              print(target)
+          print(f"Extracted {len(scripts)} inline scripts")
+          PY
+          for script in /tmp/nexora-inline-scripts/*.js; do node --check "$script"; done
       - name: Run worker regression tests
         working-directory: harvey-worker
         run: python -m pytest -q tests
