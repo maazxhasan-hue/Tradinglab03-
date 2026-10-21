@@ -112,3 +112,11 @@ This checkpoint documents the latest known project state from prior work; extern
 - NOT YET VERIFIED: machine secret configuration, authenticated API calls, end-to-end cross-agent recall, all workflow registry names, direct Harvey runtime memory integration, and automated tests. Therefore the whole agent fleet cannot yet be described as fully connected.
 - HQ theme redesign is deferred until shared brain auth and cross-agent tests pass, as requested.
 - Latest changelog commit: `acf84ee90bf77367208de5af617e3671c6b2f51a`.
+
+
+## Shared Brain follow-up — 2026-10-21
+- Added `tests/test_shared_brain_client.py` in commit `29b66029f1362b504abd8d3eb9ec44041d02a6c1`. Coverage targets client auth headers, no-credential failure, input bounds, malformed recall responses, and credential-safe HTTP errors. Tests have not yet been executed.
+- Added a follow-up note to `PROJECT_CONTINUITY/SHARED_BRAIN_IMPLEMENTATION_2026-10-21.md` in commit `adbaa7f1cd024158aa404e7d1be910650aa734dd`.
+- Still blocked on private configuration of `SHARED_BRAIN_AGENT_KEY` in Supabase Edge Function secrets and GitHub Actions secrets. Do not ask for the value in chat.
+- Shared machine key plus `x-agent-id` is not per-agent cryptographic identity; access to the shared key must be restricted. Workflow registry names and direct integrations (especially Harvey) remain unverified.
+- HQ theme redesign remains on hold until the shared brain is configured and cross-agent read/write is tested.
