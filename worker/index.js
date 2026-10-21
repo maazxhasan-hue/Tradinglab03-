@@ -464,7 +464,7 @@ const ANALYTICS_SITE_ID = "nexora-ai-public";
 const GA4_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GA4_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GA4_API_BASE = "https://analyticsdata.googleapis.com/v1beta/properties/";
-const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents"];
+const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents", "sessionsWithKeyEvents"];
 function aiSourceRegexForDomains(knownDomains) {
   const patterns = Array.from(knownDomains)
     .map(domain => String(domain || "").trim().toLowerCase())
@@ -640,7 +640,8 @@ function metricsFromRow(row) {
     page_views: gaNumber(row, 2, true) || 0,
     engaged_sessions: gaNumber(row, 3, true),
     engagement_rate: gaNumber(row, 4, false),
-    key_events: gaNumber(row, 5, false) || 0
+    key_events: gaNumber(row, 5, false) || 0,
+    conversion_sessions: gaNumber(row, 6, true)
   };
 }
 function reportRowDate(row) {
@@ -683,9 +684,11 @@ async function runVisitorAnalyticsSync(env) {
       runGa4Report(env, accessToken, {
         dateRanges: dailyRange,
         dimensions: [{ name: "date" }, { name: "landingPage" }, { name: "sessionSource" }, { name: "sessionMedium" }],
-        metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }]
+        metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }, { name: "sessionsWithKeyEvents" }]
       })
     ]);
+    const propertyTimezone = String(dailyReports[0].metadata && dailyReports[0].metadata.timeZone || "").trim();
+    if (!propertyTimezone) throw new Error("ga4_timezone_missing");
     const knownDomains = await getAiDomainSet(env);
     const dayRows = dailyReports[0].rows;
     const latestDate = dayRows.map(reportRowDate).filter(Boolean).sort().slice(-1)[0] || addDaysIso(new Date().toISOString().slice(0,10), -1);
@@ -695,8 +698,8 @@ async function runVisitorAnalyticsSync(env) {
       const date = reportRowDate(row);
       if (!date) continue;
       const m = metricsFromRow(row);
-      statements.push(env.DB.prepare("INSERT INTO visitor_daily_totals (site_id,snapshot_date,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,data_status,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?, 'complete',?) ON CONFLICT(site_id,snapshot_date,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,data_status='complete',fetched_at=excluded.fetched_at")
-        .bind(ANALYTICS_SITE_ID,date,m.total_users,m.sessions,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_totals (site_id,snapshot_date,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,data_status,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?, 'complete',?) ON CONFLICT(site_id,snapshot_date,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,data_status='complete',fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,m.total_users,m.sessions,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,m.conversion_sessions,fetchedAt));
     }
     for (const row of dailyReports[1].rows) {
       const date = reportRowDate(row);
@@ -706,8 +709,8 @@ async function runVisitorAnalyticsSync(env) {
       if (!date) continue;
       const m = metricsFromRow(row);
       const category = sourceCategory(source,medium,knownDomains);
-      statements.push(env.DB.prepare("INSERT INTO visitor_daily_sources (site_id,snapshot_date,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-        .bind(ANALYTICS_SITE_ID,date,source,medium,category,m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_sources (site_id,snapshot_date,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,source,medium,category,m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,m.conversion_sessions,fetchedAt));
     }
     for (const row of dailyReports[2].rows) {
       const dims = row.dimensionValues || [];
@@ -717,8 +720,8 @@ async function runVisitorAnalyticsSync(env) {
       const source = safeAnalyticsLabel(dims[2] && dims[2].value || "(not set)");
       const medium = safeAnalyticsLabel(dims[3] && dims[3].value || "(not set)",100);
       const category = sourceCategory(source,medium,knownDomains);
-      statements.push(env.DB.prepare("INSERT INTO visitor_daily_landing_pages (site_id,snapshot_date,provider,landing_path,source,medium,source_category,sessions,users,key_events,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-        .bind(ANALYTICS_SITE_ID,date,path,source,medium,category,gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,fetchedAt));
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_landing_pages (site_id,snapshot_date,provider,landing_path,source,medium,source_category,sessions,users,key_events,conversion_sessions,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,path,source,medium,category,gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,gaNumber(row,3,true),fetchedAt));
     }
     processed += statements.length;
     // GA4's distinct-user metric is not additive across days. Save exact range totals
@@ -737,7 +740,7 @@ async function runVisitorAnalyticsSync(env) {
         runGa4Report(env, accessToken, {
           dateRanges: range,
           dimensions: [{ name: "landingPage" }, { name: "sessionSource" }, { name: "sessionMedium" }],
-          metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }]
+          metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }, { name: "sessionsWithKeyEvents" }]
         }),
         runGa4Report(env, accessToken, {
           ...common,
@@ -766,35 +769,36 @@ async function runVisitorAnalyticsSync(env) {
         page_views: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,2,true)||0),0),
         engaged_sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,3,true)||0),0),
         engagement_rate: null,
-        key_events: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,5,false)||0),0)
+        key_events: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,5,false)||0),0),
+        conversion_sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,6,true)||0),0)
       };
-      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_snapshots (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-        .bind(ANALYTICS_SITE_ID,latestDate,days,totalMetrics.total_users,totalMetrics.sessions,totalMetrics.page_views,totalMetrics.engaged_sessions,totalMetrics.engagement_rate,totalMetrics.key_events,fetchedAt));
-      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_ai_metrics (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-        .bind(ANALYTICS_SITE_ID,latestDate,days,aiMetrics.total_users,aiMetrics.sessions,aiMetrics.page_views,aiMetrics.engaged_sessions,aiMetrics.engagement_rate,aiMetrics.key_events,fetchedAt));
+      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_snapshots (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,latestDate,days,totalMetrics.total_users,totalMetrics.sessions,totalMetrics.page_views,totalMetrics.engaged_sessions,totalMetrics.engagement_rate,totalMetrics.key_events,totalMetrics.conversion_sessions,fetchedAt));
+      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_ai_metrics (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,latestDate,days,aiMetrics.total_users,aiMetrics.sessions,aiMetrics.page_views,aiMetrics.engaged_sessions,aiMetrics.engagement_rate,aiMetrics.key_events,aiMetrics.conversion_sessions,fetchedAt));
       for (const row of period.sources.rows) {
         const dims = row.dimensionValues || [];
         const source = safeAnalyticsLabel(dims[0] && dims[0].value || "(not set)");
         const medium = safeAnalyticsLabel(dims[1] && dims[1].value || "(not set)",100);
         const m = metricsFromRow(row);
-        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_sources (site_id,snapshot_date,range_days,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-          .bind(ANALYTICS_SITE_ID,latestDate,days,source,medium,sourceCategory(source,medium,knownDomains),m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_sources (site_id,snapshot_date,range_days,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+          .bind(ANALYTICS_SITE_ID,latestDate,days,source,medium,sourceCategory(source,medium,knownDomains),m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,m.conversion_sessions,fetchedAt));
       }
       for (const row of period.landing.rows) {
         const dims = row.dimensionValues || [];
         const path = safeLandingPath(dims[0] && dims[0].value || "/");
         const source = safeAnalyticsLabel(dims[1] && dims[1].value || "(not set)");
         const medium = safeAnalyticsLabel(dims[2] && dims[2].value || "(not set)",100);
-        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_landing_pages (site_id,snapshot_date,range_days,provider,landing_path,source,medium,source_category,sessions,users,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
-          .bind(ANALYTICS_SITE_ID,latestDate,days,path,source,medium,sourceCategory(source,medium,knownDomains),gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,fetchedAt));
+        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_landing_pages (site_id,snapshot_date,range_days,provider,landing_path,source,medium,source_category,sessions,users,key_events,conversion_sessions,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,conversion_sessions=excluded.conversion_sessions,fetched_at=excluded.fetched_at")
+          .bind(ANALYTICS_SITE_ID,latestDate,days,path,source,medium,sourceCategory(source,medium,knownDomains),gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,gaNumber(row,3,true),fetchedAt));
       }
     }
     await batchAnalyticsWrites(env.DB, statements);
     processed += rangeWriteStatements.length;
     await batchAnalyticsWrites(env.DB, rangeWriteStatements);
-    await env.DB.prepare("UPDATE visitor_sync_runs SET status='success',finished_at=?,rows_processed=?,snapshot_date=?,error_code=NULL,error_message=NULL WHERE id=?")
-      .bind(new Date().toISOString(),processed,latestDate,runId).run();
-    return { ok: true, status: "success", snapshot_date: latestDate, rows_processed: processed, started_at: startedAt };
+    await env.DB.prepare("UPDATE visitor_sync_runs SET status='success',finished_at=?,rows_processed=?,snapshot_date=?,property_timezone=?,error_code=NULL,error_message=NULL WHERE id=?")
+      .bind(new Date().toISOString(),processed,latestDate,propertyTimezone,runId).run();
+    return { ok: true, status: "success", snapshot_date: latestDate, property_timezone: propertyTimezone, rows_processed: processed, started_at: startedAt };
   } catch (error) {
     console.error("Visitor analytics sync failed:", error && error.message ? error.message : "unknown error");
     return await recordAnalyticsSyncFailure(env,runId,error,processed,startedAt);
@@ -826,8 +830,8 @@ async function getVisitorAnalytics(request, env, cors) {
   if (![7,30,90].includes(days)) return response({error:"Choose a supported reporting period: 7, 30, or 90 days."},422,cors);
   const apiConfigured = analyticsApiConfigured(env);
   const websiteTrackingConfigured = analyticsWebsiteTagConfigured(env);
-  const lastSync = await env.DB.prepare("SELECT id,started_at,finished_at,status,rows_processed,snapshot_date,error_code,error_message FROM visitor_sync_runs WHERE provider='ga4' ORDER BY started_at DESC LIMIT 1").first();
-  const successful = await env.DB.prepare("SELECT snapshot_date,finished_at FROM visitor_sync_runs WHERE provider='ga4' AND status='success' AND snapshot_date IS NOT NULL ORDER BY finished_at DESC LIMIT 1").first();
+  const lastSync = await env.DB.prepare("SELECT id,started_at,finished_at,status,rows_processed,snapshot_date,property_timezone,error_code,error_message FROM visitor_sync_runs WHERE provider='ga4' ORDER BY started_at DESC LIMIT 1").first();
+  const successful = await env.DB.prepare("SELECT snapshot_date,finished_at,property_timezone FROM visitor_sync_runs WHERE provider='ga4' AND status='success' AND snapshot_date IS NOT NULL ORDER BY finished_at DESC LIMIT 1").first();
   if (!successful) return response({
     ok:true,
     configuration:{api_configured:apiConfigured,website_tracking_configured:websiteTrackingConfigured},
@@ -843,12 +847,12 @@ async function getVisitorAnalytics(request, env, cors) {
   },200,{...cors,"cache-control":"no-store"});
   const asOf = successful.snapshot_date;
   const from = addDaysIso(asOf,-(days-1));
-  const summary = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at FROM visitor_range_snapshots WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
-  const ai = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at FROM visitor_range_ai_metrics WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
-  const series = await env.DB.prepare("SELECT snapshot_date AS date,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events FROM visitor_daily_totals WHERE site_id=? AND provider='ga4' AND snapshot_date BETWEEN ? AND ? ORDER BY snapshot_date").bind(ANALYTICS_SITE_ID,from,asOf).all();
-  const sources = await env.DB.prepare("SELECT source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 60").bind(ANALYTICS_SITE_ID,asOf,days).all();
-  const landingPages = await env.DB.prepare("SELECT landing_path,source,medium,source_category,sessions,users,key_events FROM visitor_range_landing_pages WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
-  const aiSources = await env.DB.prepare("SELECT source,medium,sessions,users,key_events FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' AND source_category='ai_referral' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const summary = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at FROM visitor_range_snapshots WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
+  const ai = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions,fetched_at FROM visitor_range_ai_metrics WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
+  const series = await env.DB.prepare("SELECT snapshot_date AS date,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions FROM visitor_daily_totals WHERE site_id=? AND provider='ga4' AND snapshot_date BETWEEN ? AND ? ORDER BY snapshot_date").bind(ANALYTICS_SITE_ID,from,asOf).all();
+  const sources = await env.DB.prepare("SELECT source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,conversion_sessions FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 60").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const landingPages = await env.DB.prepare("SELECT landing_path,source,medium,source_category,sessions,users,key_events,conversion_sessions FROM visitor_range_landing_pages WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const aiSources = await env.DB.prepare("SELECT source,medium,sessions,users,key_events,conversion_sessions FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' AND source_category='ai_referral' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
   const aiSessions = Number(ai && ai.sessions || 0);
   const allSessions = Number(summary && summary.sessions || 0);
   return response({
@@ -858,13 +862,14 @@ async function getVisitorAnalytics(request, env, cors) {
     from,
     to:asOf,
     as_of:asOf,
-    metrics:summary || null,
-    ai_metrics:ai || null,
-    ai_share_of_sessions:allSessions > 0 ? aiSessions / allSessions : 0,
-    series:series.results || [],
-    sources:sources.results || [],
-    ai_sources:aiSources.results || [],
-    landing_pages:landingPages.results || [],
+    metrics:summary ? {...summary, conversion_rate: Number(summary.sessions) > 0 && summary.conversion_sessions !== null && summary.conversion_sessions !== undefined ? Number(summary.conversion_sessions) / Number(summary.sessions) : null} : null,
+    ai_metrics:ai ? {...ai, conversion_rate: Number(ai.sessions) > 0 && ai.conversion_sessions !== null && ai.conversion_sessions !== undefined ? Number(ai.conversion_sessions) / Number(ai.sessions) : null} : null,
+    ai_share_of_sessions:allSessions > 0 ? aiSessions / allSessions : null,
+    property_timezone:successful.property_timezone || (lastSync && lastSync.property_timezone) || null,
+    series:(series.results || []).map(row => ({...row, conversion_rate: Number(row.sessions) > 0 && row.conversion_sessions !== null && row.conversion_sessions !== undefined ? Number(row.conversion_sessions) / Number(row.sessions) : null})),
+    sources:(sources.results || []).map(row => ({...row, conversion_rate: Number(row.sessions) > 0 && row.conversion_sessions !== null && row.conversion_sessions !== undefined ? Number(row.conversion_sessions) / Number(row.sessions) : null})),
+    ai_sources:(aiSources.results || []).map(row => ({...row, conversion_rate: Number(row.sessions) > 0 && row.conversion_sessions !== null && row.conversion_sessions !== undefined ? Number(row.conversion_sessions) / Number(row.sessions) : null})),
+    landing_pages:(landingPages.results || []).map(row => ({...row, conversion_rate: Number(row.sessions) > 0 && row.conversion_sessions !== null && row.conversion_sessions !== undefined ? Number(row.conversion_sessions) / Number(row.sessions) : null})),
     sync:lastSync || null,
     message:!websiteTrackingConfigured ? "GA4 reporting access is configured, but the public website Measurement ID is missing. Add the verified G- ID to the deployment variable before treating these reports as complete website analytics." : ""
   },200,{...cors,"cache-control":"no-store"});

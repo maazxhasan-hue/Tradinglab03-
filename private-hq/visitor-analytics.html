@@ -56,7 +56,9 @@
       <div class="va-metric"><div class="va-metric-label">PAGE VIEWS</div><div class="va-metric-value" data-metric="page_views">—</div><div class="va-metric-note">GA4 page views</div></div>
       <div class="va-metric"><div class="va-metric-label">ENGAGED SESSIONS</div><div class="va-metric-value" data-metric="engaged_sessions">—</div><div class="va-metric-note">GA4 engagement definition</div></div>
       <div class="va-metric"><div class="va-metric-label">ENGAGEMENT RATE</div><div class="va-metric-value" data-metric="engagement_rate">—</div><div class="va-metric-note">Engaged sessions / sessions</div></div>
-      <div class="va-metric"><div class="va-metric-label">KEY EVENTS</div><div class="va-metric-value" data-metric="key_events">—</div><div class="va-metric-note">Only events configured as GA4 key events</div></div>
+      <div class="va-metric"><div class="va-metric-label">KEY EVENTS</div><div class="va-metric-value" data-metric="key_events">—</div><div class="va-metric-note">Event occurrences, not unique converting sessions</div></div>
+      <div class="va-metric"><div class="va-metric-label">CONVERTING SESSIONS</div><div class="va-metric-value" data-metric="conversion_sessions">—</div><div class="va-metric-note">Sessions containing at least one GA4 key event</div></div>
+      <div class="va-metric"><div class="va-metric-label">CONVERSION RATE</div><div class="va-metric-value" data-metric="conversion_rate">—</div><div class="va-metric-note">Converting sessions / sessions</div></div>
     </div>
   </section>
   <div class="va-columns">
@@ -71,21 +73,22 @@
         <div class="va-metric"><div class="va-metric-label">AI USERS</div><div class="va-metric-value" data-metric="ai_users">—</div><div class="va-metric-note">Unique users in AI-source filter</div></div>
         <div class="va-metric"><div class="va-metric-label">AI SESSIONS</div><div class="va-metric-value" data-metric="ai_sessions">—</div><div class="va-metric-note">Identifiable AI referrals</div></div>
         <div class="va-metric"><div class="va-metric-label">SESSION SHARE</div><div class="va-metric-value" data-metric="ai_share">—</div><div class="va-metric-note">AI sessions / total sessions</div></div>
-        <div class="va-metric"><div class="va-metric-label">AI KEY EVENTS</div><div class="va-metric-value" data-metric="ai_key_events">—</div><div class="va-metric-note">Key events attributed to AI source filter</div></div>
+        <div class="va-metric"><div class="va-metric-label">AI KEY EVENTS</div><div class="va-metric-value" data-metric="ai_key_events">—</div><div class="va-metric-note">Key-event occurrences attributed to AI sources</div></div>
+        <div class="va-metric"><div class="va-metric-label">AI CONVERSION RATE</div><div class="va-metric-value" data-metric="ai_conversion_rate">—</div><div class="va-metric-note">AI converting sessions / AI sessions</div></div>
       </div>
       <h3>Detected AI sources</h3>
-      <div class="va-table-wrap"><table><thead><tr><th>AI platform / source</th><th>Medium</th><th>Sessions</th><th>Users*</th><th>Key events</th></tr></thead><tbody data-table="ai-sources"><tr><td colspan="5" class="va-table-empty">Load a report to see AI referrals.</td></tr></tbody></table></div>
+      <div class="va-table-wrap"><table><thead><tr><th>AI platform / source</th><th>Medium</th><th>Sessions</th><th>Users*</th><th>Key events</th><th>Converting sessions</th><th>Conversion rate</th></tr></thead><tbody data-table="ai-sources"><tr><td colspan="7" class="va-table-empty">Load a report to see AI referrals.</td></tr></tbody></table></div>
       <p class="va-footnote">*Source-level users are not additive across different source rows. The AI total uses a separate filtered GA4 report.</p>
     </section>
   </div>
   <section class="va-panel" aria-labelledby="sourcesTitle">
     <h2 id="sourcesTitle">Traffic sources</h2>
-    <div class="va-table-wrap"><table><thead><tr><th>Source</th><th>Medium</th><th>Category</th><th>Sessions</th><th>Users*</th><th>Key events</th></tr></thead><tbody data-table="sources"><tr><td colspan="6" class="va-table-empty">Load a report to see traffic sources.</td></tr></tbody></table></div>
+    <div class="va-table-wrap"><table><thead><tr><th>Source</th><th>Medium</th><th>Category</th><th>Sessions</th><th>Users*</th><th>Key events</th><th>Converting sessions</th><th>Conversion rate</th></tr></thead><tbody data-table="sources"><tr><td colspan="8" class="va-table-empty">Load a report to see traffic sources.</td></tr></tbody></table></div>
     <p class="va-footnote">*Distinct users in different source rows can overlap. Use the period total at the top for the correct overall unique-user count.</p>
   </section>
   <section class="va-panel" aria-labelledby="landingTitle">
     <h2 id="landingTitle">Top landing pages</h2>
-    <div class="va-table-wrap"><table><thead><tr><th>Landing path</th><th>Source</th><th>Medium</th><th>Sessions</th><th>Key events</th></tr></thead><tbody data-table="landing-pages"><tr><td colspan="5" class="va-table-empty">Load a report to see landing pages.</td></tr></tbody></table></div>
+    <div class="va-table-wrap"><table><thead><tr><th>Landing path</th><th>Source</th><th>Medium</th><th>Sessions</th><th>Key events</th><th>Converting sessions</th><th>Conversion rate</th></tr></thead><tbody data-table="landing-pages"><tr><td colspan="7" class="va-table-empty">Load a report to see landing pages.</td></tr></tbody></table></div>
   </section>
   <section class="va-panel">
     <h2>Sync health</h2>

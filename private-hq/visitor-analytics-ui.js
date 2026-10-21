@@ -58,6 +58,9 @@
       engaged_sessions: metrics ? metrics.engaged_sessions : null,
       engagement_rate: metrics ? formatPercent(metrics.engagement_rate) : null,
       key_events: metrics ? metrics.key_events : null,
+      conversion_sessions: metrics ? metrics.conversion_sessions : null,
+      conversion_rate: metrics ? formatPercent(metrics.conversion_rate) : null,
+      ai_conversion_rate: ai ? formatPercent(ai.conversion_rate) : null,
       ai_users: ai ? ai.total_users : null,
       ai_sessions: ai ? ai.sessions : null,
       ai_share: data && metrics ? formatPercent(data.ai_share_of_sessions) : null,
@@ -71,7 +74,7 @@
     const periodLabel = root.querySelector("[data-period-label]");
     if (periodLabel) {
       periodLabel.textContent = data && data.from && data.to
-        ? data.from + " to " + data.to + " · " + data.days + " days"
+        ? data.from + " to " + data.to + " · " + data.days + " days" + (data.property_timezone ? " · GA4 timezone: " + data.property_timezone : " · GA4 timezone not verified")
         : "No successful GA4 snapshot yet";
     }
     const syncLabel = root.querySelector("[data-sync-label]");
@@ -90,6 +93,7 @@
         messages.push("Reporting credentials are configured, but the public website Measurement ID is not set. Add the verified G-… Measurement ID as the NEXORA_GA4_MEASUREMENT_ID repository variable. No fake visitor numbers are shown.");
       }
       if (data && data.message) messages.push(data.message);
+      if (data && data.sync && data.sync.status === "success" && !data.property_timezone) messages.push("The latest successful sync has no recorded GA4 property timezone. Run a fresh sync after deploying the timezone validation update.");
       warning.textContent = messages.join(" ");
       warning.hidden = messages.length === 0;
     }
@@ -136,7 +140,8 @@
         const td = element("td");
         let value = row[column.key];
         if (column.key === "source_category") value = prettyCategory(value);
-        else if (["sessions", "users", "page_views", "key_events"].includes(column.key)) value = formatNumber(value);
+        else if (column.key === "conversion_rate") value = formatPercent(value);
+        else if (["sessions", "users", "page_views", "key_events", "conversion_sessions"].includes(column.key)) value = formatNumber(value);
         else if (column.key === "landing_path") value = String(value || "/");
         else value = value === null || value === undefined || value === "" ? "—" : value;
         td.textContent = String(value);
@@ -180,15 +185,15 @@
       renderRows(root, "[data-table='sources']", data.sources || [], [
         { key: "source", label: "Source" }, { key: "medium", label: "Medium" },
         { key: "source_category", label: "Category" }, { key: "sessions", label: "Sessions" },
-        { key: "users", label: "Users" }, { key: "key_events", label: "Key events" }
+        { key: "users", label: "Users" }, { key: "key_events", label: "Key events" }, { key: "conversion_sessions", label: "Converting sessions" }, { key: "conversion_rate", label: "Conversion rate" }
       ], "No source breakdown is available.");
       renderRows(root, "[data-table='ai-sources']", data.ai_sources || [], [
         { key: "source", label: "AI platform/source" }, { key: "medium", label: "Medium" },
-        { key: "sessions", label: "Sessions" }, { key: "users", label: "Users" }, { key: "key_events", label: "Key events" }
+        { key: "sessions", label: "Sessions" }, { key: "users", label: "Users" }, { key: "key_events", label: "Key events" }, { key: "conversion_sessions", label: "Converting sessions" }, { key: "conversion_rate", label: "Conversion rate" }
       ], "No identifiable AI-platform referrals were recorded in this period.");
       renderRows(root, "[data-table='landing-pages']", data.landing_pages || [], [
         { key: "landing_path", label: "Landing page" }, { key: "source", label: "Source" },
-        { key: "medium", label: "Medium" }, { key: "sessions", label: "Sessions" }, { key: "key_events", label: "Key events" }
+        { key: "medium", label: "Medium" }, { key: "sessions", label: "Sessions" }, { key: "key_events", label: "Key events" }, { key: "conversion_sessions", label: "Converting sessions" }, { key: "conversion_rate", label: "Conversion rate" }
       ], "No landing-page data is available.");
       if (data && data.message && (!data.metrics || !data.configuration || !data.configuration.api_configured)) {
         setStatus(root, data.message, "warn");
