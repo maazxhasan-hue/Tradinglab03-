@@ -10,9 +10,14 @@ binding = "AI"
 ALLOWED_ORIGINS = "__SITE_ORIGINS__"
 NOTIFY_EMAIL = "__NOTIFY_EMAIL__"
 FROM_EMAIL = "__FROM_EMAIL__"
+GA4_PROPERTY_ID = "__GA4_PROPERTY_ID__"
+GA4_MEASUREMENT_ID = "__GA4_MEASUREMENT_ID__"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "tradinglab03-intake"
 database_id = "__D1_DATABASE_ID__"
 migrations_dir = "migrations"
+
+[triggers]
+crons = ["15 2 * * *"]
