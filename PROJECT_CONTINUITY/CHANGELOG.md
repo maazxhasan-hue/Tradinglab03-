@@ -19,3 +19,9 @@
 - Created `PROJECT_CONTINUITY/SESSION_LOG_2026-10-21.md` with the current audit findings, verified IDs/statuses, blockers, safe secret-handling rules, and exact resume tasks.
 - Commit: `f559c8f135432fcbdb28a892ba6a2e28346973ce`.
 - The file is a durable work log, not a verbatim copy of every chat message. Future meaningful work should be appended to the changelog and reflected in STATE.md.
+
+## 2026-10-21 — Shared brain requirement
+- Added `PROJECT_CONTINUITY/SHARED_BRAIN_ARCHITECTURE.md` to specify that all Nexora agents should share a common brain through a central API and persistent store, with agent identity, access isolation, provenance, versioning, and audit logging.
+- Updated `STATE.md` to include this requirement and the implementation plan.
+- Commits: architecture `eb8d3889965c4fa5d9be291a7da85839de12cce4`; state `9b1763f430332ce255ec682177deff9ada9add2a`.
+- Status is requirement documented only. Agent inventory, shared API/store implementation, integrations, and cross-agent tests are still pending.
