@@ -25,3 +25,10 @@
 - Updated `STATE.md` to include this requirement and the implementation plan.
 - Commits: architecture `eb8d3889965c4fa5d9be291a7da85839de12cce4`; state `9b1763f430332ce255ec682177deff9ada9add2a`.
 - Status is requirement documented only. Agent inventory, shared API/store implementation, integrations, and cross-agent tests are still pending.
+
+## 2026-10-21 — Shared Brain v1 deployed
+- Applied Supabase migration `agent_shared_brain_memory` to project `ydstbryiwiigzlqbrcpo`, creating user-scoped memory records with RLS, project/namespace scope, provenance, confidence, versioning, expiry, and indexes.
+- Deployed Edge Function `shared-brain` (ID `683fba19-d8aa-490f-8a61-0a08348da0db`, version 1, ACTIVE, JWT verification enabled). Supports authenticated `recall` and `remember`; validates caller through Supabase Auth and uses caller JWT for RLS-scoped database access.
+- Added API contract at `docs/SHARED_BRAIN_API.md` (commit `75c1aadd9420f88669ed1fd27f07fb6c481f1a44`) and implementation checkpoint at `PROJECT_CONTINUITY/SHARED_BRAIN_IMPLEMENTATION_2026-10-21.md` (commit `4f3c3e7ff06cf75585ebd520a81844b1805e0370`).
+- Migration tool returned success. Edge deployment returned ACTIVE. Authenticated end-to-end read/write and cross-agent integration are NOT yet verified; do not claim every agent is connected.
+- Known follow-ups: test with real signed-in user session, improve concurrent version increments/expiry validation, inventory each agent runtime, design separate server-to-server identity where needed, then integrate and run cross-agent isolation tests.
