@@ -48,6 +48,7 @@ jobs:
         env:
           SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
           SHARED_BRAIN_AGENT_ID: github-workflow-registry
+          SHARED_BRAIN_STRICT: "1"
           SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
           SOURCE_STATUS: ${{ github.event.workflow_run.conclusion }}
           SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
@@ -55,8 +56,8 @@ jobs:
           SOURCE_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
         run: |
           if [ -z "$SHARED_BRAIN_AGENT_KEY" ]; then
-            echo "Shared brain registry skipped: configure SHARED_BRAIN_AGENT_KEY in repository Actions secrets and Supabase Edge Function secrets."
-            exit 0
+            echo "::error::Shared Brain registry cannot verify or sync because SHARED_BRAIN_AGENT_KEY is missing. Configure the repository Actions secret and matching Supabase Edge Function secret."
+            exit 1
           fi
           STATUS="$SOURCE_STATUS"
           case "$STATUS" in success|failure|cancelled|skipped) ;; *) STATUS=unknown ;; esac
