@@ -138,7 +138,7 @@ jobs:
           }))
           PY
             code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
-              --max-time 45 "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
+              --max-time 45 "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=$GEMINI_API_KEY" \
               -H "Content-Type: application/json" --data-binary @request.json)
           elif [ -n "$LLM_API_KEY" ] && [ -n "$LLM_BASE_URL" ]; then
             BASE_URL="${LLM_BASE_URL%/}"
