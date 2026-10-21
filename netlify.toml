@@ -1,11 +1,29 @@
 [[redirects]]
+  from = "/private-hq"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
   from = "/private-hq/*"
   to = "/404.html"
   status = 404
   force = true
 
 [[redirects]]
+  from = "/owner-console"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
   from = "/owner-console/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/admin.html"
   to = "/404.html"
   status = 404
   force = true
