@@ -82,12 +82,15 @@ jobs:
                   subprocess.run(["node", "--check", str(path)], check=True)
           worker = pathlib.Path("worker/index.js").read_text(encoding="utf-8")
           subprocess.run(["node", "--input-type=module", "--check"], input=worker, text=True, check=True)
+          for name in ("index.html", "marketing.html", "inbox.html"):
+              page = pathlib.Path("dashboard") / name
+              content = page.read_text(encoding="utf-8").lower()
+              if "vercel.app" in content or "location.replace" in content:
+                  raise SystemExit(f"Retired Vercel redirect remains in {page}")
           inbox = pathlib.Path("dashboard/inbox.html").read_text(encoding="utf-8").lower()
-          if "https://nexora-private-hq.vercel.app/" not in inbox or "location.replace" not in inbox:
-              raise SystemExit("Public owner inbox must redirect to the access-protected private HQ")
-          if "fetch(" in inbox or "api-key" in inbox:
-              raise SystemExit("Public owner inbox must not include the old interactive inbox application")
-          print("Public owner inbox redirect and browser scripts validated.")
+          if "fetch(" in inbox or "api-key" in inbox or "/api/admin/submissions" in inbox:
+              raise SystemExit("Public owner inbox must not include the interactive private inbox application")
+          print("Public legacy pages contain no retired Vercel redirects or private inbox code.")
           print("Browser JavaScript and Worker module syntax passed.")
           PY
       - name: Run intake Worker behavior tests
