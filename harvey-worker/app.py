@@ -409,7 +409,7 @@ AGENT_ROLES = {
     "Testing & QA", "Security & Privacy", "Release & DevOps", "Documentation",
     "Project Operations", "Finance & Revenue", "Policy & Compliance", "Knowledge & Memory",
     "Workflow Automation", "Customer Support", "Experiment & Learning",
-    "Trading Systems Monitor", "Reverse Writing Agent"
+    "Trading Systems Monitor", "Reverse Writing Agent", "Studio Agent"
 }
 
 @app.get("/brain/status")
