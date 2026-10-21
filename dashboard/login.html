@@ -12,7 +12,7 @@ const endpoint="https://tradinglab03-intake.maazxhasan.workers.dev";
 const params=new URLSearchParams(location.search);
 let mode=params.get("mode")==="login"?"login":"signup";
 const nextRaw=params.get("next")||"website.html#project";
-const next=nextRaw.startsWith("website.html")||nextRaw.startsWith("/dashboard/website.html")?nextRaw:"website.html#project";
+const next=(nextRaw.startsWith("website.html")||nextRaw==="referrals.html"||nextRaw.startsWith("/dashboard/website.html")||nextRaw.startsWith("/dashboard/referrals.html"))?nextRaw:"website.html#project";
 const form=document.getElementById("authForm"),heading=document.getElementById("heading"),intro=document.getElementById("intro"),submit=document.getElementById("submit"),switchBtn=document.getElementById("switch"),status=document.getElementById("status"),password=document.getElementById("password");
 function render(){const login=mode==="login";heading.textContent=login?"Welcome back.":"Create your account.";intro.textContent=login?"Log in to continue to your Nexora project workspace.":"Create a Nexora account before submitting a project brief.";submit.textContent=login?"Log in":"Create account";switchBtn.textContent=login?"New to Nexora? Create an account":"Already have an account? Log in";password.autocomplete=login?"current-password":"new-password";password.minLength=login?1:12;status.textContent=login?"Your account protects project submissions.":"Use a unique password of at least 12 characters.";status.className="status";}
 switchBtn.addEventListener("click",()=>{mode=mode==="login"?"signup":"login";render();});
