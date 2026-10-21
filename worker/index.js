@@ -139,7 +139,7 @@ async function accountFromRequest(request, env) {
   if (!token || token.length < 40 || token.length > 200) return null;
   const tokenHash = await sha256Hex(token);
   return await env.DB.prepare(
-    "SELECT a.id, a.email FROM client_sessions s JOIN client_accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ? AND a.disabled = 0"
+    "SELECT a.id, a.email, a.referral_code FROM client_sessions s JOIN client_accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ? AND a.disabled = 0"
   ).bind(tokenHash, new Date().toISOString()).first();
 }
 async function authRateAllowed(request, env, action) {
@@ -149,6 +149,65 @@ async function authRateAllowed(request, env, action) {
   if (Number(row && row.total || 0) >= 10) return false;
   await env.DB.prepare("INSERT INTO client_auth_attempts (id, ip_hash, created_at) VALUES (?, ?, ?)").bind(crypto.randomUUID(), ipHash, new Date().toISOString()).run();
   return true;
+}
+function newReferralCode() {
+  return "NX" + randomHex(5).toUpperCase();
+}
+async function getMyReferrals(request, env, cors) {
+  const account = await accountFromRequest(request, env);
+  if (!account) return response({error:"Sign in to view your referral dashboard."}, 401, cors);
+  let code = account.referral_code;
+  if (!code) {
+    code = newReferralCode();
+    await env.DB.prepare("UPDATE client_accounts SET referral_code = ? WHERE id = ? AND referral_code IS NULL")
+      .bind(code, account.id).run();
+    const refreshed = await env.DB.prepare("SELECT referral_code FROM client_accounts WHERE id = ?").bind(account.id).first();
+    code = refreshed && refreshed.referral_code ? refreshed.referral_code : code;
+  }
+  const counts = await env.DB.prepare(
+    "SELECT COUNT(*) AS total, SUM(CASE WHEN status IN ('qualified','converted') THEN 1 ELSE 0 END) AS qualified, SUM(CASE WHEN status = 'converted' THEN 1 ELSE 0 END) AS converted FROM referrals WHERE referrer_account_id = ?"
+  ).bind(account.id).first();
+  const commissions = await env.DB.prepare(
+    "SELECT status, COALESCE(SUM(commission_amount_paise),0) AS amount_paise, COUNT(*) AS count FROM referral_commissions c JOIN referrals r ON r.id = c.referral_id WHERE r.referrer_account_id = ? GROUP BY status"
+  ).bind(account.id).all();
+  return response({
+    ok:true,
+    referral_code:code,
+    referral_url:"https://nexora-ai-public.netlify.app/dashboard/login.html?mode=signup&ref=" + encodeURIComponent(code),
+    referrals:{total:Number(counts && counts.total || 0),qualified:Number(counts && counts.qualified || 0),converted:Number(counts && counts.converted || 0)},
+    commissions:(commissions.results || []).map(row=>({status:row.status,amount_paise:Number(row.amount_paise||0),count:Number(row.count||0)})),
+    note:"Referral rewards are not guaranteed. Commission is payable only after Nexora verifies actual payment received and approves the commission."
+  }, 200, {...cors,"cache-control":"no-store"});
+}
+async function createReferralCommission(request, env, cors) {
+  if ((request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY || !env.ADMIN_API_KEY)
+    return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  let body;
+  try { body = JSON.parse(await readLimitedBody(request, 3000)); } catch { return response({error:"Invalid JSON."},400,cors); }
+  const referralId=clean(body && body.referral_id,36);
+  const sourceType=clean(body && body.source_type,32);
+  const sourceReference=clean(body && body.source_reference,160);
+  const gross=Number(body && body.gross_amount_paise);
+  const rate=Number(body && body.commission_rate_bps);
+  const verified=body && body.payment_verified === true;
+  const types=new Set(["trading_course","website","landing_page","ai_tool","custom_project","other"]);
+  if (!/^[0-9a-f-]{36}$/i.test(referralId) || !types.has(sourceType) || !sourceReference ||
+      !Number.isSafeInteger(gross) || gross < 1 || !Number.isInteger(rate) || rate < 0 || rate > 10000 || !verified)
+    return response({error:"Provide a valid referral, unique sale reference, INR amount in paise, rate in basis points, and explicit confirmation that payment was received."},422,cors);
+  const referral=await env.DB.prepare("SELECT id FROM referrals WHERE id = ?").bind(referralId).first();
+  if (!referral) return response({error:"Referral not found."},404,cors);
+  const commission=Math.floor(gross*rate/10000);
+  const now=new Date().toISOString();
+  const id=crypto.randomUUID();
+  try {
+    await env.DB.prepare("INSERT INTO referral_commissions (id,referral_id,source_type,source_reference,gross_amount_paise,commission_rate_bps,commission_amount_paise,currency,status,payment_verified_at,approved_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,'INR','approved',?,?,?,?)")
+      .bind(id,referralId,sourceType,sourceReference,gross,rate,commission,now,now,now,now).run();
+    await env.DB.prepare("INSERT INTO referral_audit_log (id,actor_type,actor_id,event_type,referral_id,commission_id,details_json,created_at) VALUES (?,'owner','admin-api','commission_approved',?,?,?,?)")
+      .bind(crypto.randomUUID(),referralId,id,JSON.stringify({source_type:sourceType,gross_amount_paise:gross,commission_rate_bps:rate}),now).run();
+  } catch {
+    return response({error:"Commission could not be recorded; sale reference may already exist."},409,cors);
+  }
+  return response({ok:true,commission_id:id,commission_amount_paise:commission,status:"approved"},201,{...cors,"cache-control":"no-store"});
 }
 async function handleAuth(request, env, cors, action) {
   if (!originAllowed(request, env)) return response({error:"This origin is not allowed."}, 403, cors);
@@ -176,10 +235,19 @@ async function handleAuth(request, env, cors, action) {
     const salt = randomHex(16);
     const hash = await passwordHash(password, salt);
     const id = crypto.randomUUID();
+    const ownReferralCode = newReferralCode();
+    const referralCode = clean(body.referral_code, 32).toUpperCase();
     try {
-      await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled) VALUES (?,?,?,?,?,0)")
-        .bind(id,email,salt,hash,new Date().toISOString()).run();
-      account = {id,email};
+      await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled,referral_code) VALUES (?,?,?,?,?,0,?)")
+        .bind(id,email,salt,hash,new Date().toISOString(),ownReferralCode).run();
+      account = {id,email,referral_code:ownReferralCode};
+      if (referralCode && /^[A-Z0-9]{4,32}$/.test(referralCode)) {
+        const referrer = await env.DB.prepare("SELECT id FROM client_accounts WHERE referral_code = ? AND disabled = 0").bind(referralCode).first();
+        if (referrer && referrer.id !== id) {
+          await env.DB.prepare("INSERT OR IGNORE INTO referrals (id,referrer_account_id,referred_account_id,referral_code,status,created_at) VALUES (?,?,?,?, 'registered', ?)")
+            .bind(crypto.randomUUID(),referrer.id,id,referralCode,new Date().toISOString()).run();
+        }
+      }
     } catch {
       return response({error:"An account may already exist for this email. Try signing in instead."}, 409, cors);
     }
@@ -357,6 +425,14 @@ export default {
     if (authMatch) {
       try { return await handleAuth(request, env, cors, authMatch[1]); }
       catch (error) { console.error("Nexora client authentication failed:", error && error.message ? error.message : "unknown error"); return response({error:"Authentication service temporarily unavailable."}, 503, cors); }
+    }
+    if (url.pathname === "/api/referrals/me" && request.method === "GET") {
+      try { return await getMyReferrals(request, env, cors); }
+      catch (error) { console.error("Referral dashboard failed:", error && error.message ? error.message : "unknown error"); return response({error:"Referral dashboard temporarily unavailable."},503,cors); }
+    }
+    if (url.pathname === "/api/admin/referral-commissions" && request.method === "POST") {
+      try { return await createReferralCommission(request, env, cors); }
+      catch (error) { console.error("Referral commission operation failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not record commission."},503,cors); }
     }
     if (url.pathname === "/api/chat" && request.method === "POST") {
       if (!originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
