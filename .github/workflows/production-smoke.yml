@@ -33,13 +33,19 @@ jobs:
           grep -qi "Nexora" /tmp/nexora-home.html
           echo "PASS public Nexora website returned HTTP 200."
 
-      - name: Verify Render static workspace does not expose private HQ
+      - name: Verify Render HQ exposes only privacy-safe operational telemetry
         env:
           RENDER_STATIC_URL: https://nexora-internal-hq.onrender.com
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$RENDER_STATIC_URL/index.html" -o /tmp/nexora-render-index.html
-          grep -Fq "PRIVATE HQ HOSTING NOT CONFIGURED" /tmp/nexora-render-index.html
+          grep -Fq "NEURAL COMMAND" /tmp/nexora-render-index.html
+          grep -Fq "/public-status" /tmp/nexora-render-index.html
+          grep -Eqi 'name="robots" content="noindex,nofollow,noarchive"' /tmp/nexora-render-index.html
+          if grep -Eqi 'HARVEY_API_KEY|SHARED_BRAIN_AGENT_KEY|OPENAI_API_KEY|task inputs|prospect details' /tmp/nexora-render-index.html; then
+            echo "::error::Sensitive operational data or secret-like configuration found in the public HQ document."
+            exit 1
+          fi
           if grep -Eqi 'vercel\\.app|location\\.replace' /tmp/nexora-render-index.html; then
             echo "::error::Legacy Vercel redirect remains in Render public index."
             exit 1
@@ -59,7 +65,7 @@ jobs:
               exit 1
             fi
           done
-          echo "PASS Render public static pages do not expose private UI or redirect to Vercel."
+          echo "PASS Render HQ exposes only the privacy-safe telemetry interface; private subpaths remain unavailable and no legacy Vercel redirect exists."
 
       - name: Verify Harvey health and email safety gate
         run: |
@@ -98,6 +104,6 @@ jobs:
             echo "## Nexora production smoke checks"
             echo
             echo "- Checks the current public Netlify website, Render static safety boundary, and Harvey backend."
-            echo "- The private HQ remains intentionally unavailable until an access-protected non-Vercel hosting route is configured."
+            echo "- The Render HQ is a noindex operational dashboard. Its public endpoint is limited to aggregate counts, role definitions, and status metadata; secrets and task/prospect content must never be exposed."
             echo "- This is a smoke check, not proof that every agent role, social integration, or payment flow is autonomous."
           } >> "$GITHUB_STEP_SUMMARY"
