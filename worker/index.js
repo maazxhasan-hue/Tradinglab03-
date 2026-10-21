@@ -542,6 +542,7 @@ async function runGa4Report(env, accessToken, reportBody) {
   let dimensionHeaders = [];
   let metricHeaders = [];
   let metadata = {};
+  let totals = [];
   do {
     const body = { ...reportBody, limit: String(pageSize), offset: String(offset) };
     const result = await fetch(url, {
@@ -564,13 +565,14 @@ async function runGa4Report(env, accessToken, reportBody) {
       dimensionHeaders = Array.isArray(data.dimensionHeaders) ? data.dimensionHeaders : [];
       metricHeaders = Array.isArray(data.metricHeaders) ? data.metricHeaders : [];
       metadata = data.metadata || {};
+      totals = Array.isArray(data.totals) ? data.totals : [];
     }
     allRows = allRows.concat(data.rows);
     if (allRows.length >= expectedRows || data.rows.length === 0) break;
     offset = allRows.length;
   } while (offset < maxRows);
   if (expectedRows !== null && allRows.length < expectedRows) throw new Error("ga4_report_row_limit_exceeded");
-  return { rows: allRows, rowCount: allRows.length, dimensionHeaders, metricHeaders, metadata };
+  return { rows: allRows, rowCount: allRows.length, dimensionHeaders, metricHeaders, metadata, totals };
 }
 function analyticsDate(value) {
   const text = String(value || "");
@@ -731,6 +733,8 @@ async function runVisitorAnalyticsSync(env) {
         }),
         runGa4Report(env, accessToken, {
           ...common,
+          dimensions: [{ name: "sessionSource" }],
+          metricAggregations: ["TOTAL"],
           dimensionFilter: {
             filter: {
               fieldName: "sessionSource",
@@ -744,7 +748,18 @@ async function runVisitorAnalyticsSync(env) {
     for (const period of periodResults) {
       const days = period.days;
       const totalMetrics = metricsFromRow(period.total.rows[0] || null);
-      const aiMetrics = metricsFromRow(period.ai.rows[0] || null);
+      // A GA4 dimension filter requires its dimension in the request. Use the
+      // API's server-side TOTAL aggregate to avoid adding non-additive users across sources.
+      // If a total row is absent, expose users as unknown rather than overcount them.
+      const aiTotalsRow = Array.isArray(period.ai.totals) && period.ai.totals.length ? period.ai.totals[0] : null;
+      const aiMetrics = aiTotalsRow ? metricsFromRow(aiTotalsRow) : {
+        total_users: null,
+        sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,1,true)||0),0),
+        page_views: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,2,true)||0),0),
+        engaged_sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,3,true)||0),0),
+        engagement_rate: null,
+        key_events: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,5,false)||0),0)
+      };
       rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_snapshots (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
         .bind(ANALYTICS_SITE_ID,latestDate,days,totalMetrics.total_users,totalMetrics.sessions,totalMetrics.page_views,totalMetrics.engaged_sessions,totalMetrics.engagement_rate,totalMetrics.key_events,fetchedAt));
       rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_ai_metrics (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
