@@ -116,6 +116,18 @@ jobs:
         if: always()
         run: python -m company.daily_company_review
 
+      - name: Sync daily operations agent run to shared brain
+        if: always()
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-daily-company-operations
+          RUN_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$SHARED_BRAIN_AGENT_KEY" ]; then
+            python -m company.shared_brain_sync --status "${RUN_STATUS,,}"
+          else
+            echo "Shared brain sync skipped: SHARED_BRAIN_AGENT_KEY secret is not configured."
+          fi
       - name: Upload daily report and logs
         if: always()
         uses: actions/upload-artifact@v4
