@@ -17,6 +17,7 @@ on:
       - "dashboard/chat-widget.js"
       - "dashboard/login.html"
       - "dashboard/privacy.html"
+      - "dashboard/analytics-consent.js"
       - ".github/workflows/deploy-nexora-pages.yml"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
@@ -44,6 +45,7 @@ jobs:
           test -s dashboard/website.html
           test -s dashboard/chat-widget.js
           test -s dashboard/login.html
+          test -s dashboard/analytics-consent.js
           echo "Nexora AI public pages are present."
 
       - name: Assemble allowlisted public site
@@ -52,7 +54,7 @@ jobs:
           mkdir -p public-site/dashboard
           cp index.html og-image.svg privacy.html robots.txt sitemap.xml public-site/
           cp -R about blog pricing portfolio-sample public-site/
-          cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html public-site/dashboard/
+          cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html dashboard/analytics-consent.js public-site/dashboard/
           test ! -e public-site/private-hq
           test ! -e public-site/harvey-worker
           test ! -e public-site/owner-console
