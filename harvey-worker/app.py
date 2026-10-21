@@ -360,9 +360,9 @@ def agents_status(x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     return {
         "roles_defined": len(AGENT_ROLES),
-        "model_configured": bool(os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL")),
-        "provider_configured": bool(os.getenv("LLM_BASE_URL")),
-        "model": os.getenv("LLM_MODEL") if os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL") else None,
+        "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
+        "provider_configured": bool(os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")),
+        "model": os.getenv("LLM_MODEL") if (os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")) else None,
         "roles": sorted(AGENT_ROLES),
         "note": "Roles are definitions, not separate always-running agents. Each run invokes the configured model on demand."
     }
@@ -372,7 +372,7 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
     require_key(x_api_key)
     api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
     model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL in the server environment.")
     if req.role not in AGENT_ROLES:
@@ -507,7 +507,7 @@ def agent_roster(x_api_key: Optional[str] = Header(default=None)):
                        "execution_mode": "on-demand model invocation",
                        "independently_running": False}
                       for role in sorted(AGENT_MANDATES)],
-            "model_configured": bool(os.getenv("LLM_API_KEY") and os.getenv("LLM_MODEL"))}
+            "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")))}
 
 @app.post("/company/dispatch")
 def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
@@ -567,9 +567,9 @@ def list_company_jobs(cycle_id: Optional[str] = None, x_api_key: Optional[str] =
 async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     import json
-    api_key=os.getenv("LLM_API_KEY","")
-    model=os.getenv("LLM_MODEL","")
-    base_url=os.getenv("LLM_BASE_URL","https://api.openai.com/v1").rstrip("/")
+    api_key=os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model=os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
     with db() as c:
@@ -664,7 +664,7 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
     require_key(x_api_key)
     api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
     model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
     with db() as c:
@@ -796,7 +796,7 @@ async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] 
     require_key(x_api_key)
     api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
     model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
     mode_guidance = {
