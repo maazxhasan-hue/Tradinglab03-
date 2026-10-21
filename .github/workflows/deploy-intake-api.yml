@@ -116,7 +116,7 @@ jobs:
           template = pathlib.Path("worker/wrangler.template.toml").read_text(encoding="utf-8")
           values = {
               "__D1_DATABASE_ID__": os.environ["D1_DATABASE_ID"],
-              "__SITE_ORIGINS__": ",".join(origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()),
+              "__SITE_ORIGINS__": ",".join(dict.fromkeys([origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()] + ["https://nexora-ai-public.netlify.app"]),),
               "__NOTIFY_EMAIL__": os.environ.get("NOTIFY_EMAIL", ""),
               "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", "")
           }
