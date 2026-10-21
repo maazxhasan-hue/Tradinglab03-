@@ -1,0 +1,29 @@
+[[redirects]]
+  from = "/private-hq/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/owner-console/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/dashboard/index.html"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/dashboard/marketing.html"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/dashboard/inbox.html"
+  to = "/404.html"
+  status = 404
+  force = true
