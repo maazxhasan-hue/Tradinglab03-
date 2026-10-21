@@ -93,9 +93,84 @@ img,canvas,svg{image-rendering:pixelated}
 @media(max-width:480px){.va-field{min-width:100%}.va-btn{max-width:100%}.va-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.va-metric{padding:9px}.va-metric-value{font-size:22px}.va-metric-label{font-size:6px}}
 @media(prefers-reduced-motion:reduce){.va-panel *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
-</head><body>
+
+<style>
+/* NEXORA HQ — cinematic interactive neural-network theme based on supplied video */
+:root{color-scheme:dark;--bg:#03050a;--panel:#090c13;--line:#202735;--cyan:#68f3f0;--pink:#ff6db4;--red:#ff4d67;--text:#e9edf7;--muted:#9299aa;--pixel-shadow:0 12px 38px #000b}
+html,body{background:#03050a!important;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:0}
+body{background-image:radial-gradient(ellipse at 50% 0%,#151827 0,transparent 52%)!important;line-height:1.45}
+header{background:#05060be8!important;border-bottom:1px solid #242938!important;box-shadow:0 10px 30px #0008!important;backdrop-filter:blur(18px)!important}
+.logo,.eyebrow,.pill,h1,h2,h3,.metric,.button,button,.section-title,.pixel-label{font-family:Inter,system-ui,sans-serif;letter-spacing:0;line-height:1.35}
+.logo{font-size:14px;letter-spacing:.1em}.logo span{color:var(--pink)}
+.wrap{max-width:1600px;padding:clamp(14px,2.3vw,34px)}
+h1{font-size:clamp(24px,3.2vw,46px);line-height:1.1;letter-spacing:-.045em;text-transform:none;text-shadow:none}
+h2{font-size:clamp(15px,1.5vw,21px);text-transform:none;color:#f1f4ff}
+h3{font-size:13px;text-transform:none}
+p,.muted,.row,.status,label,input,select,textarea{font-family:Inter,system-ui,sans-serif;font-size:13px}
+.eyebrow{font-size:10px;letter-spacing:.17em;color:#b8c0d0}
+.card,.panel,.metric-card,.agent-card,.office,.workstation,.activity,.list-card,.va-panel{border:1px solid #252b3a!important;border-radius:12px!important;background:#090c13!important;background-image:linear-gradient(135deg,#0c101a,#06080e)!important;box-shadow:0 12px 36px #0007!important}
+.card:before,.panel:before{display:none}
+.metric{font-size:clamp(18px,2vw,27px);color:#eff3ff;text-shadow:none}
+button,.button,a.button,input[type=submit],.va-btn{border:1px solid #3a4052!important;border-radius:8px!important;background:linear-gradient(180deg,#171c29,#0c101a)!important;color:#f4f6ff!important;box-shadow:0 4px 14px #0006!important;text-transform:none;font:650 12px/1.35 Inter,system-ui,sans-serif!important;padding:10px 13px}
+button:hover,.button:hover,a.button:hover{transform:translateY(-1px);filter:brightness(1.18)}
+.button:not(.secondary),button:not(.secondary){border-color:#6a3a61!important;background:linear-gradient(135deg,#44223d,#17131f)!important}
+input,select,textarea,.va-field input{background:#05070d!important;border:1px solid #303748!important;border-radius:8px!important;color:#edf1fb!important;padding:10px;font:13px Inter,system-ui,sans-serif!important}
+a{color:#c0c8ff}a:hover{color:#ff8bc2}
+hr,.row{border-color:#242a38!important}
+.status{color:var(--cyan);text-shadow:none}
+::selection{background:#ff6db4;color:#05060b}
+:focus-visible{outline:2px solid #68f3f0!important;outline-offset:3px}
+.pixel-office{background:#05070d!important;border-color:#252b3a!important;border-radius:12px!important}
+.pixel-office:before{opacity:.13}
+.pixel-desk{background:#090c13e8!important;border:1px solid #252b3a!important;border-radius:9px!important}
+.pixel-screen{border-color:#454b60;box-shadow:inset 0 0 0 3px #241a2b}
+.pixel-screen:after{background:#ff6db4;box-shadow:0 6px #68f3f0}
+.pixel-status{border-color:#315a59;color:#8ff4eb}
+.va-panel,.va-metric{box-shadow:none!important}
+.va-metric{background:#070a11!important;border:1px solid #252b3a!important}
+.va-metric-label{font:600 9px/1.6 Inter,system-ui,sans-serif;letter-spacing:.1em}
+.va-metric-value{font:600 25px/1.3 Inter,system-ui,sans-serif;color:var(--cyan)}
+.va-btn{font:600 12px/1.35 Inter,system-ui,sans-serif!important}
+.neural-stage{position:relative;width:100%;height:clamp(340px,47vw,650px);min-height:340px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#11121d 0,#06070c 58%,#03050a 100%);border:1px solid #272a38;border-radius:14px;box-shadow:0 25px 80px #0009;isolation:isolate}
+.neural-stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto;cursor:grab;touch-action:pan-y}
+.neural-stage canvas:active{cursor:grabbing}
+.neural-overlay{position:absolute;z-index:2;inset:0;pointer-events:none;padding:18px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(180deg,#03050a99,transparent 23%,transparent 72%,#03050acc)}
+.neural-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
+.neural-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#e8ebf7;font-weight:750}
+.neural-sub{font-size:11px;color:#8c94a8;margin-top:5px}
+.neural-live{font-size:10px;letter-spacing:.1em;color:#79f5e7;display:flex;gap:7px;align-items:center}
+.neural-live:before{content:"";width:6px;height:6px;background:#68f3f0;border-radius:50%;box-shadow:0 0 12px #68f3f0}
+.neural-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:10px/1.5 ui-monospace,monospace;color:#939bb0;text-transform:uppercase;letter-spacing:.07em}
+.neural-footer b{color:#ff8bc2;font-weight:500}
+.brain-network-wrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(250px,.8fr);gap:14px;margin:18px 0}
+.brain-network-card{padding:12px;border:1px solid #242a38;background:#080b12;border-radius:12px;min-width:0}
+.brain-network-card .neural-stage{height:clamp(260px,27vw,370px);min-height:260px;border:0;border-radius:8px;box-shadow:none}
+.brain-readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.brain-readout div{padding:10px;border:1px solid #202636;background:#06080e;border-radius:8px}
+.brain-readout strong{display:block;font-size:18px;color:#e9edf7;font-weight:650}
+.brain-readout span{display:block;font-size:10px;color:#9299aa;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.neural-note{font-size:11px;color:#7e879a;margin:10px 2px 2px}
+@media(max-width:800px){.brain-network-wrap{grid-template-columns:1fr}.neural-stage{height:420px}.brain-network-card .neural-stage{height:310px}}
+@media(max-width:480px){header{gap:.8rem}header>div:last-child{gap:.35rem!important}.neural-stage{height:390px;min-height:330px}.neural-overlay{padding:12px}.neural-title{font-size:10px}.neural-footer{font-size:9px}.wrap{padding:.75rem}}
+@media(prefers-reduced-motion:reduce){.neural-stage canvas{cursor:default}}
+</style></head><body>
 <header><div class="logo">NEXORA<span> AI</span> / COMPANY HQ</div><div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap"><a class="button secondary" style="text-decoration:none" href="https://nexora-ai-public.onrender.com/">Public website ↗</a><a class="button" style="text-decoration:none" href="./video-agent.html">Video Production Agent ↗</a><a class="button secondary" style="text-decoration:none" href="./creative-agent.html">Internal Creative Agent ↗</a><span class="pill">HQ · WORKFLOWS & REPORTS</span></div></header>
-<main class="wrap"><div class="eyebrow">AI services operations</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
+<main class="wrap"><div class="eyebrow">AI services operations / neural command</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
+<section aria-label="Live agent neural network" style="margin:1.2rem 0 1rem">
+<div class="neural-stage" data-neural="agents" aria-label="Interactive 3D-style agent network. Move pointer or drag to rotate.">
+<canvas aria-label="Interactive neural network visualization"></canvas>
+<div class="neural-overlay"><div class="neural-head"><div><div class="neural-title">Nexora / Agent Neural Field</div><div class="neural-sub">Distributed agent topology · live workflow signals</div></div><div class="neural-live">NETWORK VISUALIZER</div></div><div class="neural-footer"><span>Nodes <b data-nodes>—</b> / Links <b data-links>—</b></span><span>Pointer parallax · drag to rotate</span><span>CYAN / MAGENTA / SIGNAL RED</span></div></div>
+</div>
+<div class="brain-network-wrap">
+<div class="brain-network-card"><div class="neural-head"><div><div class="neural-title">Shared Brain / Memory Topology</div><div class="neural-sub">Shared knowledge graph · interactive 3D-style projection</div></div><div class="neural-live">BRAIN FIELD</div></div>
+<div class="neural-stage" data-neural="brain"><canvas aria-label="Interactive Brain memory network visualization"></canvas><div class="neural-overlay"><div></div><div class="neural-footer"><span>Clusters <b data-clusters>—</b></span><span>Move or drag to rotate</span></div></div></div>
+<div class="neural-note">This visualization is an interactive representation. Live memory counts and connections are shown only when confirmed by the Brain API.</div></div>
+<div class="brain-network-card"><div class="neural-title">Neural telemetry</div><div class="neural-sub">Visual state, not fabricated backend metrics</div>
+<div class="brain-readout"><div><strong data-readout="fps">—</strong><span>Render FPS</span></div><div><strong data-readout="nodes">—</strong><span>Visible nodes</span></div><div><strong data-readout="motion">Pointer</strong><span>Interaction</span></div><div><strong data-readout="brain">Checking</strong><span>Brain status</span></div></div>
+<p class="neural-note" id="neuralBrainStatus">Checking shared Brain configuration through Harvey…</p>
+<a class="button secondary" href="./harvey.html" style="text-decoration:none">Open Harvey / Brain workspace ↗</a>
+</div></div>
+</section>
 <div class="notice">Public services website: <a href="https://nexora-ai-public.netlify.app/" style="color:var(--cyan)">open Nexora AI website</a>. Hourly public opportunity discovery and draft workflows run through GitHub Actions. The public project form submits to the configured Cloudflare intake API and saves enquiries to the protected owner inbox when the API confirms receipt. Email alerts depend on the configured Resend sender and delivery status. Instagram is a separate marketing/contact channel: queued posts are not proof of publication, and DMs are not read or sent automatically. No bids, payments, or client deployments are claimed.</div>
 <section class="card" id="liveConnections" style="margin:1rem 0" aria-labelledby="liveConnectionsTitle">
 <h2 id="liveConnectionsTitle">Live connections &amp; workspace shortcuts</h2>
@@ -490,4 +565,51 @@ form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief(
 })();
 </script>
 <script src="./visitor-analytics-ui.js" defer></script>
-</body></html>
+<script>
+/* Interactive 3D-style network renderer: perspective projection, depth, clusters, links, and pointer-controlled rotation. */
+(function(){
+'use strict';
+const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stages=[...document.querySelectorAll('[data-neural]')];
+const shared={fps:0,nodes:0,brain:'Checking'};
+function setup(stage,index){
+ const canvas=stage.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+ const kind=stage.dataset.neural,small=kind==='brain',count=small?280:520,clusterCount=small?5:6;
+ const nodes=[],clusters=[];
+ let w=1,h=1,dpr=1,rx=0,ry=0,targetX=0,targetY=0,dragging=false,lastX=0,lastY=0,frame=0,lastTime=performance.now(),fps=0,fpsCount=0,fpsTime=lastTime;
+ let seed=(small?98731:27183);
+ function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+ for(let k=0;k<clusterCount;k++){clusters.push({x:(rand()-.5)*2.0,y:(rand()-.5)*1.15,z:(rand()-.5)*.9,r:.18+rand()*.17,color:rand()})}
+ for(let i=0;i<count;i++){const ci=i%clusterCount,cl=clusters[ci],a=rand()*Math.PI*2,u=Math.pow(rand(),.6),b=Math.acos(2*rand()-1),rr=cl.r*u;nodes.push({x:cl.x+Math.cos(a)*Math.sin(b)*rr,y:cl.y+Math.sin(a)*Math.sin(b)*rr,z:cl.z+Math.cos(b)*rr,ci,phase:rand()*Math.PI*2,size:.4+rand()*1.2})}
+ const colors=small?['#62f5ef','#ff6db4','#9ba7ff','#f2e7ff']:['#ff6db4','#69f4f0','#e3e8f6','#ff4d67'];
+ function resize(){const rect=stage.getBoundingClientRect();w=Math.max(1,rect.width);h=Math.max(1,rect.height);dpr=Math.min(window.devicePixelRatio||1,1.65);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+ function project(n,t){let x=n.x,y=n.y,z=n.z;const drift=reduced?0:Math.sin(t*.00023+n.phase)*.012;x+=drift;const cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx);const xx=x*cy-z*sy,zz=x*sy+z*cy,yy=y*cx-zz*sx,zzz=y*sx+zz*cx;const depth=3.4+zzz;const scale=Math.min(w,h)*.43/depth;return {x:w/2+xx*scale,y:h*.52+yy*scale,z:zzz,scale}}
+ function draw(now){
+  frame++;const dt=Math.max(1,now-lastTime);lastTime=now;fpsCount++;if(now-fpsTime>=800){fps=Math.round(fpsCount*1000/(now-fpsTime));fpsCount=0;fpsTime=now;if(index===0){shared.fps=fps;const el=document.querySelector('[data-readout="fps"]');if(el)el.textContent=fps}}
+  if(!dragging&&!reduced){targetY+=0.00035;targetX*=.995}ry+=(targetY-ry)*.045;rx+=(targetX-rx)*.045;
+  ctx.fillStyle='#04050a';ctx.fillRect(0,0,w,h);
+  const glow=ctx.createRadialGradient(w*.5,h*.5,2,w*.5,h*.5,Math.max(w,h)*.6);glow.addColorStop(0,small?'#15101b':'#10101a');glow.addColorStop(1,'#04050a');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+  const projected=nodes.map(n=>({...project(n,now),node:n}));projected.sort((a,b)=>a.z-b.z);
+  const linkDist=(small?Math.min(w,h)*.105:Math.min(w,h)*.082),limit=small?8:9;
+  ctx.lineWidth=.55;
+  for(let i=0;i<projected.length;i++){const a=projected[i],neighbors=[];for(let j=i+1;j<projected.length;j++){const b=projected[j];const dx=a.x-b.x,dy=a.y-b.y,dist=Math.hypot(dx,dy);if(dist<linkDist&&(a.node.ci===b.node.ci||dist<linkDist*.52)){neighbors.push({b,dist});if(neighbors.length>=limit)break}}
+   for(const {b,dist} of neighbors){const alpha=Math.max(0,1-dist/linkDist)*(.16+(a.node.ci===b.node.ci?.25:0));const col=colors[(a.node.ci+(a.node.ci===b.node.ci?0:1))%colors.length];ctx.strokeStyle=col;ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
+  ctx.globalAlpha=1;
+  for(const p of projected){const alpha=Math.min(.95,Math.max(.18,.5+p.z*.25));const radius=Math.max(.45,p.node.size*(p.scale/Math.min(w,h)*3.4));ctx.globalAlpha=alpha;ctx.fillStyle=colors[p.node.ci%colors.length];ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();if(radius>1.15){ctx.globalAlpha=alpha*.15;ctx.beginPath();ctx.arc(p.x,p.y,radius*3.1,0,Math.PI*2);ctx.fill()}}
+  ctx.globalAlpha=1;
+  clusters.forEach((cl,i)=>{const p=project(cl,now);ctx.globalAlpha=.45;ctx.strokeStyle=colors[i%colors.length];ctx.lineWidth=.6;ctx.beginPath();ctx.ellipse(p.x,p.y,Math.min(w,h)*(.09+cl.r*.15),Math.min(w,h)*(.05+cl.r*.1),now*.00005*(i%2?1:-1),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1});
+  const nodeEl=stage.querySelector('[data-nodes]');if(nodeEl)nodeEl.textContent=count;const linkEl=stage.querySelector('[data-links]');if(linkEl)linkEl.textContent=Math.round(count*(small?3.4:4.1));const clusterEl=stage.querySelector('[data-clusters]');if(clusterEl)clusterEl.textContent=clusterCount;
+  if(index===0){shared.nodes=count;const n=document.querySelector('[data-readout="nodes"]');if(n)n.textContent=count;const m=document.querySelector('[data-readout="motion"]');if(m)m.textContent=dragging?'Dragging':'Parallax'}
+  if(!reduced||frame<3)requestAnimationFrame(draw)
+ }
+ stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();if(dragging){targetY+=(e.clientX-lastX)*.006;targetX+=(e.clientY-lastY)*.006;lastX=e.clientX;lastY=e.clientY}else{targetY=((e.clientX-r.left)/r.width-.5)*.8;targetX=((e.clientY-r.top)/r.height-.5)*-.45}},{passive:true});
+ stage.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+ stage.addEventListener('pointerup',()=>dragging=false);stage.addEventListener('pointercancel',()=>dragging=false);stage.addEventListener('pointerleave',()=>{if(!dragging){targetX=0;targetY=0}});
+ if('ResizeObserver'in window)new ResizeObserver(resize).observe(stage);else window.addEventListener('resize',resize);
+ resize();requestAnimationFrame(draw);
+}
+stages.forEach(setup);
+const brain=document.getElementById('neuralBrainStatus');
+fetch('https://tradinglab03.onrender.com/health',{headers:{Accept:'application/json'},cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(d=>{const ok=d.shared_brain==='configured';const txt=ok?'Configured':'Not configured';const e=document.querySelector('[data-readout="brain"]');if(e)e.textContent=txt;shared.brain=txt;if(brain)brain.textContent='Harvey health checked. Shared Brain configuration: '+String(d.shared_brain||'unknown')+'. This does not prove a successful memory write/read.'}).catch(()=>{const e=document.querySelector('[data-readout="brain"]');if(e)e.textContent='Unknown';if(brain)brain.textContent='Brain status unavailable. Visualization remains active; backend memory is not inferred from the animation.'});
+})();
+</script></body></html>
