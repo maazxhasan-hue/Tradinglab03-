@@ -699,22 +699,22 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
             c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?",
                       ("Shared Brain recall failed; disconnected execution blocked.", now(), job_id))
         raise HTTPException(503,"Shared Brain recall failed; this specialist job was stopped.")
-    memory_context = "\\n\\nSHARED BRAIN CONTEXT (verify current facts):\\n" + "\\n".join(
+    memory_context = "\n\nSHARED BRAIN CONTEXT (verify current facts):\n" + "\n".join(
         "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
-    ) if memories else "\\n\\nSHARED BRAIN CONTEXT: no matching memories found."
+    ) if memories else "\n\nSHARED BRAIN CONTEXT: no matching memories found."
     system=("You are Nexora's specialist agent. Own only the assigned role and produce a concrete, "
             "evidence-aware deliverable. Clearly separate facts, assumptions, and recommendations. "
             "Use the single shared Nexora Brain context supplied to you and write a concise reusable result back to it. "
             "Do not claim external work was done. Never expose secrets. External outreach, publishing, "
             "spending, trading, and irreversible actions require explicit human approval. "
             "Return headings: Objective, Deliverable, Evidence/Assumptions, Verification, Risks, Handoffs. "
-            "Role: "+row["role"]+"\\nMandate: "+row["mandate"])
+            "Role: "+row["role"]+"\nMandate: "+row["mandate"])
     handoff_text=[]
     for h in handoffs:
         try: handoff_output=json.loads(h["output_json"]).get("output","")
         except Exception: handoff_output=""
         handoff_text.append("COMPLETED HANDOFF FROM "+h["role"]+":\n"+str(handoff_output)[:3500])
-    user="COMPANY MISSION:\\n"+row["goal"]+"\\n\\nCONTEXT:\\n"+(row["context"] or "(none)")+memory_context+"\\n\\nUPSTREAM HANDOFFS:\\n"+("\\n\\n".join(handoff_text) if handoff_text else "(No prerequisite handoffs)")+"\\n\\nGUARDRAILS:\\nNo fabricated facts; provide actionable work and explicit dependencies."
+    user="COMPANY MISSION:\n"+row["goal"]+"\n\nCONTEXT:\n"+(row["context"] or "(none)")+memory_context+"\n\nUPSTREAM HANDOFFS:\n"+("\n\n".join(handoff_text) if handoff_text else "(No prerequisite handoffs)")+"\n\nGUARDRAILS:\nNo fabricated facts; provide actionable work and explicit dependencies."
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             response=await client.post(base_url+"/chat/completions",
