@@ -32,3 +32,5 @@
 - Added API contract at `docs/SHARED_BRAIN_API.md` (commit `75c1aadd9420f88669ed1fd27f07fb6c481f1a44`) and implementation checkpoint at `PROJECT_CONTINUITY/SHARED_BRAIN_IMPLEMENTATION_2026-10-21.md` (commit `4f3c3e7ff06cf75585ebd520a81844b1805e0370`).
 - Migration tool returned success. Edge deployment returned ACTIVE. Authenticated end-to-end read/write and cross-agent integration are NOT yet verified; do not claim every agent is connected.
 - Known follow-ups: test with real signed-in user session, improve concurrent version increments/expiry validation, inventory each agent runtime, design separate server-to-server identity where needed, then integrate and run cross-agent isolation tests.
+
+- Added `company/shared_brain.py` (commit `2e04e0dd34362ceb7c82e9df89109512d52d273e`), an authenticated Python client exposing `recall` and `remember` with bounded requests, timeouts, and redacted errors. It is a reusable integration adapter; existing Python/Harvey/GitHub workflow agents have not yet been wired to it or tested with real credentials.
