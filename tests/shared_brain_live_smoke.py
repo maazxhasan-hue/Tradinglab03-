@@ -50,7 +50,9 @@ def main() -> int:
     nonce = secrets.token_hex(8)
     memory_key = f"smoke-test:{nonce}"
     marker = f"shared-brain-smoke:{nonce}"
-    writer_agent = "shared-brain-smoke-writer"\n    reader_agent = "shared-brain-smoke-reader"\n    status, saved = post({
+    writer_agent = "shared-brain-smoke-writer"
+    reader_agent = "shared-brain-smoke-reader"
+    status, saved = post({
         "action": "remember",
         "project_key": "nexora",
         "namespace": "integration-tests",
@@ -71,7 +73,7 @@ def main() -> int:
         "namespace": "integration-tests",
         "query": marker,
         "limit": 5,
-    })
+    }, agent=reader_agent)
     memories = recalled.get("memories")
     if status != 200 or not isinstance(memories, list) or not any(
         row.get("memory_key") == memory_key for row in memories if isinstance(row, dict)
