@@ -24,3 +24,10 @@
 - Keep service-role keys and model-provider keys out of the client and shared memory.
 - Do not disable JWT verification for convenience.
 - Keep existing private HQ untouched.
+
+
+## Follow-up work — 2026-10-21 (continued)
+- Added `tests/test_shared_brain_client.py` (commit `29b66029f1362b504abd8d3eb9ec44041d02a6c1`) covering unconfigured-client rejection, machine/user auth headers, bounded recall/query inputs, malformed responses, and redacted HTTP errors. These tests have been committed but have NOT yet been executed in a local or CI test run.
+- The machine-auth service key is shared across machine callers; `x-agent-id` is a caller-supplied label, not cryptographic per-agent identity. Treat it as a shared trusted-service credential, restrict who can access it, and do not treat the label as a strong authorization boundary.
+- The registry workflow's configured list of workflow names remains unverified against all actual workflow `name:` fields. A registry entry is telemetry, not proof that the workflow's agent consumes shared context.
+- Current status remains PARTIAL: machine key not configured in this session, no live authenticated read/write or cross-agent recall test, and Harvey's runtime has not been proven integrated. Do not redesign HQ until those checks pass.
