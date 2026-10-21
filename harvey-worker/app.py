@@ -795,6 +795,8 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
     base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
+    if not SHARED_BRAIN_AGENT_KEY:
+        raise HTTPException(503, "Shared Brain is required for project-builder execution. Configure SHARED_BRAIN_AGENT_KEY.")
     with db() as c:
         project_id = c.execute(
             "INSERT INTO projects(name,brief,status,model,created_at,updated_at) VALUES(?,?,?,?,?,?)",
@@ -809,19 +811,21 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
         "Do not create deployment workflows that expose secrets or automatically deploy. "
         "The output is untrusted source code and will be packaged but NOT executed by this service."
     )
-    # Recall relevant shared Brain context before each build. Brain outages are non-fatal,
-    # but are reported explicitly in the build result rather than silently claiming memory.
-    brain_memories = []
-    brain_status = "not_configured"
-    if SHARED_BRAIN_AGENT_KEY:
-        try:
-            brain_memories = shared_brain_recall(
-                "Nexora creative/software project standards, architecture, design decisions, reusable patterns, and prior fixes for: " + req.name + " " + req.brief[:700],
-                limit=5,
-            )
-            brain_status = "used" if brain_memories else "connected_no_matches"
-        except Exception:
-            brain_status = "unavailable"
+    # All project-builder runs use the same company namespace and record their memory events.
+    agent_id = "nexora-project-builder"
+    try:
+        brain_memories = shared_brain_recall(
+            "Nexora creative/software project standards, architecture, design decisions, reusable patterns, and prior fixes for: " + req.name + " " + req.brief[:700],
+            limit=5, agent_id=agent_id,
+        )
+        brain_status = "used" if brain_memories else "connected_no_matches"
+        record_brain_event(agent_id, "recall", "completed", len(brain_memories))
+    except Exception:
+        record_brain_event(agent_id, "recall", "failed", 0)
+        with db() as c:
+            c.execute("UPDATE projects SET status='failed',error=?,updated_at=? WHERE id=?",
+                      ("Shared Brain recall failed; disconnected execution blocked.", now(), project_id))
+        raise HTTPException(503, "Shared Brain recall failed; project build stopped.")
     brain_context = ""
     if brain_memories:
         safe_memories = []
@@ -907,6 +911,7 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
             },
             tags=["nexora", "creative-agent", "project-build"],
         )
+        record_brain_event(agent_id, "remember", "completed" if brain_saved else "failed", 1 if brain_saved else 0)
         return {"project_id":project_id,"name":req.name,"status":"completed","model":model,
                 "summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
                 "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files],
