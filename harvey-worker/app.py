@@ -110,7 +110,7 @@ def db():
     conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
     return conn
-ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-private-hq.vercel.app,https://nexora-private-hq-maazxhasan-8752.vercel.app,https://nexora-private-hq-git-main-maazxhasan-8752.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app,https://nexora-internal-hq.onrender.com").split(",") if x.strip()]
+ALLOWED_ORIGINS = [x.strip() for x in os.getenv("ALLOWED_ORIGINS", "https://nexora-private-hq.vercel.app,https://nexora-private-hq-maazxhasan-8752.vercel.app,https://nexora-private-hq-git-main-maazxhasan-8752.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://nexora-ai.vercel.app,https://nexora-internal-hq.onrender.com,https://nexora-ai-public.onrender.com").split(",") if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=False, allow_methods=["GET","POST","OPTIONS"], allow_headers=["Content-Type","X-API-Key"])
 
 def now() -> str:
