@@ -465,7 +465,16 @@ const GA4_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GA4_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GA4_API_BASE = "https://analyticsdata.googleapis.com/v1beta/properties/";
 const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents"];
-const AI_SOURCE_REGEX = "(chatgpt|openai|perplexity|claude|gemini|copilot|poe\\.com|phind|you\\.com|meta\\.ai|deepseek|mistral|huggingface)";
+function aiSourceRegexForDomains(knownDomains) {
+  const patterns = Array.from(knownDomains)
+    .map(domain => String(domain || "").trim().toLowerCase())
+    .filter(domain => /^[a-z0-9.-]+\\.[a-z]{2,63}$/.test(domain) && !domain.includes(".."))
+    .map(domain => domain.replace(/[.*+?^${}()|[\\]\\]/g, "\\const AI_SOURCE_REGEX = "(chatgpt|openai|perplexity|claude|gemini|copilot|poe\\.com|phind|you\\.com|meta\\.ai|deepseek|mistral|huggingface)";"))
+    .sort((a, b) => b.length - a.length);
+  // Match a configured hostname, or a true subdomain, without substring false positives.
+  // For example, "notchatgpt.com" must not be classified as chatgpt.com.
+  return patterns.length ? "(^|\\.)(?:" + patterns.join("|") + ")$" : "^$";
+}
 
 function analyticsApiConfigured(env) {
   return /^\d+$/.test(String(env.GA4_PROPERTY_ID || "")) &&
@@ -611,7 +620,6 @@ function sourceCategory(source, medium, knownDomains) {
   const host = normalizedSourceHost(source);
   if (rawSource === "(direct)" || rawMedium === "(none)" || rawMedium === "(direct)") return "direct";
   if (Array.from(knownDomains).some(domain => host === domain || host.endsWith("." + domain))) return "ai_referral";
-  if (/chatgpt|openai|perplexity|claude|gemini|copilot|poe|phind|deepseek|mistral|huggingface/.test(rawSource)) return "ai_referral";
   if (["organic", "organic_search"].includes(rawMedium) || ["google", "bing", "yahoo", "duckduckgo", "baidu", "yandex", "ecosia"].includes(host)) return "organic_search";
   if (["cpc", "ppc", "paid_search", "paidsearch"].includes(rawMedium)) return "paid_search";
   if (["email", "e-mail"].includes(rawMedium)) return "email";
@@ -738,7 +746,7 @@ async function runVisitorAnalyticsSync(env) {
           dimensionFilter: {
             filter: {
               fieldName: "sessionSource",
-              stringFilter: { matchType: "PARTIAL_REGEXP", value: AI_SOURCE_REGEX }
+              stringFilter: { matchType: "PARTIAL_REGEXP", value: aiSourceRegexForDomains(knownDomains) }
             }
           }
         })
@@ -754,7 +762,7 @@ async function runVisitorAnalyticsSync(env) {
       const aiTotalsRow = Array.isArray(period.ai.totals) && period.ai.totals.length ? period.ai.totals[0] : null;
       const aiMetrics = aiTotalsRow ? metricsFromRow(aiTotalsRow) : {
         total_users: null,
-        sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,1,true)||0),0),
+        sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,0,true)||0),0),
         page_views: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,2,true)||0),0),
         engaged_sessions: period.ai.rows.reduce((sum,row)=>sum+(gaNumber(row,3,true)||0),0),
         engagement_rate: null,
