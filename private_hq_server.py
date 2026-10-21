@@ -51,7 +51,7 @@ class Handler(BaseHTTPRequestHandler):
         # Never log credentials, request bodies, or cookie headers.
         super().log_message(fmt, *args)
 
-    def headers(self, status=200, content_type="text/html; charset=utf-8", extra=None):
+    def send_headers(self, status=200, content_type="text/html; charset=utf-8", extra=None):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Cache-Control", "no-store, private, max-age=0")
@@ -67,13 +67,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def body(self, status, content, content_type="text/html; charset=utf-8", extra=None):
         data = content if isinstance(content, bytes) else content.encode()
-        self.headers(status, content_type, extra)
+        self.send_headers(status, content_type, extra)
         self.wfile.write(data)
 
     def authenticated(self):
         cookie = http.cookies.SimpleCookie()
         try:
-            cookie.load(self.headers_in.get("Cookie", ""))
+            cookie.load(self.headers.get("Cookie", ""))
             morsel = cookie.get("nexora_hq_session")
             return bool(morsel and valid_token(morsel.value))
         except Exception:
@@ -109,7 +109,7 @@ class Handler(BaseHTTPRequestHandler):
         if urlparse(self.path).path != "/login":
             self.body(404, "Not found"); return
         try:
-            length = int(self.headers_in.get("Content-Length", "0"))
+            length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
             length = 0
         if length <= 0 or length > 4096:
