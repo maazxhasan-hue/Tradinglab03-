@@ -33,3 +33,21 @@ Each key is unique per user/project/namespace. Existing keys are updated and ver
 - Agents using GitHub Actions or other runtimes still need an approved user session or a separately designed server-to-server identity. Do not share a user's bearer token among agents or disable JWT verification to make integration easier.
 - Existing agents have not all been connected. Integrate each one deliberately and test cross-agent recall, RLS isolation, conflict behavior, and stale/unavailable memory.
 - Never store secrets, raw credentials, or sensitive personal data in shared memory.
+
+
+## Unattended agent/workflow authentication
+The Edge Function also supports machine-to-machine requests for unattended agents:
+- `x-agent-key: <shared machine secret>`
+- `x-agent-id: <stable agent identifier>`
+- JSON body uses the same `recall` / `remember` actions.
+
+Machine requests use the separate `public.agent_shared_facts` store, shared across connected agents within a project/namespace. User-session requests continue to use `public.agent_shared_memory` and are isolated per user. The service table denies direct anon/authenticated table access; the Edge Function uses the server-side service-role credential only after the machine secret matches. Never send the service-role key to a client or workflow.
+
+### Required secret configuration before machine agents can connect
+1. Generate one long random `SHARED_BRAIN_AGENT_KEY` privately.
+2. Add the same value to Supabase Edge Function secrets as `SHARED_BRAIN_AGENT_KEY`.
+3. Add it to GitHub repository Actions secrets as `SHARED_BRAIN_AGENT_KEY`.
+4. Do not paste it into chat, source files, issue comments, or artifacts.
+5. Set `SHARED_BRAIN_AGENT_ID` per runtime where the Python client is used.
+
+If the secret is absent, the function rejects machine writes and workflow integrations explicitly skip rather than pretending they synced. No secret value is stored in this repository.
