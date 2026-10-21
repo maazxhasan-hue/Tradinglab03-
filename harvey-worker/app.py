@@ -362,7 +362,7 @@ def agents_status(x_api_key: Optional[str] = Header(default=None)):
         "roles_defined": len(AGENT_ROLES),
         "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
         "provider_configured": bool(os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")),
-        "model": os.getenv("LLM_MODEL") if (os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")) else None,
+        "model": (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")) if (os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) else None,
         "roles": sorted(AGENT_ROLES),
         "note": "Roles are definitions, not separate always-running agents. Each run invokes the configured model on demand."
     }
@@ -374,7 +374,7 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
     model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
     base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
-        raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL in the server environment.")
+        raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY in the server environment; LLM_MODEL or OPENAI_MODEL is optional.")
     if req.role not in AGENT_ROLES:
         raise HTTPException(400, "Unknown role. Use a role returned by /agents/status.")
     system = (
@@ -571,7 +571,7 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
     model=os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
     base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
-        raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
+        raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY server-side; LLM_MODEL or OPENAI_MODEL is optional.")
     with db() as c:
         row=c.execute("SELECT * FROM company_jobs WHERE id=?", (job_id,)).fetchone()
         if not row: raise HTTPException(404,"Company job not found.")
