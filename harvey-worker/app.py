@@ -215,7 +215,7 @@ def public_status():
             "SELECT kind, status, created_at, updated_at FROM tasks ORDER BY id DESC LIMIT 12"
         ).fetchall()
         brain_counts = c.execute(
-            "SELECT kind, status, COUNT(*) AS n FROM tasks WHERE kind LIKE 'brain:%' GROUP BY kind, status"
+            "SELECT kind, status, COUNT(*) AS n FROM tasks WHERE kind LIKE 'brain:%%' GROUP BY kind, status"
         ).fetchall()
         recent_jobs = c.execute(
             "SELECT role, status, created_at, updated_at FROM company_jobs ORDER BY id DESC LIMIT 8"
