@@ -34,6 +34,9 @@ jobs:
       - name: Run opportunity qualification tests
         run: python -m unittest discover -s tests -p 'test_opportunity_*.py' -v
       - name: Discover enabled public project listings
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-hourly-opportunity-scout
         run: python -m company.opportunity_scout
       - name: Import suitable listings into persistent lead tracker
         run: python -m company.opportunity_importer
