@@ -185,7 +185,9 @@ def health():
             "database": "postgresql" if DATABASE_URL else "sqlite",
             "prospects": prospects, "pending_approvals": pending,
             "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled"),
-            "shared_brain": "configured" if SHARED_BRAIN_AGENT_KEY else "not_configured"}
+            "shared_brain": "configured" if SHARED_BRAIN_AGENT_KEY else "not_configured",
+            "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
+            "api_auth_configured": bool(API_KEY)}
 
 @app.get("/metrics")
 def metrics(x_api_key: Optional[str] = Header(default=None)):
