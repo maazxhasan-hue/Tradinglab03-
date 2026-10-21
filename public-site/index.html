@@ -424,7 +424,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
     if(!found.length){searchResults.textContent='No matching sections found.';return}
     found.forEach(x=>{
       const a=document.createElement('a');a.href='#'+x.id;a.textContent=x.title;
-      a.addEventListener('click',()=>{if(searchOverlay)searchOverlay.hidden=true});
+      a.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}});
       searchResults.appendChild(a);
     });
   }
@@ -432,7 +432,6 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
     if(!searchOverlay||!searchInput||!searchResults)return;
     items=buildSearchIndex();
     searchOverlay.hidden=false;
-    searchOverlay.style.display='grid';
     renderSearch('');
     requestAnimationFrame(()=>{searchInput.focus();});
   }
@@ -442,14 +441,14 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
   // Accessible overlay close and confirmation dialog.
-  $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
-  [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.hidden=true}));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.ux-overlay').forEach(x=>x.hidden=true)});
+  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}}));
+  [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el){el.hidden=true;el.style.removeProperty('display')}}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')})});
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
   window.nexoraConfirm=(message,action)=>{const copy=$('#confirm-copy');if(copy)copy.textContent=String(message||'Please confirm this action.');confirmAction=typeof action==='function'?action:null;if(confirmDialog)confirmDialog.hidden=false;$('#confirm-yes')?.focus()};
   const contact=$('.floating-contact');contact?.addEventListener('click',e=>{e.preventDefault();window.nexoraConfirm('This opens Nexora AI on Instagram in a new tab. Continue?',()=>window.open(contact.href,'_blank','noopener,noreferrer'))});
-  $('#confirm-cancel')?.addEventListener('click',()=>{if(confirmDialog)confirmDialog.hidden=true;confirmAction=null});
-  $('#confirm-yes')?.addEventListener('click',()=>{const fn=confirmAction;confirmAction=null;if(confirmDialog)confirmDialog.hidden=true;if(fn)fn()});
+  $('#confirm-cancel')?.addEventListener('click',()=>{if(confirmDialog){confirmDialog.hidden=true;confirmDialog.style.removeProperty('display')}confirmAction=null});
+  $('#confirm-yes')?.addEventListener('click',()=>{const fn=confirmAction;confirmAction=null;if(confirmDialog){confirmDialog.hidden=true;confirmDialog.style.removeProperty('display')}if(fn)fn()});
   // Scroll progress and back-to-top.
   const progress=$('#scroll-progress'), topBtn=$('#back-to-top');
   function onScroll(){const max=document.documentElement.scrollHeight-innerHeight;const pct=max>0?(scrollY/max)*100:0;if(progress)progress.style.width=Math.min(100,Math.max(0,pct))+'%';if(topBtn)topBtn.hidden=scrollY<500}
