@@ -206,7 +206,7 @@ def run_one(queue: TaskQueue | None = None) -> dict[str, Any]:
         brain_status = "not_configured"
         # Optional shared context: this worker uses only a short-lived authenticated
         # Supabase user session supplied by its runtime; it never stores credentials.
-        if os.environ.get("SUPABASE_ACCESS_TOKEN") and os.environ.get("SUPABASE_PUBLISHABLE_KEY"):
+        if (os.environ.get("SHARED_BRAIN_AGENT_KEY") or (os.environ.get("SUPABASE_ACCESS_TOKEN") and os.environ.get("SUPABASE_PUBLISHABLE_KEY"))):
             try:
                 from .shared_brain import SharedBrainClient
                 brain = SharedBrainClient()
