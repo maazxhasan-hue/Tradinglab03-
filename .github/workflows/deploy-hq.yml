@@ -49,8 +49,8 @@ jobs:
           if not match:
               raise SystemExit("Could not find the HQ role roster")
           roles = re.findall(r'^\["', match.group(1), re.M)
-          if len(roles) != 30:
-              raise SystemExit(f"Expected 30 roles (29 core + Instagram), found {len(roles)}")
+          if len(roles) != 31:
+              raise SystemExit(f"Expected 31 roles (30 core + Instagram), found {len(roles)}")
           for required in ("NAMAZ ROOM", "SERVER ROOM", "voiceToggle", "Instagram Growth Agent"):
               if required not in hq:
                   raise SystemExit(f"Missing required HQ feature: {required}")
@@ -64,5 +64,5 @@ jobs:
                   tmp.flush()
                   subprocess.run(["node", "--check", tmp.name], check=True)
               print(f"PASS: HQ inline script {index} syntax")
-          print("PASS: 30-role roster, Instagram station, Namaz room, server room, and voice control")
+          print("PASS: 31-role roster, internal creative agent, Instagram station, Namaz room, server room, and voice control")
           PY
