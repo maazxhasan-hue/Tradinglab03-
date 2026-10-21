@@ -42,6 +42,7 @@
     const body = await response.json().catch(function () { return {}; });
     if (!response.ok) {
       if (response.status === 401) throw new Error("Owner key was rejected. Check the key and try again.");
+      if (body && body.error_code === "ga4_not_configured") throw new Error("GA4 reporting is not configured yet. Add the GA4 property ID and service-account credentials to repository settings/secrets, then redeploy the Worker.");
       if (body && body.error) throw new Error(body.error);
       throw new Error("Analytics API returned HTTP " + response.status + ".");
     }
