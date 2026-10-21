@@ -209,7 +209,11 @@ def public_status():
             "service": APP_NAME,
             "status": "ready",
             "time": now(),
-            "agents": {"roles_defined": len(AGENT_ROLES), "execution_mode": "on-demand"},
+            "agents": {"roles_defined": len(AGENT_MANDATES), "execution_mode": "on-demand",
+                       "worker_name": "Harvey", "roles": [
+                           {"name": role, "mandate": AGENT_MANDATES[role]}
+                           for role in sorted(AGENT_MANDATES)
+                       ]},
             "tasks": {"by_status": {str(row["status"]): int(row["n"]) for row in task_counts},
                       "recent": [{"kind": str(row["kind"]), "status": str(row["status"]),
                                   "created_at": row["created_at"], "updated_at": row["updated_at"]}
