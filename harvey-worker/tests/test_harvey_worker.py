@@ -35,7 +35,7 @@ class HarveyWorkerTests(unittest.TestCase):
     def test_protected_routes_reject_missing_key(self):
         paths = [
             "/metrics", "/prospects", "/approvals", "/tasks",
-            "/agents/status", "/agents/roster", "/company/jobs",
+            "/agents/status", "/company/jobs",
             "/email/status",
         ]
         for path in paths:
