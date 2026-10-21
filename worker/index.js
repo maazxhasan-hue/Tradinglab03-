@@ -469,7 +469,7 @@ const AI_SOURCE_REGEX = "(chatgpt|openai|perplexity|claude|gemini|copilot|poe\\.
 
 function analyticsApiConfigured(env) {
   return /^\d+$/.test(String(env.GA4_PROPERTY_ID || "")) &&
-    /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(env.GA4_CLIENT_EMAIL || "")) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(env.GA4_CLIENT_EMAIL || "")) &&
     String(env.GA4_PRIVATE_KEY || "").includes("PRIVATE KEY");
 }
 function analyticsWebsiteTagConfigured(env) {
@@ -662,7 +662,7 @@ async function runVisitorAnalyticsSync(env) {
   let processed = 0;
   try {
     const accessToken = await googleAnalyticsAccessToken(env);
-    const dailyRange = [{ startDate: "89daysAgo", endDate: "yesterday" }];
+    const dailyRange = [{ startDate: "90daysAgo", endDate: "yesterday" }];
     const dailyBase = {
       dateRanges: dailyRange,
       metrics: GA4_SOURCE_METRICS.map(name => ({ name }))
@@ -716,7 +716,7 @@ async function runVisitorAnalyticsSync(env) {
     const rangeWriteStatements = [];
     const periodResults = [];
     for (const days of [7, 30, 90]) {
-      const range = [{ startDate: String(days - 1) + "daysAgo", endDate: "yesterday" }];
+      const range = [{ startDate: String(days) + "daysAgo", endDate: "yesterday" }];
       const common = { dateRanges: range, metrics: GA4_SOURCE_METRICS.map(name => ({ name })) };
       const reports = await Promise.all([
         runGa4Report(env, accessToken, common),
