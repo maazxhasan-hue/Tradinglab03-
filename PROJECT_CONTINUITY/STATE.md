@@ -91,3 +91,14 @@ This checkpoint documents the latest known project state from prior work; extern
 - Commit: `eb8d3889965c4fa5d9be291a7da85839de12cce4`.
 - Status: requirement and safe implementation plan saved; not yet implemented or verified across deployed agents.
 - Next: inventory agents and existing memory stores in the repository and deployed services, design the shared API/schema, enforce per-agent identity and access isolation, then integrate and test incrementally. Do not claim all agents share memory until cross-agent tests pass.
+
+
+## Shared Brain v1 — deployed 2026-10-21
+- Supabase migration `agent_shared_brain_memory` applied successfully to `ydstbryiwiigzlqbrcpo`.
+- Edge Function `shared-brain` ID `683fba19-d8aa-490f-8a61-0a08348da0db`, version 1, ACTIVE, JWT verification enabled.
+- Endpoint: `https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain`.
+- Actions: authenticated `recall` and `remember`; RLS scopes records to the authenticated user's ID, with project and namespace separation.
+- API guide: `docs/SHARED_BRAIN_API.md`.
+- Implementation checkpoint: `PROJECT_CONTINUITY/SHARED_BRAIN_IMPLEMENTATION_2026-10-21.md`.
+- Changelog commit: `5015a342e31e39d2cda0004620fb2a70b8334eb7`.
+- Status: shared memory infrastructure is deployed, but integrations across the existing agents and authenticated end-to-end tests remain incomplete. Do not describe all agents as connected until verified. Concurrency-safe version handling and strict expiry validation are follow-up items.
