@@ -18,7 +18,35 @@ PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
 SESSION_SECRET = os.environ.get("HQ_SESSION_SECRET", "")
 PORT = int(os.environ.get("PORT", "10000"))
 SESSION_TTL = 8 * 60 * 60
-ALLOWED = {"index.html", "agent-town.html", "harvey.html", "inbox.html", "marketing.html"}
+# Serve only reviewed HQ documents and the local analytics asset they reference.
+# Everything in this allowlist is still protected by the authenticated session gate.
+ALLOWED = {
+    "index.html",
+    "agent-town.html",
+    "harvey.html",
+    "inbox.html",
+    "marketing.html",
+    "visitor-analytics.html",
+    "visitor-analytics-ui.js",
+}
+CONTENT_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
+    ".json": "application/json; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+}
+
+
+def content_type_for(name: str) -> str:
+    """Return the MIME type for a specifically allowlisted HQ file."""
+    return CONTENT_TYPES.get(Path(name).suffix.lower(), "application/octet-stream")
 LOGIN_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Nexora HQ · Sign in</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080d16;color:#edf4ff;font:16px/1.5 system-ui,sans-serif;padding:20px}.card{width:min(420px,100%);padding:30px;background:#101a29;border:1px solid #24344a;box-shadow:8px 8px #030811}.brand{color:#54e7d2;font-weight:900;letter-spacing:.14em;font-size:.75rem}h1{font-size:1.7rem}p{color:#9aabc1}label{display:block;margin:18px 0 7px}input{width:100%;padding:13px;background:#080d16;border:1px solid #31465e;color:#edf4ff;border-radius:4px}button{width:100%;margin-top:16px;padding:13px;background:#54e7d2;border:0;color:#06121a;font-weight:900;cursor:pointer}small{display:block;margin-top:16px;color:#9aabc1}</style></head><body><main class="card"><div class="brand">NEXORA AI / PRIVATE WORKSPACE</div><h1>Company HQ</h1><p>Sign in to access the internal workspace.</p><form method="post" action="/login"><label for="password">Access password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">SIGN IN</button></form><small>Protected session · Sign-in expires after 8 hours.</small></main></body></html>"""
 
 def b64(data: bytes) -> str:
@@ -103,7 +131,7 @@ class Handler(BaseHTTPRequestHandler):
             content = (ROOT / name).read_bytes()
         except OSError:
             self.body(503, "HQ page is temporarily unavailable"); return
-        self.body(200, content, "text/html; charset=utf-8", [("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")])
+        self.body(200, content, content_type_for(name))
 
     def do_POST(self):
         if urlparse(self.path).path != "/login":
