@@ -83,3 +83,11 @@ The original secret values are not readable through the connected Resend tool, s
 
 ## Scope note
 This checkpoint documents the latest known project state from prior work; external cloud state can change independently. Always re-check before assuming it remains current.
+
+
+## New requirement — Shared brain for all agents (2026-10-21)
+- User requirement: all project agents should use one shared brain.
+- Architecture brief: `PROJECT_CONTINUITY/SHARED_BRAIN_ARCHITECTURE.md`.
+- Commit: `eb8d3889965c4fa5d9be291a7da85839de12cce4`.
+- Status: requirement and safe implementation plan saved; not yet implemented or verified across deployed agents.
+- Next: inventory agents and existing memory stores in the repository and deployed services, design the shared API/schema, enforce per-agent identity and access isolation, then integrate and test incrementally. Do not claim all agents share memory until cross-agent tests pass.
