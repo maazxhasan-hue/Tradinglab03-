@@ -104,7 +104,7 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
     brain = None
     brain_status = "not_configured"
     shared_context = ""
-    if os.environ.get("SUPABASE_ACCESS_TOKEN") and os.environ.get("SUPABASE_PUBLISHABLE_KEY"):
+    if (os.environ.get("SHARED_BRAIN_AGENT_KEY") or (os.environ.get("SUPABASE_ACCESS_TOKEN") and os.environ.get("SUPABASE_PUBLISHABLE_KEY"))):
         try:
             from .shared_brain import SharedBrainClient
             brain = SharedBrainClient()
