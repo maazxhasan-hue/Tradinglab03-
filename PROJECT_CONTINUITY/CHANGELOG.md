@@ -52,3 +52,6 @@
 - Added `tests/test_shared_brain_client.py` (commit `29b66029f1362b504abd8d3eb9ec44041d02a6c1`) for safe auth header selection, unconfigured client behavior, bounded query/limit values, malformed responses, and credential-redacted HTTP failures. Test execution is still pending; commit is not equivalent to a passing test run.
 - Updated the shared-brain implementation checkpoint (commit `adbaa7f1cd024158aa404e7d1be910650aa734dd`) and project state (commit `6cadfab58effe854095a19d1e096f8c9181c0900`) to record current blockers and the shared machine-key identity limitation.
 - No HQ theme changes made. Full fleet integration is not yet verified: private machine key setup, live cross-agent memory exchange, registry workflow-name audit, and direct Harvey runtime integration remain open.
+
+
+- Audited actual workflow `name:` fields and corrected the Shared Brain Workflow Registry list (commit `59697bef4cf1ec1eadcdbf0dbf59d7006508fe7`), including mismatches for Harvey health, company operations health, opportunity review, delivery smoke/end-to-end, Nexora checks, and Instagram content pack. This is a source-level name audit only; workflow_run triggering still needs a real run to verify.
