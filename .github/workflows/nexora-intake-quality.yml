@@ -76,8 +76,8 @@ jobs:
           ]
           missing = [item for item in required_worker if item not in worker]
           missing += [item for item in required_inbox if item not in inbox]
-          if "https://nexora-private-hq.vercel.app/" not in public_inbox or "window.location.replace" not in public_inbox or "api/admin/submissions" in public_inbox:
-              missing.append("public owner inbox must redirect to protected HQ without exposing the interactive inbox UI")
+          if "PRIVATE HQ HOSTING NOT CONFIGURED" not in public_inbox or "window.location.replace" in public_inbox or "api/admin/submissions" in public_inbox:
+              missing.append("public owner inbox must remain a non-functional safe placeholder until private HQ access is configured")
           if '{"status": "paid"}' not in deploy_workflow or "unsupported status was rejected" not in deploy_workflow:
               missing.append("deployment workflow invalid-status end-to-end check")
           if "client_accounts" not in auth_migration or "client_sessions" not in auth_migration or "client_auth_attempts" not in auth_migration:
@@ -126,12 +126,12 @@ jobs:
           marketing = Path("dashboard/marketing.html").read_text(encoding="utf-8")
           hq = Path("dashboard/index.html").read_text(encoding="utf-8")
           checks = {
-              "marketing page is a moved notice": "Marketing Studio moved" in marketing and "separate Vercel project" in marketing,
-              "HQ page is a moved notice": "Company HQ moved" in hq and "separate Vercel project" in hq,
+              "marketing page remains safe while private HQ is unconfigured": "Marketing Studio temporarily unavailable" in marketing and "PRIVATE HQ HOSTING NOT CONFIGURED" in marketing,
+              "HQ page remains safe while private HQ is unconfigured": "Company HQ is being reconnected" in hq and "PRIVATE HQ HOSTING NOT CONFIGURED" in hq,
               "marketing page is not indexed": 'name="robots" content="noindex' in marketing,
               "HQ page is not indexed": 'name="robots" content="noindex' in hq,
-              "marketing page points to private HQ": "nexora-private-hq" in marketing,
-              "HQ page points to private HQ": "nexora-private-hq" in hq,
+              "marketing placeholder does not expose internal API routes": "api/admin/submissions" not in marketing,
+              "HQ placeholder does not expose internal API routes": "api/admin/submissions" not in hq,
               "public page does not expose internal marketing editor": '<article class="post"' not in marketing and "NO AUTO-PUBLISH" not in marketing,
           }
           for name, ok in checks.items():
