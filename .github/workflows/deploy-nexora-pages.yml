@@ -38,6 +38,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js for public script validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax-check consent analytics loader
+        run: node --check dashboard/analytics-consent.js
+
       - name: Validate public entry points
         run: |
           set -euo pipefail
