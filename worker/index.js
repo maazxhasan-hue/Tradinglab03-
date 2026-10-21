@@ -481,12 +481,12 @@ export default {
       try { return await listAdminReferrals(request, env, cors); }
       catch (error) { console.error("Referral listing failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not load referrals."},503,cors); }
     }
-    const adminReferralMatch=url.pathname.match(/^\\/api\\/admin\\/referrals\\/([^/]+)$/);
+    const adminReferralMatch=url.pathname.match(/^\/api\/admin\/referrals\/([^/]+)$/);
     if (adminReferralMatch && request.method === "PATCH") {
       try { return await updateAdminReferral(request, env, adminReferralMatch[1], cors); }
       catch (error) { console.error("Referral status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update referral."},503,cors); }
     }
-    const adminCommissionMatch=url.pathname.match(/^\\/api\\/admin\\/referral-commissions\\/([^/]+)$/);
+    const adminCommissionMatch=url.pathname.match(/^\/api\/admin\/referral-commissions\/([^/]+)$/);
     if (adminCommissionMatch && request.method === "PATCH") {
       try { return await updateReferralCommissionStatus(request, env, adminCommissionMatch[1], cors); }
       catch (error) { console.error("Commission status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update commission."},503,cors); }
