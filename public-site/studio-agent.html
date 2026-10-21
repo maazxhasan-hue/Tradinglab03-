@@ -42,6 +42,21 @@
 <section class="panel" style="margin-top:18px"><h2>Creative reference library</h2><p class="muted">Inspired by techniques in <a href="https://github.com/yihui-dev/awesome-opus5-5-videos" target="_blank" rel="noopener noreferrer">awesome-opus5-5-videos</a>, a curated collection of prompts and examples using HTML, Canvas, SVG, Three.js, GLSL and Web Audio. The collection is a reference source, not a rendering engine; creator-specific prompts and assets remain attributed to their owners. This Studio implements its own procedural Canvas draft workflow rather than copying the entire upstream repository.</p></section>
 </main>
 
+
+<section class="panel" style="margin-top:18px" aria-labelledby="projectBuilderTitle">
+<h2 id="projectBuilderTitle">AI Project Builder</h2>
+<p class="muted">Send a real project brief to Nexora’s server-side model worker. It generates a multi-file source project and a ZIP archive. Generated code is not executed automatically; inspect it and run it in a sandbox.</p>
+<form id="projectBuildForm"><div class="fields">
+<div class="field full"><label for="workerUrl">AI worker API base URL *</label><input id="workerUrl" type="url" placeholder="https://your-worker.onrender.com" autocomplete="url" required></div>
+<div class="field full"><label for="workerKey">Worker API key *</label><input id="workerKey" type="password" placeholder="Enter your HARVEY_API_KEY" autocomplete="off" required><p class="small">Used for this request only. Not saved to local storage or included in the generated ZIP. Only enter a key for a worker you control.</p></div>
+<div class="field full"><label for="projectName">Project name *</label><input id="projectName" maxlength="100" required value="Nexora generated project"></div>
+<div class="field full"><label for="projectBrief">What should it build? *</label><textarea id="projectBrief" maxlength="8000" required style="min-height:150px" placeholder="Describe the product, target users, screens, behavior, data model, integrations, design system, edge cases, and acceptance criteria."></textarea></div>
+<div class="field full"><label for="projectConstraints">Quality and technical constraints</label><textarea id="projectConstraints" maxlength="3000">Use maintainable architecture, accessible responsive UI, input validation, clear error states, README setup instructions, practical tests, and no hard-coded secrets. List assumptions and unresolved dependencies. Do not claim tests were run unless they were actually executed.</textarea></div>
+</div><div class="btns"><button id="buildProjectBtn" class="btn" type="submit">Build project ZIP</button><button id="clearWorkerKey" class="btn secondary" type="button">Clear API key</button></div></form>
+<div id="projectBuildStatus" class="status" role="status">Worker connection has not been tested yet.</div>
+<div id="projectBuildResult" hidden><h3>Build report</h3><p id="projectBuildSummary"></p><ul id="projectBuildFiles" class="checklist"></ul><div class="btns"><button id="downloadProjectZip" class="btn" type="button">Download source ZIP</button></div><p class="small">The report distinguishes generated files from executed tests. No code is run by the generator service.</p></div>
+</section>
+
 <section class="panel" style="margin-top:18px" aria-labelledby="libraryTitle">
 <h2 id="libraryTitle">Reference prompt library</h2>
 <p class="muted">Search the upstream collection, open a creator's original prompt, and use it as a specification for your build. The collection is community-contributed; prompt text and media are credited to their creators, so this browser links to the source rather than silently republishing every creator's work.</p>
@@ -86,6 +101,43 @@ function download(name,blob){const url=URL.createObjectURL(blob),a=document.crea
 function htmlExport(){if(!generated)generate();const c=latestConfig;if(!c)return;const encoded=JSON.stringify(c).replace(/</g,'\\u003c');const html='<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+c.brand.replace(/[<>]/g,'')+' — Motion Concept</title><style>html,body{margin:0;background:#050a12;color:white;font-family:system-ui}canvas{display:block;width:100vw;height:100vh;object-fit:contain}</style><canvas id="c" width="'+dims(c.ratio)[0]+'" height="'+dims(c.ratio)[1]+'"></canvas><script>const C='+encoded+';const cv=document.getElementById("c"),x=cv.getContext("2d");function draw(t){const w=cv.width,h=cv.height,s=Math.min(w,h),a=C.accent;x.fillStyle="#07111f";x.fillRect(0,0,w,h);const g=x.createRadialGradient(w*.68,h*.46,1,w*.68,h*.46,s*.46);g.addColorStop(0,a+"88");g.addColorStop(1,"#03070d");x.fillStyle=g;x.fillRect(0,0,w,h);x.save();x.translate(w*.68,h*.46);x.rotate(t*.12);for(let i=0;i<7;i++){x.save();x.rotate(i*Math.PI/7);x.strokeStyle=a+"aa";x.beginPath();x.ellipse(0,0,s*(.12+i*.025),s*(.04+i*.012),0,0,Math.PI*2);x.stroke();x.restore()}const q=x.createRadialGradient(-s*.04,-s*.05,1,0,0,s*.12);q.addColorStop(0,"white");q.addColorStop(.4,a);q.addColorStop(1,"#08111f");x.fillStyle=q;x.beginPath();x.arc(0,0,s*.12,0,7);x.fill();x.restore();x.fillStyle=a;x.font="700 "+s*.02+"px system-ui";x.fillText(C.brand.toUpperCase(),w*.07,h*.32);x.fillStyle="white";x.font="750 "+s*.065+"px system-ui";x.fillText(C.headline.slice(0,34),w*.07,h*.42);x.font="600 "+s*.02+"px system-ui";x.fillText(C.cta.slice(0,42),w*.07,h*.55);requestAnimationFrame(n=>draw(n/1000))}requestAnimationFrame(n=>draw(n/1000));</scr'+'ipt></html>';download('nexora-motion-concept.html',new Blob([html],{type:'text/html;charset=utf-8'}));$('exportStatus').textContent='Standalone HTML downloaded. Open it in a modern browser to play the animation.';}function record(){if(!generated)generate();if(!canvas.captureStream||!window.MediaRecorder){$('exportStatus').textContent='This browser does not support canvas recording. Use Download HTML instead.';$('exportStatus').className='status warn';return}if(recording)return;const stream=canvas.captureStream(30);let mime='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';let recorder;try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch(e){$('exportStatus').textContent='Recording could not start in this browser. Download the HTML animation instead.';return}const chunks=[];recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};recorder.onstop=()=>{recording=false;stream.getTracks().forEach(t=>t.stop());if(chunks.length){download('nexora-motion-draft.webm',new Blob(chunks,{type:recorder.mimeType||'video/webm'}));$('exportStatus').textContent='WebM draft exported. It is silent and must be reviewed; the recording is browser-generated, not a cloud AI render.';$('exportStatus').className='status ok'}$('record').disabled=false;$('record').textContent='Record WebM'};recording=true;$('record').disabled=true;$('record').textContent='Recording…';$('exportStatus').textContent='Recording '+latestConfig.duration+' seconds. Keep this tab open.';const old=running;running=false;cancelAnimationFrame(raf);let t0=performance.now();const tick=now=>{const sec=(now-t0)/1000;draw(sec);if(sec<latestConfig.duration&&recording){requestAnimationFrame(tick)}else if(recording){recorder.stop()}};recorder.start();requestAnimationFrame(tick);}
 $('briefForm').addEventListener('submit',e=>{e.preventDefault();generate()});$('play').addEventListener('click',play);$('reset').addEventListener('click',()=>{running=false;cancelAnimationFrame(raf);elapsed=0;draw(0);$('play').textContent='Play preview';$('agentStatus').textContent='Preview reset. Your brief values are unchanged.'});$('downloadHtml').addEventListener('click',htmlExport);$('record').addEventListener('click',record);
 ['brand','headline','style','duration','ratio','accent','description','cta'].forEach(id=>$(id).addEventListener('change',()=>{if(generated)generate()}));
+
+
+const projectForm=$('projectBuildForm'),workerUrl=$('workerUrl'),workerKey=$('workerKey'),buildBtn=$('buildProjectBtn'),buildStatus=$('projectBuildStatus'),buildResult=$('projectBuildResult');
+let builtProject=null;
+function apiBase(){return workerUrl.value.trim().replace(/\\/+$/,'')}
+function showBuildStatus(message,kind=''){buildStatus.textContent=message;buildStatus.className='status'+(kind?' '+kind:'')}
+$('clearWorkerKey').addEventListener('click',()=>{workerKey.value='';showBuildStatus('API key cleared from this page.');});
+projectForm.addEventListener('submit',async e=>{
+ e.preventDefault(); if(!projectForm.reportValidity())return;
+ const base=apiBase(),key=workerKey.value;
+ if(!/^https?:\\/\\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ buildBtn.disabled=true;buildBtn.textContent='Building…';buildResult.hidden=true;builtProject=null;
+ showBuildStatus('Sending brief to the worker. Generation may take up to two minutes.');
+ try{
+  const response=await fetch(base+'/projects/build',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':key},body:JSON.stringify({name:$('projectName').value.trim(),brief:$('projectBrief').value.trim(),constraints:$('projectConstraints').value.trim()})});
+  const data=await response.json().catch(()=>({detail:'Worker returned a non-JSON response.'}));
+  if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'Worker request failed with HTTP '+response.status);
+  if(data.status!=='completed'||!Number.isInteger(data.project_id))throw new Error('Worker response did not contain a completed project ID.');
+  builtProject={base,key,id:data.project_id,data};
+  $('projectBuildSummary').textContent=(data.summary||'Project files generated.')+' Model: '+(data.model||'reported by worker')+'. Tests executed: '+(data.tests_executed===true?'yes':'no — source only; not run by the worker')+'.';
+  $('projectBuildFiles').innerHTML=(data.files||[]).map(file=>'<li>'+String(file.path).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+' · '+Number(file.bytes||0)+' bytes</li>').join('');
+  buildResult.hidden=false;showBuildStatus('Project generated and packaged. Review the report; the source has not been executed.','ok');
+ }catch(err){showBuildStatus('Build failed: '+(err&&err.message?err.message:'Unknown error')+'. Check worker URL, CORS, API key, provider configuration and server logs.','warn')}
+ finally{buildBtn.disabled=false;buildBtn.textContent='Build project ZIP'}
+});
+$('downloadProjectZip').addEventListener('click',async()=>{
+ if(!builtProject)return;
+ const btn=$('downloadProjectZip');btn.disabled=true;
+ try{
+  const response=await fetch(builtProject.base+'/projects/'+builtProject.id+'/download',{headers:{'X-API-Key':builtProject.key}});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.detail||'Download failed with HTTP '+response.status)}
+  const blob=await response.blob();if(!blob.size)throw new Error('The returned ZIP was empty.');
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nexora-project-'+builtProject.id+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  showBuildStatus('Source ZIP downloaded. It has not been executed or independently tested.','ok');
+ }catch(err){showBuildStatus('Download failed: '+(err&&err.message?err.message:'Unknown error'),'warn')}
+ finally{btn.disabled=false}
+});
 
 const promptSearch=$('promptSearch'),promptResults=$('promptResults'),promptCount=$('promptCount'),promptStatus=$('promptLibraryStatus');
 let promptEntries=[];
