@@ -109,7 +109,7 @@ function apiBase(){return workerUrl.value.trim().replace(/\\/+$/,'')}
 function showBuildStatus(message,kind=''){buildStatus.textContent=message;buildStatus.className='status'+(kind?' '+kind:'')}
 $('testWorkerConnection').addEventListener('click',async()=>{
  const base=apiBase(),btn=$('testWorkerConnection');
- if(!/^https?:\\/\\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
  btn.disabled=true;btn.textContent='Checking…';showBuildStatus('Checking worker health and configuration…');
  try{
   const response=await fetch(base+'/health',{method:'GET',headers:{'Accept':'application/json'}});
@@ -126,7 +126,7 @@ $('clearWorkerKey').addEventListener('click',()=>{workerKey.value='';showBuildSt
 projectForm.addEventListener('submit',async e=>{
  e.preventDefault(); if(!projectForm.reportValidity())return;
  const base=apiBase(),key=workerKey.value;
- if(!/^https?:\\/\\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
  buildBtn.disabled=true;buildBtn.textContent='Building…';buildResult.hidden=true;builtProject=null;
  showBuildStatus('Sending brief to the worker. Generation may take up to two minutes.');
  try{
