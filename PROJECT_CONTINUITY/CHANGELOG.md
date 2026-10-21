@@ -14,3 +14,8 @@
 - Added `PROJECT_CONTINUITY/LIVE_AUDIT_2026-10-21.md` with the evidence and required steps.
 - Remaining owner-only requirement: add `OPENAI_API_KEY` privately in Supabase Edge Function secrets. Then trigger a Netlify production build that includes the current source and functions, and perform authenticated end-to-end tests.
 - No secrets were added to GitHub; no credentials were rotated or revoked; private HQ remains untouched.
+
+## 2026-10-21 — Session log saved
+- Created `PROJECT_CONTINUITY/SESSION_LOG_2026-10-21.md` with the current audit findings, verified IDs/statuses, blockers, safe secret-handling rules, and exact resume tasks.
+- Commit: `f559c8f135432fcbdb28a892ba6a2e28346973ce`.
+- The file is a durable work log, not a verbatim copy of every chat message. Future meaningful work should be appended to the changelog and reflected in STATE.md.
