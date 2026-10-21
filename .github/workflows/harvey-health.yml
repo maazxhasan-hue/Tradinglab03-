@@ -26,7 +26,7 @@ jobs:
           ok=0
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error --max-time 15 https://tradinglab03.onrender.com/health -o health.json; then
-              if python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; print('Harvey health OK; database:', d.get('database'), '; email sending:', d.get('email_sending'))"; then
+              if python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; assert d.get('shared_brain') == 'configured', {'shared_brain': d.get('shared_brain'), 'status': d.get('status')}; print('Harvey health OK; database:', d.get('database'), '; shared brain:', d.get('shared_brain'), '; email sending:', d.get('email_sending'))"; then
                 ok=1
                 break
               fi
