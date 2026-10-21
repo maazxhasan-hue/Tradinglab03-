@@ -2,12 +2,11 @@
   "use strict";
   // Set this only to the verified GA4 Web stream Measurement ID (G-XXXXXXXXXX).
   // A blank value intentionally disables all analytics until configuration is complete.
-  const MEASUREMENT_ID = "";
+  let MEASUREMENT_ID = "";
   const PRODUCTION_HOSTS = new Set(["nexora-ai-public.netlify.app"]);
   const CONSENT_KEY = "nexora.analytics-consent.v1";
   const ALLOWED_KEY_EVENTS = new Set(["generate_lead", "sign_up", "purchase"]);
 
-  if (!/^G-[A-Z0-9]+$/.test(MEASUREMENT_ID)) return;
   if (!PRODUCTION_HOSTS.has(String(window.location.hostname || "").toLowerCase())) return;
   const gpc = navigator.globalPrivacyControl === true;
   const dnt = String(navigator.doNotTrack || window.doNotTrack || "").toLowerCase() === "1";
@@ -91,7 +90,20 @@
   const settingsButton = makeButton("Cookie settings", false, function () { banner.hidden = false; });
   settingsButton.hidden = true;
   settingsButton.style.cssText += ";position:fixed;z-index:2147482999;right:12px;bottom:12px;font-size:12px;box-shadow:0 4px 18px rgba(0,0,0,.15)";
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", async function () {
+    // Read only the public Measurement ID from the Worker. No tracking request is
+    // sent to Google until the visitor explicitly grants analytics consent.
+    try {
+      const response = await fetch("https://tradinglab03-intake.maazxhasan.workers.dev/api/analytics/config", {
+        method: "GET", headers: { "Accept": "application/json" }, mode: "cors", credentials: "omit", cache: "no-store"
+      });
+      if (!response.ok) return;
+      const config = await response.json();
+      if (!config || config.configured !== true || !/^G-[A-Z0-9]+$/.test(String(config.measurement_id || ""))) return;
+      MEASUREMENT_ID = String(config.measurement_id);
+    } catch (error) {
+      return;
+    }
     initConsentMode();
     document.body.append(banner, settingsButton);
     let existing = "";
