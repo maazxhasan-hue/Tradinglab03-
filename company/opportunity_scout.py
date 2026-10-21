@@ -464,6 +464,44 @@ def save_report(report: dict, output_dir: str | Path = OUT_DIR) -> tuple[Path, P
     md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return json_path, md_path
 
+def sync_shared_brain(report: dict) -> dict:
+    """Best-effort shared memory connection for the hourly scout.
+
+    Reads shared company guidance and records sanitized run counts only; it never
+    stores raw listing text, contact details, or credentials.
+    """
+    if not os.getenv("SHARED_BRAIN_AGENT_KEY"):
+        return {"status": "not_configured", "recalled": 0, "saved": False}
+    try:
+        from .shared_brain import SharedBrainClient
+        client = SharedBrainClient()
+        memories = client.recall(
+            project_key="nexora", namespace="company",
+            query="opportunity scout review policy source quality", limit=5,
+        )
+        safe_summary = {
+            "sources_configured": int(report.get("sources_configured", 0) or 0),
+            "items_found": int(report.get("items_found", 0) or 0),
+            "error_count": len(report.get("errors", [])),
+            "summary": report.get("summary", {}) if isinstance(report.get("summary"), dict) else {},
+            "shared_guidance_count": len(memories),
+        }
+        client.remember(
+            project_key="nexora", namespace="company",
+            memory_key="hourly-opportunity-scout:" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M"),
+            source_agent=os.getenv("SHARED_BRAIN_AGENT_ID", "github-hourly-opportunity-scout"),
+            summary="Hourly opportunity scout run completed; counts only, listings not stored.",
+            content=safe_summary,
+            tags=["agent-run", "opportunity-scout"],
+            confidence=1.0,
+        )
+        return {"status": "connected", "recalled": len(memories), "saved": True}
+    except Exception as exc:
+        # Shared memory is optional and must never prevent opportunity discovery.
+        return {"status": "unavailable", "recalled": 0, "saved": False,
+                "error_type": type(exc).__name__}
+
+
 def main():
     report = discover()
     json_path, md_path = save_report(report)
@@ -476,6 +514,7 @@ def main():
         "json_report": str(json_path),
         "markdown_report": str(md_path),
         "error_count": len(report["errors"]),
+        "shared_brain": brain_status,
     }, ensure_ascii=False))
 
 if __name__ == "__main__":
