@@ -1,0 +1,39 @@
+"""Write a minimal workflow-run fact to the shared agent brain.
+
+This records run metadata only (never artifacts, credentials, or raw client briefs).
+The caller must configure SHARED_BRAIN_AGENT_KEY and a unique SHARED_BRAIN_AGENT_ID.
+"""
+from __future__ import annotations
+import argparse, json, os, re, sys
+from .shared_brain import SharedBrainClient, SharedBrainError
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--status", required=True, choices=["success", "failure", "cancelled", "skipped", "unknown"])
+    parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "manual"))
+    parser.add_argument("--commit", default=os.getenv("GITHUB_SHA", "unknown"))
+    parser.add_argument("--workflow", default=os.getenv("GITHUB_WORKFLOW", "unknown"))
+    parser.add_argument("--repository", default=os.getenv("GITHUB_REPOSITORY", "unknown"))
+    args = parser.parse_args()
+    agent = os.getenv("SHARED_BRAIN_AGENT_ID", "github-actions")
+    safe = re.sub(r"[^a-zA-Z0-9._:-]", "-", f"{args.workflow}:{args.run_id}")[:150]
+    client = SharedBrainClient()
+    try:
+        result = client.remember(
+            project_key="nexora", namespace="agent-runs", memory_key=safe,
+            source_agent=agent,
+            summary=f"Workflow {args.workflow} ended with status {args.status}; run {args.run_id}.",
+            content={"workflow": args.workflow, "status": args.status, "run_id": args.run_id,
+                     "commit": args.commit, "repository": args.repository, "review_required": args.status != "success"},
+            tags=["workflow-run", args.status], confidence=1.0,
+            source_ref=f"{args.repository}/actions/runs/{args.run_id}",
+        )
+        print(json.dumps({"shared_brain": "saved", "scope": result.get("scope", "unknown")}))
+        return 0
+    except SharedBrainError as exc:
+        print(json.dumps({"shared_brain": "unavailable", "reason": str(exc)}))
+        # Do not fail the primary workflow solely because shared memory is down.
+        return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
