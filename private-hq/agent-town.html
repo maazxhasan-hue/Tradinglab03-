@@ -7,6 +7,49 @@
 @keyframes type{to{transform:translateY(3px)}}@keyframes walk{to{transform:translateX(12px)}}@keyframes read{50%{filter:brightness(1.7)}}@keyframes glow{50%{outline-color:#2c715f}}
 @media(max-width:1100px){.floor{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.station{min-height:145px}}@media(max-width:850px){.shell{grid-template-columns:1fr}aside{display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:3px solid #344a60;padding:6px}aside button{width:auto;white-space:nowrap;font-size:8px;margin:0}.activity{display:none}.stats{grid-template-columns:repeat(2,1fr)}.floor{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 9px}.wall{height:120px}.windows{left:28%;width:35%}.lower{grid-template-columns:1fr}}@media(max-width:480px){.facility-strip{grid-template-columns:1fr}.facility-name{font-size:7px}header{padding:8px 10px;height:auto;min-height:58px;flex-wrap:wrap}.brand{font-size:12px}.health{font-size:8px}main{padding:10px}.floor{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.station{min-height:142px;padding:5px}.station h3{font-size:6px;overflow-wrap:anywhere}.server{width:22%}.windows{width:34%;left:30%}.top h1{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.worker,.station.busy{animation:none}}
+
+/* UNIFIED HQ SKIN: midnight pixel workstation, cyan + warm gold */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{color-scheme:dark;--ink:#070b14;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--gold:#ffc778;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--green:#65f6a4;--pixel-shadow:4px 4px 0 #02050b}
+html{background:#070b14;scroll-behavior:smooth}
+body{background-color:#070b14!important;background-image:linear-gradient(#14213744 1px,transparent 1px),linear-gradient(90deg,#14213744 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%)!important;background-size:16px 16px,16px 16px,100% 100%!important;color:var(--text)!important;font-family:'VT323',monospace!important;font-size:21px;line-height:1.35}
+header{background:#080e1bf5!important;border-bottom:3px solid var(--line)!important;box-shadow:0 4px 0 #03060d!important;backdrop-filter:none!important}
+h1,h2,h3,.brand,.logo,.eyebrow,.label,.facility-name,.station h3,.button,button,.health,.pill{font-family:'Press Start 2P','VT323',monospace!important;letter-spacing:0;line-height:1.65}
+h1{font-size:clamp(17px,2.6vw,27px)!important;text-transform:uppercase;text-shadow:3px 3px #10284a}
+h2{font-size:clamp(11px,1.4vw,16px)!important;color:#b9d2ff}
+h3{font-size:11px!important;color:var(--gold)}
+p,label,.muted,.small,.status, input,select,textarea,pre{font-family:'VT323',monospace!important;font-size:21px!important}
+p,.muted,.small,label{color:var(--muted)}
+.panel,.card,.facility,.activity,.stat,.station,.scene,.toast,.status,.notice,.metric-card,.agent-card,.office,.workstation,.list-card{border-radius:0!important;box-shadow:var(--pixel-shadow)!important}
+.panel,.card,.facility,.activity,.stat,.facility-strip,.lower .panel{background:#0c1524!important;border-color:var(--line)!important}
+button,.button,a.button,input[type=submit]{border:2px solid var(--cyan)!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font-size:9px!important;padding:10px 12px!important}
+button:hover,.button:hover,a.button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #02050b!important;filter:brightness(1.15)}
+button.secondary,.button.secondary{background:#15253a!important;border-color:#516b8e!important;color:var(--text)!important}
+input,select,textarea,pre{background:#070e19!important;border:2px solid var(--line)!important;border-radius:0!important;color:var(--text)!important}
+a{color:#8dc3ff}a:hover{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--gold)!important;outline-offset:3px}
+::selection{background:var(--cyan);color:#061018}
+@media(max-width:700px){header{padding:10px!important;gap:10px}.brand,.logo{font-size:10px!important}main{padding:12px!important}.grid,.stats,.facility-strip,.lower{grid-template-columns:1fr!important}.floor{grid-template-columns:repeat(2,minmax(0,1fr))!important}.facility-name{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Match the agent simulation's room to the same HQ palette */
+.scene{background:#0c1828!important;border:4px solid #b78c55!important;box-shadow:6px 6px 0 #02050b!important}
+.wall{background:repeating-linear-gradient(0deg,#17334a 0 20px,#0e2538 20px 24px,#1d3e55 24px 27px)!important;border-bottom-color:#b78c55!important}
+.windows{border-color:#b78c55!important;background:linear-gradient(180deg,#102c48,#63b9c6 65%,#162a43)!important}
+.windows i{border-color:#b78c55!important}
+.sign{background:#122238!important;border-color:#b78c55!important;color:var(--gold)!important}
+.server{background:#102034!important;border-color:#70869a!important}
+.server i{background:repeating-linear-gradient(0deg,#203d4b 0 9px,#63f5dc 9px 11px,#101923 11px 18px)!important}
+.floor{background:repeating-linear-gradient(0deg,#183047 0 24px,#10263a 24px 28px,#1b3650 28px 32px)!important}
+.station{background:linear-gradient(180deg,#243d53 0 8%,#183047 8% 13%,#0c1828 13% 100%)!important;border-color:#b78c55!important;box-shadow:4px 5px 0 #02050b!important}
+.station h3{background:#122238!important;border-color:#536b83!important;color:var(--gold)!important}
+.monitor{background:repeating-linear-gradient(0deg,#0b2c39 0 6px,#175b60 6px 9px)!important;border-color:#70869a!important}
+.bubble{border-color:#536b83!important}
+.station p{color:#d9e9f8!important;text-shadow:none!important}
+.facility-name,.activity h3,.label{color:var(--gold)!important}
+.mihrab{border-color:var(--gold)!important;background:linear-gradient(180deg,#183f50,#0b1b2a)!important}
+.rug{background:repeating-linear-gradient(90deg,#65c8bb 0 3px,#193c49 3px 6px)!important;border-color:var(--gold)!important}
+
 </style>
 <style id="nexora-reference-scene">
 /* Reference-matched warm pixel office skin: private HQ only */
