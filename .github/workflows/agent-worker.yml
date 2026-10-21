@@ -38,6 +38,18 @@ jobs:
         run: |
           python -m company.agent_runtime --task-type "$TASK_TYPE" --title "$TASK_TITLE" --context "$TASK_CONTEXT"
           python -m company.agent_runtime --run-one
+      - name: Sync agent run to shared brain
+        if: always()
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-ai-draft-worker
+          RUN_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$SHARED_BRAIN_AGENT_KEY" ]; then
+            python -m company.shared_brain_sync --status "${RUN_STATUS,,}"
+          else
+            echo "Shared brain sync skipped: SHARED_BRAIN_AGENT_KEY secret is not configured."
+          fi
       - name: Upload draft output
         if: always()
         uses: actions/upload-artifact@v4
