@@ -82,6 +82,9 @@ img,canvas,svg{image-rendering:pixelated}
 </div>
 <p id="harveyHealthStatus" role="status" aria-live="polite">Checking live Harvey API…</p>
 <p id="harveyHealthDetails" class="muted">Waiting for the health endpoint.</p>
+ <p id="sharedBrainStatus" role="status" aria-live="polite">Shared Brain: checking connection…</p>
+ <p class="muted">Shared Brain status confirms worker configuration only; the separate live cross-agent smoke test verifies shared memory read/write.</p>
+ <p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/shared-brain-live-smoke.yml" target="_blank" rel="noopener">Open Shared Brain live verification ↗</a></p>
 <p class="muted">Voice controls use the browser's speech features. Instagram publishing and DM handling are not connected automatically. Production email sending remains disabled until sender verification and a safe test are completed.</p>
 </section>
 <section class="card" style="margin:1rem 0">
@@ -400,8 +403,9 @@ form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief(
   const endpoint='https://tradinglab03.onrender.com/health';
   const status=document.getElementById('harveyHealthStatus');
   const details=document.getElementById('harveyHealthDetails');
+  const brainStatus=document.getElementById('sharedBrainStatus');
   const button=document.getElementById('checkHarveyHealth');
-  if(!status||!details||!button)return;
+  if(!status||!details||!brainStatus||!button)return;
   async function checkHealth(){
     button.disabled=true;
     status.textContent='Checking live Harvey service…';
@@ -412,6 +416,9 @@ form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief(
       if(data.status!=='ready')throw new Error('Service is not reporting ready');
       status.textContent='CONNECTED · '+String(data.service||'Harvey')+' · checked '+new Date().toLocaleTimeString();
       details.textContent='Database: '+String(data.database||'unknown')+' · Prospects: '+String(data.prospects??'—')+' · Pending approvals: '+String(data.pending_approvals??'—')+' · Tasks recorded: '+String(data.tasks_recorded??'—')+' · Email sending: '+String(data.email_sending||'unknown');
+      const brain=String(data.shared_brain||'unknown');
+      brainStatus.textContent='Shared Brain: '+(brain==='configured'?'CONFIGURED · agent memory client enabled':brain.toUpperCase().replaceAll('_',' '))+' · checked '+new Date().toLocaleTimeString();
+      brainStatus.style.color=brain==='configured'?'#54e7d2':'#ffda7b';
       status.style.color='#54e7d2';
     }catch(error){
       status.textContent='LIVE HEALTH CHECK FAILED';
