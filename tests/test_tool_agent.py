@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -40,6 +41,30 @@ class ToolAgentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "not allowlisted"):
                 execute_tool("run_shell", {"command": "whoami"}, tmp)
+
+
+    def test_gemini_native_provider_uses_key_header_and_parses_response(self):
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.return_value = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": "Draft complete."}]}}]
+        }).encode("utf-8")
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True), \
+             patch("company.tool_agent.urllib.request.urlopen", return_value=response) as urlopen:
+            result = run_tool_agent(brief={"business_name": "Example"}, workspace=tmp, max_rounds=1)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["final_message"], "Draft complete.")
+        request = urlopen.call_args.args[0]
+        self.assertIn(":generateContent", request.full_url)
+        self.assertEqual(request.get_header("X-goog-api-key"), "test-secret")
+        self.assertNotIn("test-secret", request.full_url)
+
+    def test_gemini_native_provider_skips_without_key(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict("os.environ", {"AI_PROVIDER": "gemini"}, clear=True):
+            result = run_tool_agent(brief={"business_name": "Example"}, workspace=tmp)
+        self.assertEqual(result["status"], "skipped_no_api_key")
 
 
 if __name__ == "__main__":
