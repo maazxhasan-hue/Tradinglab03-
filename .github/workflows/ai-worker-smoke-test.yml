@@ -11,6 +11,7 @@ on:
     paths:
       - "harvey-worker/**"
       - "public-site/studio-agent.html"
+      - "public-site/video-studio.html"
       - ".github/workflows/ai-worker-smoke-test.yml"
   workflow_dispatch:
 permissions:
