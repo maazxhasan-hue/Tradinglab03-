@@ -1,0 +1,30 @@
+name: Harvey health check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public health endpoint
+        run: |
+          set -eu
+          curl --fail --silent --show-error --max-time 30 https://tradinglab03.onrender.com/health -o health.json
+          python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; print('Harvey health OK; database:', d.get('database'), '; email sending:', d.get('email_sending'))"
+      - name: Confirm protected endpoints reject unauthenticated access
+        run: |
+          set -eu
+          for path in metrics prospects approvals tasks email/status; do
+            code=$(curl --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' "https://tradinglab03.onrender.com/$path")
+            if [ "$code" != "401" ] && [ "$code" != "503" ]; then
+              echo "Unexpected unauthenticated status $code for /$path"
+              exit 1
+            fi
+          done
+          echo "Protected endpoints reject unauthenticated requests."
