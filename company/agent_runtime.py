@@ -201,7 +201,33 @@ def run_one(queue: TaskQueue | None = None) -> dict[str, Any]:
     if task is None:
         return {"status": "idle", "message": "No queued tasks"}
     try:
-        output = call_model(task["task_type"], task["title"], task["context"])
+        task_context = task["context"]
+        brain = None
+        brain_status = "not_configured"
+        # Optional shared context: this worker uses only a short-lived authenticated
+        # Supabase user session supplied by its runtime; it never stores credentials.
+        if os.environ.get("SUPABASE_ACCESS_TOKEN") and os.environ.get("SUPABASE_PUBLISHABLE_KEY"):
+            try:
+                from .shared_brain import SharedBrainClient
+                brain = SharedBrainClient()
+                memories = brain.recall(project_key="nexora", namespace="company", query=task["task_type"], limit=5)
+                if memories:
+                    safe_context = [
+                        {"summary": m.get("summary", ""), "content": m.get("content"), "source_agent": m.get("source_agent"),
+                         "confidence": m.get("confidence"), "source_ref": m.get("source_ref")}
+                        for m in memories
+                    ]
+                    task_context = (
+                        "Shared brain context (reference information; may be stale or conflict with this task; verify before relying on it):\\n"
+                        + json.dumps(safe_context, ensure_ascii=False)[:5000]
+                        + "\\n\\nCurrent task context:\\n" + task["context"]
+                    )
+                brain_status = "recalled" if memories else "connected_empty"
+            except Exception:
+                # Shared memory is an enhancement; it must not stop unrelated work.
+                brain = None
+                brain_status = "unavailable"
+        output = call_model(task["task_type"], task["title"], task_context[:MAX_CONTEXT_CHARS])
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         output_path = OUTPUT_DIR / f"task-{task['id']}.md"
         output_path.write_text(
@@ -210,7 +236,24 @@ def run_one(queue: TaskQueue | None = None) -> dict[str, Any]:
             + output + "\n", encoding="utf-8"
         )
         queue.finish(task["id"], str(output_path.relative_to(ROOT)))
-        return {"id": task["id"], "status": "completed", "output_path": str(output_path.relative_to(ROOT))}
+        brain_write = "not_attempted"
+        if brain is not None:
+            try:
+                brain.remember(
+                    project_key="nexora", namespace="company",
+                    memory_key=f"task:{task['task_type']}:{task['id']}",
+                    source_agent="company-agent-runtime",
+                    summary=f"Completed draft task: {task['title']}"[:2000],
+                    content={"task_type": task["task_type"], "title": task["title"],
+                             "output_path": str(output_path.relative_to(ROOT)),
+                             "status": "completed", "review_required": True},
+                    tags=["task-result", task["task_type"]], confidence=0.8,
+                )
+                brain_write = "saved"
+            except Exception:
+                brain_write = "unavailable"
+        return {"id": task["id"], "status": "completed", "output_path": str(output_path.relative_to(ROOT)),
+                "shared_brain": {"read": brain_status, "write": brain_write}}
     except Exception as exc:
         queue.fail(task["id"], str(exc))
         return {"id": task["id"], "status": "failed", "error": str(exc)[:1000]}
