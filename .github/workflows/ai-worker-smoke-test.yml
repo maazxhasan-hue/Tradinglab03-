@@ -117,30 +117,46 @@ jobs:
 
       - name: Optional provider smoke test
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.OPENAI_API_KEY }}
-          LLM_BASE_URL: ${{ vars.LLM_BASE_URL || vars.GEMINI_BASE_URL || vars.OPENAI_BASE_URL }}
-          LLM_MODEL: ${{ vars.LLM_MODEL || vars.GEMINI_MODEL || vars.OPENAI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          GEMINI_BASE_URL: ${{ vars.GEMINI_BASE_URL }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
         run: |
-          if [ -z "$LLM_API_KEY" ]; then
-            echo "No LLM_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY GitHub secret configured; skipping provider-generation test. Unit and live health tests still ran, but live generation remains unverified."
-            echo "### NOT VERIFIED: no provider key available to CI" >> "$GITHUB_STEP_SUMMARY"
-            echo "No provider secret was available to this workflow. Code and health checks ran, but live model generation was not tested." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          # Prefer Gemini when its dedicated secret exists. Never route it to OpenAI.
+          if [ -n "$GEMINI_API_KEY" ]; then
+            PROVIDER_KEY="$GEMINI_API_KEY"
+            BASE_URL="${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}"
+            MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+            PROVIDER_NAME="Gemini"
+          elif [ -n "$LLM_API_KEY" ] && [ -n "$LLM_BASE_URL" ]; then
+            PROVIDER_KEY="$LLM_API_KEY"
+            BASE_URL="$LLM_BASE_URL"
+            MODEL="${LLM_MODEL:-gpt-4.1-mini}"
+            PROVIDER_NAME="configured LLM"
+          elif [ -n "$OPENAI_API_KEY" ] && [ -n "$OPENAI_BASE_URL" ]; then
+            PROVIDER_KEY="$OPENAI_API_KEY"
+            BASE_URL="$OPENAI_BASE_URL"
+            MODEL="${OPENAI_MODEL:-gpt-4.1-mini}"
+            PROVIDER_NAME="explicitly configured OpenAI"
+          else
+            echo "::error::No usable Gemini/LLM provider configuration. Add GEMINI_API_KEY (recommended), or LLM_API_KEY with LLM_BASE_URL."
+            echo "### BLOCKED: provider configuration missing" >> "$GITHUB_STEP_SUMMARY"
+            echo "The workflow will not silently default to the exhausted OpenAI account. Configure GEMINI_API_KEY or a generic LLM key and explicit base URL." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
           set +x
-          BASE_URL="${LLM_BASE_URL:-https://api.openai.com/v1}"
           BASE_URL="${BASE_URL%/}"
-          if [[ "$BASE_URL" == *"generativelanguage.googleapis.com"* ]]; then
-            MODEL="${LLM_MODEL:-gemini-2.5-flash}"
-          else
-            MODEL="${LLM_MODEL:-gpt-4.1-mini}"
-          fi
           code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
             --max-time 45 "$BASE_URL/chat/completions" \
-            -H "Authorization: Bearer $LLM_API_KEY" \
+            -H "Authorization: Bearer $PROVIDER_KEY" \
             -H "Content-Type: application/json" \
             -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}")
-          echo "Provider API HTTP status: $code"
+          echo "$PROVIDER_NAME API HTTP status: $code"
           if [ "$code" != "200" ]; then
             python - <<'PY'
           import json
@@ -154,28 +170,6 @@ jobs:
           except Exception:
               print("Could not parse provider error response.")
           PY
-            quota_state=$(python - <<'PY'
-          import json
-          from pathlib import Path
-          try:
-              data = json.loads(Path("response.json").read_text())
-              error = data.get("error", {})
-              code = str(error.get("code", "")).lower()
-              kind = str(error.get("type", "")).lower()
-              if code in {"credit_balance_exhausted", "insufficient_quota"} or kind == "insufficient_quota":
-                  print("quota_blocked")
-              else:
-                  print("provider_error")
-          except Exception:
-              print("provider_error")
-          PY
-          )
-            if [ "$quota_state" = "quota_blocked" ]; then
-              echo "::error::Provider credentials are accepted but the account has no usable API credits. Live AI generation is blocked until provider billing/credits are restored."
-              echo "### BLOCKED: AI provider quota exhausted" >> "$GITHUB_STEP_SUMMARY"
-              echo "Worker code tests and live health passed, but live model generation is blocked because the provider reports insufficient quota / exhausted credits. Restore provider credits and rerun this workflow. This check intentionally fails instead of reporting a green smoke test." >> "$GITHUB_STEP_SUMMARY"
-              exit 1
-            fi
             exit 1
           fi
           python - <<'PY'
