@@ -52,7 +52,8 @@ def run_specialist_team(*, brief: dict[str, Any], workspace: str | Path,
         raise ValueError("Unsupported service: " + service)
     root = Path(workspace).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    key = api_key if api_key is not None else os.environ.get("OPENAI_API_KEY", "")
+    provider = os.environ.get("AI_PROVIDER", "openai").strip().lower()
+    key = api_key if api_key is not None else os.environ.get("GEMINI_API_KEY" if provider == "gemini" else "OPENAI_API_KEY", "")
     roles = SERVICE_ROLES[service]
     started = datetime.now(timezone.utc).isoformat()
     results: list[dict] = []

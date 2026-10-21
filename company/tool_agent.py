@@ -92,13 +92,22 @@ def execute_tool(name: str, arguments: dict, workspace: str | Path) -> dict[str,
 def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = None,
                    base_url: str | None = None, model: str | None = None,
                    max_rounds: int = MAX_TOOL_ROUNDS) -> dict:
-    key = api_key or os.environ.get("OPENAI_API_KEY", "")
+    provider = os.environ.get("AI_PROVIDER", "openai").strip().lower()
+    if provider not in {"openai", "gemini", "template", "free", "offline"}:
+        raise ValueError("AI_PROVIDER must be openai, gemini, template, free, or offline")
+    if provider in {"template", "free", "offline"}:
+        return {"status": "skipped_template_provider", "tool_calls": 0, "message": "Template/offline provider does not run model tool calls."}
+    key = api_key or os.environ.get("GEMINI_API_KEY" if provider == "gemini" else "OPENAI_API_KEY", "")
     if not key:
         return {"status": "skipped_no_api_key", "tool_calls": 0, "message": "No model API key configured; deterministic delivery artifacts remain available."}
     if max_rounds < 1 or max_rounds > MAX_TOOL_ROUNDS:
         raise ValueError(f"max_rounds must be between 1 and {MAX_TOOL_ROUNDS}")
-    base = (base_url or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
-    model_name = model or os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
+    if provider == "gemini":
+        base = (base_url or os.environ.get("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta")).rstrip("/")
+        model_name = model or os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+    else:
+        base = (base_url or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+        model_name = model or os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
     root = Path(workspace).resolve()
     root.mkdir(parents=True, exist_ok=True)
     brain = None
@@ -136,23 +145,69 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
          json.dumps(brief, ensure_ascii=False) + shared_context + "\nWorkspace: inspect the files, improve feasible in-scope artifacts, and finish with a concise evidence-based report."}
     ]
     calls = 0
-    for _ in range(max_rounds):
-        payload = {"model": model_name, "messages": messages, "tools": TOOLS, "tool_choice": "auto", "temperature": 0.2, "max_tokens": 2200}
-        request = urllib.request.Request(
-            base + "/chat/completions", data=json.dumps(payload).encode("utf-8"),
-            headers={"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json"},
-            method="POST",
-        )
+    for round_index in range(max_rounds):
+        if provider == "gemini":
+            declarations = [{"name": item["function"]["name"], "description": item["function"]["description"], "parameters": item["function"]["parameters"]} for item in TOOLS]
+            contents = []
+            for prior in messages:
+                role = prior.get("role")
+                if role == "system":
+                    continue
+                if role == "tool":
+                    try:
+                        response_data = json.loads(prior.get("content") or "{}")
+                    except json.JSONDecodeError:
+                        response_data = {"error": "Invalid tool result"}
+                    function_name = None
+                    for previous in reversed(messages):
+                        match = next((tc for tc in previous.get("tool_calls", []) if tc.get("id") == prior.get("tool_call_id")), None)
+                        if match:
+                            function_name = match.get("function", {}).get("name")
+                            break
+                    if function_name:
+                        contents.append({"role": "user", "parts": [{"functionResponse": {"name": function_name, "response": response_data}}]})
+                elif role == "assistant" and prior.get("tool_calls"):
+                    parts = []
+                    for tc in prior["tool_calls"]:
+                        fn = tc.get("function", {})
+                        try: args = json.loads(fn.get("arguments") or "{}")
+                        except json.JSONDecodeError: args = {}
+                        parts.append({"functionCall": {"name": fn.get("name", ""), "args": args}})
+                    contents.append({"role": "model", "parts": parts})
+                elif role in {"user", "assistant"} and prior.get("content"):
+                    contents.append({"role": "model" if role == "assistant" else "user", "parts": [{"text": str(prior["content"])}]})
+            payload = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents,
+                       "tools": [{"functionDeclarations": declarations}],
+                       "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}},
+                       "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2200}}
+            endpoint = base + "/models/" + model_name + ":generateContent"
+            headers = {"x-goog-api-key": key, "Content-Type": "application/json", "Accept": "application/json"}
+        else:
+            payload = {"model": model_name, "messages": messages, "tools": TOOLS, "tool_choice": "auto", "temperature": 0.2, "max_tokens": 2200}
+            endpoint = base + "/chat/completions"
+            headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json"}
+        request = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 result = json.loads(response.read(2_000_000).decode("utf-8"))
         except urllib.error.HTTPError as exc:
-            # Never include request headers or credential material in diagnostics.
             raise RuntimeError(f"Model provider returned HTTP {exc.code}; check provider quota, billing, and model access.") from exc
-        choices = result.get("choices", [])
-        if not choices:
-            raise RuntimeError("Model provider returned no choices")
-        message = choices[0].get("message", {})
+        if provider == "gemini":
+            candidates = result.get("candidates") or []
+            if not candidates:
+                raise RuntimeError("Gemini returned no candidates")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text_parts = [part.get("text", "") for part in parts if isinstance(part.get("text"), str)]
+            native_calls = [part["functionCall"] for part in parts if isinstance(part.get("functionCall"), dict)]
+            message = {"role": "assistant", "content": "\\n".join(text_parts)}
+            if native_calls:
+                message["tool_calls"] = [{"id": f"gemini-call-{round_index}-{i}", "type": "function",
+                    "function": {"name": call.get("name", ""), "arguments": json.dumps(call.get("args") or {}, ensure_ascii=False)}} for i, call in enumerate(native_calls)]
+        else:
+            choices = result.get("choices", [])
+            if not choices:
+                raise RuntimeError("Model provider returned no choices")
+            message = choices[0].get("message", {})
         messages.append(message)
         tool_calls = message.get("tool_calls") or []
         if not tool_calls:
