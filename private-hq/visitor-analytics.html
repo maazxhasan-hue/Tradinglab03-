@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#070b14">
+<title>Website Visitor Analytics · Nexora AI HQ</title>
+<style>
+:root{color-scheme:dark;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--gold:#ffc778;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--shadow:4px 4px 0 #02050b}
+*{box-sizing:border-box}body{margin:0;background-color:var(--bg);background-image:linear-gradient(#14213744 1px,transparent 1px),linear-gradient(90deg,#14213744 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%);background-size:16px 16px,16px 16px,100% 100%;color:var(--text);font:21px/1.35 'VT323',monospace;letter-spacing:.02em}.wrap{max-width:1440px;margin:auto;padding:clamp(14px,3vw,32px)}a{color:#8dc3ff}a:hover{color:var(--cyan)}header{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:#080e1bf5;border-bottom:3px solid var(--line);box-shadow:0 4px 0 #03060d;padding:1rem clamp(14px,3vw,32px)}.brand{font:12px/1.65 'Press Start 2P',monospace;letter-spacing:0}.eyebrow{font:9px/1.7 'Press Start 2P',monospace;color:var(--cyan);letter-spacing:0;text-transform:uppercase}h1,h2,h3{font-family:'Press Start 2P',monospace;line-height:1.7;letter-spacing:0;text-transform:uppercase}h1{font-size:clamp(17px,2.6vw,28px);margin:.4rem 0}h2{font-size:clamp(11px,1.45vw,16px);color:#b9d2ff;margin:.2rem 0 1rem}h3{font-size:11px;color:var(--text)}p{color:var(--muted)}.va-panel{background:#0c1524;border:2px solid var(--line);box-shadow:var(--shadow);padding:clamp(12px,2vw,20px);margin:1rem 0}.va-row{display:flex;align-items:end;flex-wrap:wrap;gap:12px}.va-field{flex:1;min-width:230px}.va-field label{display:block;color:var(--muted);font-size:18px;margin-bottom:4px}.va-field input{width:100%;background:#070e19;color:var(--text);border:2px solid var(--line);padding:10px;font:20px 'VT323',monospace}.va-btn{border:2px solid var(--cyan);background:#103b39;color:#dffff8;box-shadow:3px 3px #02050b;padding:10px 12px;font:9px/1.6 'Press Start 2P',monospace;cursor:pointer}.va-btn.secondary{border-color:#516b8e;background:#15253a;color:var(--text)}.va-btn:disabled{opacity:.55;cursor:wait}.va-btn:focus-visible,.va-field input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}.va-status{padding:12px;border:1px solid #314969;background:#091421;margin:12px 0;color:var(--muted);overflow-wrap:anywhere}.va-status.is-ok{border-color:#28665f;color:#9af0d9}.va-status.is-error{border-color:#b85a61;color:#ffb5bb}.va-status.is-warn{border-color:#9d793b;color:#ffda98}.va-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.va-metric{background:linear-gradient(135deg,#172840,#0b1321);border:2px solid var(--line);box-shadow:var(--shadow);padding:14px;min-width:0}.va-metric-label{font:8px/1.7 'Press Start 2P',monospace;color:#a5b8d3}.va-metric-value{font:clamp(18px,2vw,27px)/1.4 'VT323',monospace;color:var(--cyan);overflow-wrap:anywhere}.va-metric-note{font-size:17px;color:var(--muted)}.va-periods{display:flex;flex-wrap:wrap;gap:8px;margin:1rem 0}.va-periods .is-active{background:var(--cyan);color:#061018}.va-columns{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}.va-table-wrap{overflow:auto;border:1px solid var(--line)}table{border-collapse:collapse;width:100%;min-width:650px;background:#091421;font-size:19px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #253b58;vertical-align:top}th{font:8px/1.7 'Press Start 2P',monospace;color:var(--cyan);background:#101e30;position:sticky;top:0}td{overflow-wrap:anywhere}.va-path{max-width:260px;overflow-wrap:anywhere}.va-table-empty{text-align:center;color:var(--muted);padding:20px}.va-bars{display:flex;align-items:stretch;gap:5px;min-height:180px;padding:12px 4px 0;overflow-x:auto;border-bottom:1px solid var(--line)}.va-bar-item{min-width:33px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:4px}.va-bar-value{font-size:15px;color:var(--muted)}.va-bar-track{height:120px;width:100%;display:flex;align-items:end;background:#101d2e;border:1px solid #253b58;max-width:42px}.va-bar-fill{width:100%;background:linear-gradient(0deg,#1d8d84,#63f5dc);min-height:3px}.va-bar-date{font-size:14px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);height:32px}.va-empty{padding:18px;color:var(--muted)}.va-footnote{font-size:17px;color:var(--muted)}[hidden]{display:none!important}
+@media(max-width:900px){.va-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.va-columns{grid-template-columns:1fr}.wrap{padding:14px}}
+@media(max-width:480px){.va-grid{grid-template-columns:1fr 1fr}.va-metric{padding:10px}.va-metric-label{font-size:7px}.va-field{min-width:100%}.va-btn{width:100%}.va-periods .va-btn{width:auto;flex:1}h1{font-size:16px}table{min-width:580px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+<header>
+  <a class="brand" href="./index.html" style="text-decoration:none">NEXORA<span style="color:var(--cyan)"> AI</span> / HQ</a>
+  <a href="./index.html">← Back to Company HQ</a>
+</header>
+<main class="wrap" data-visitor-analytics="full">
+  <div class="eyebrow">Private analytics console</div>
+  <h1>Website visitor tracker</h1>
+  <p>Measure actual GA4 visitors and sessions, see which AI platforms refer traffic, and find the pages that bring in visits. The dashboard never invents a count when reporting is not configured.</p>
+  <section class="va-panel" aria-labelledby="authTitle">
+    <h2 id="authTitle">Owner access</h2>
+    <div class="va-row">
+      <div class="va-field">
+        <label for="visitorAdminKey">Worker owner access key (required)</label>
+        <input id="visitorAdminKey" data-admin-key type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the owner key from GitHub Actions secrets">
+      </div>
+      <button class="va-btn" data-load type="button">Load report</button>
+      <button class="va-btn secondary" data-sync type="button">Sync GA4 now</button>
+    </div>
+    <p class="va-footnote">The key is used in memory for this page only; it is not written to local storage or sent anywhere except the configured Nexora Worker API over HTTPS.</p>
+    <div class="va-status" data-status role="status" aria-live="polite">Enter the owner key and load the report. GA4 credentials must also be configured server-side.</div>
+    <div class="va-status is-warn" data-config-warning hidden role="status" aria-live="polite"></div>
+  </section>
+  <section class="va-panel" aria-labelledby="summaryTitle">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <h2 id="summaryTitle">Selected reporting period</h2>
+      <span data-period-label class="va-footnote">Last successful sync: not available</span>
+    </div>
+    <div class="va-periods" role="group" aria-label="Reporting period">
+      <button class="va-btn is-active" data-days="7" aria-pressed="true" type="button">7 days</button>
+      <button class="va-btn secondary" data-days="30" aria-pressed="false" type="button">30 days</button>
+      <button class="va-btn secondary" data-days="90" aria-pressed="false" type="button">90 days</button>
+    </div>
+    <div class="va-grid">
+      <div class="va-metric"><div class="va-metric-label">TOTAL USERS</div><div class="va-metric-value" data-metric="users">—</div><div class="va-metric-note">Unique in the full selected period</div></div>
+      <div class="va-metric"><div class="va-metric-label">SESSIONS</div><div class="va-metric-value" data-metric="sessions">—</div><div class="va-metric-note">Visits, including repeat visits</div></div>
+      <div class="va-metric"><div class="va-metric-label">PAGE VIEWS</div><div class="va-metric-value" data-metric="page_views">—</div><div class="va-metric-note">GA4 page views</div></div>
+      <div class="va-metric"><div class="va-metric-label">ENGAGED SESSIONS</div><div class="va-metric-value" data-metric="engaged_sessions">—</div><div class="va-metric-note">GA4 engagement definition</div></div>
+      <div class="va-metric"><div class="va-metric-label">ENGAGEMENT RATE</div><div class="va-metric-value" data-metric="engagement_rate">—</div><div class="va-metric-note">Engaged sessions / sessions</div></div>
+      <div class="va-metric"><div class="va-metric-label">KEY EVENTS</div><div class="va-metric-value" data-metric="key_events">—</div><div class="va-metric-note">Only events configured as GA4 key events</div></div>
+    </div>
+  </section>
+  <div class="va-columns">
+    <section class="va-panel" aria-labelledby="trendTitle">
+      <h2 id="trendTitle">Daily sessions trend</h2>
+      <div class="va-bars" data-trend role="img" aria-label="Daily sessions by date"><p class="va-empty">Load a report to display the trend.</p></div>
+      <p class="va-footnote">Each bar is one day's sessions. Daily unique users are daily counts and are not added together to calculate period-wide unique users.</p>
+    </section>
+    <section class="va-panel" aria-labelledby="aiTitle">
+      <h2 id="aiTitle">AI-attributed traffic</h2>
+      <div class="va-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="va-metric"><div class="va-metric-label">AI USERS</div><div class="va-metric-value" data-metric="ai_users">—</div><div class="va-metric-note">Unique users in AI-source filter</div></div>
+        <div class="va-metric"><div class="va-metric-label">AI SESSIONS</div><div class="va-metric-value" data-metric="ai_sessions">—</div><div class="va-metric-note">Identifiable AI referrals</div></div>
+        <div class="va-metric"><div class="va-metric-label">SESSION SHARE</div><div class="va-metric-value" data-metric="ai_share">—</div><div class="va-metric-note">AI sessions / total sessions</div></div>
+        <div class="va-metric"><div class="va-metric-label">AI KEY EVENTS</div><div class="va-metric-value" data-metric="ai_key_events">—</div><div class="va-metric-note">Key events attributed to AI source filter</div></div>
+      </div>
+      <h3>Detected AI sources</h3>
+      <div class="va-table-wrap"><table><thead><tr><th>AI platform / source</th><th>Medium</th><th>Sessions</th><th>Users*</th><th>Key events</th></tr></thead><tbody data-table="ai-sources"><tr><td colspan="5" class="va-table-empty">Load a report to see AI referrals.</td></tr></tbody></table></div>
+      <p class="va-footnote">*Source-level users are not additive across different source rows. The AI total uses a separate filtered GA4 report.</p>
+    </section>
+  </div>
+  <section class="va-panel" aria-labelledby="sourcesTitle">
+    <h2 id="sourcesTitle">Traffic sources</h2>
+    <div class="va-table-wrap"><table><thead><tr><th>Source</th><th>Medium</th><th>Category</th><th>Sessions</th><th>Users*</th><th>Key events</th></tr></thead><tbody data-table="sources"><tr><td colspan="6" class="va-table-empty">Load a report to see traffic sources.</td></tr></tbody></table></div>
+    <p class="va-footnote">*Distinct users in different source rows can overlap. Use the period total at the top for the correct overall unique-user count.</p>
+  </section>
+  <section class="va-panel" aria-labelledby="landingTitle">
+    <h2 id="landingTitle">Top landing pages</h2>
+    <div class="va-table-wrap"><table><thead><tr><th>Landing path</th><th>Source</th><th>Medium</th><th>Sessions</th><th>Key events</th></tr></thead><tbody data-table="landing-pages"><tr><td colspan="5" class="va-table-empty">Load a report to see landing pages.</td></tr></tbody></table></div>
+  </section>
+  <section class="va-panel">
+    <h2>Sync health</h2>
+    <p data-sync-label>Last successful sync: not available</p>
+    <p class="va-footnote">The daily background sync is scheduled for 02:15 UTC (07:45 India time). “Sync GA4 now” forces a manual refresh; failed or missing credentials are reported rather than substituted with estimates.</p>
+    <p class="va-footnote">This dashboard records aggregated reporting snapshots only. It does not store raw event streams, email addresses, IP addresses, or query-string values from landing page URLs.</p>
+  </section>
+</main>
+<script src="./visitor-analytics-ui.js" defer></script>
+</body>
+</html>
