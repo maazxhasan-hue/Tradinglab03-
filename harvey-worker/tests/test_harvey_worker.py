@@ -32,6 +32,45 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertIn(body["database"], {"sqlite", "postgresql"})
         self.assertIn("email_sending", body)
 
+    def test_root_health_landing_is_available(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["status"], "ready")
+        self.assertEqual(body["health"], "/health")
+
+    def test_project_builder_fails_closed_without_model_credentials(self):
+        names = ("LLM_API_KEY", "LLM_MODEL", "OPENAI_API_KEY", "OPENAI_MODEL")
+        previous = {name: os.environ.pop(name, None) for name in names}
+        try:
+            response = self.client.post(
+                "/projects/build",
+                headers={"X-API-Key": "test-only-secret"},
+                json={"name": "Test project", "brief": "Build a small test project with a README and tests."},
+            )
+            self.assertEqual(response.status_code, 503, response.text)
+        finally:
+            for name, value in previous.items():
+                if value is not None:
+                    os.environ[name] = value
+
+    def test_openai_compatibility_environment_configures_agent_runtime(self):
+        names = ("LLM_API_KEY", "LLM_MODEL", "OPENAI_API_KEY", "OPENAI_MODEL")
+        previous = {name: os.environ.pop(name, None) for name in names}
+        os.environ["OPENAI_API_KEY"] = "test-provider-key"
+        os.environ["OPENAI_MODEL"] = "gpt-4.1-mini"
+        try:
+            response = self.client.get("/agents/status", headers={"X-API-Key": "test-only-secret"})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertTrue(response.json()["model_configured"])
+            self.assertEqual(response.json()["model"], "gpt-4.1-mini")
+        finally:
+            for name in names:
+                os.environ.pop(name, None)
+            for name, value in previous.items():
+                if value is not None:
+                    os.environ[name] = value
+
     def test_protected_routes_reject_missing_key(self):
         paths = [
             "/metrics", "/prospects", "/approvals", "/tasks",
