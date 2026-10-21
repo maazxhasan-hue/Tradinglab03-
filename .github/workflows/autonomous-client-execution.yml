@@ -72,6 +72,18 @@ jobs:
           fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
           python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 2
+      - name: Sync execution agent run to shared brain
+        if: always()
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-autonomous-client-execution
+          RUN_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$SHARED_BRAIN_AGENT_KEY" ]; then
+            python -m company.shared_brain_sync --status "${RUN_STATUS,,}"
+          else
+            echo "Shared brain sync skipped: SHARED_BRAIN_AGENT_KEY secret is not configured."
+          fi
       - name: Upload execution bundle for review
         if: always()
         uses: actions/upload-artifact@v4
