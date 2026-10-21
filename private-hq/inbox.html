@@ -29,6 +29,31 @@ button:disabled{opacity:.55;cursor:not-allowed}
 :focus-visible{outline:3px solid #0071e3!important;outline-offset:4px!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
+
+/* UNIFIED HQ SKIN: midnight pixel workstation, cyan + warm gold */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{color-scheme:dark;--ink:#070b14;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--gold:#ffc778;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--green:#65f6a4;--pixel-shadow:4px 4px 0 #02050b}
+html{background:#070b14;scroll-behavior:smooth}
+body{background-color:#070b14!important;background-image:linear-gradient(#14213744 1px,transparent 1px),linear-gradient(90deg,#14213744 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%)!important;background-size:16px 16px,16px 16px,100% 100%!important;color:var(--text)!important;font-family:'VT323',monospace!important;font-size:21px;line-height:1.35}
+header{background:#080e1bf5!important;border-bottom:3px solid var(--line)!important;box-shadow:0 4px 0 #03060d!important;backdrop-filter:none!important}
+h1,h2,h3,.brand,.logo,.eyebrow,.label,.facility-name,.station h3,.button,button,.health,.pill{font-family:'Press Start 2P','VT323',monospace!important;letter-spacing:0;line-height:1.65}
+h1{font-size:clamp(17px,2.6vw,27px)!important;text-transform:uppercase;text-shadow:3px 3px #10284a}
+h2{font-size:clamp(11px,1.4vw,16px)!important;color:#b9d2ff}
+h3{font-size:11px!important;color:var(--gold)}
+p,label,.muted,.small,.status, input,select,textarea,pre{font-family:'VT323',monospace!important;font-size:21px!important}
+p,.muted,.small,label{color:var(--muted)}
+.panel,.card,.facility,.activity,.stat,.station,.scene,.toast,.status,.notice,.metric-card,.agent-card,.office,.workstation,.list-card{border-radius:0!important;box-shadow:var(--pixel-shadow)!important}
+.panel,.card,.facility,.activity,.stat,.facility-strip,.lower .panel{background:#0c1524!important;border-color:var(--line)!important}
+button,.button,a.button,input[type=submit]{border:2px solid var(--cyan)!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font-size:9px!important;padding:10px 12px!important}
+button:hover,.button:hover,a.button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #02050b!important;filter:brightness(1.15)}
+button.secondary,.button.secondary{background:#15253a!important;border-color:#516b8e!important;color:var(--text)!important}
+input,select,textarea,pre{background:#070e19!important;border:2px solid var(--line)!important;border-radius:0!important;color:var(--text)!important}
+a{color:#8dc3ff}a:hover{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--gold)!important;outline-offset:3px}
+::selection{background:var(--cyan);color:#061018}
+@media(max-width:700px){header{padding:10px!important;gap:10px}.brand,.logo{font-size:10px!important}main{padding:12px!important}.grid,.stats,.facility-strip,.lower{grid-template-columns:1fr!important}.floor{grid-template-columns:repeat(2,minmax(0,1fr))!important}.facility-name{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 </style></head>
 <body data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev">
 <header class="wrap nav"><a href="./index.html">← Company HQ</a></header>
