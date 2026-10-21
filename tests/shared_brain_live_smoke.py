@@ -44,8 +44,8 @@ def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
 
 def main() -> int:
     if not KEY:
-        print("SKIP: SHARED_BRAIN_AGENT_KEY is not configured.")
-        return 0
+        print("FAIL: SHARED_BRAIN_AGENT_KEY is not configured; live shared-brain verification cannot be skipped.")
+        return 1
 
     nonce = secrets.token_hex(8)
     memory_key = f"smoke-test:{nonce}"
