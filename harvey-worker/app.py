@@ -674,6 +674,8 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
     base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY server-side; LLM_MODEL or OPENAI_MODEL is optional.")
+    if not SHARED_BRAIN_AGENT_KEY:
+        raise HTTPException(503,"Shared Brain is required for every company specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
     with db() as c:
         row=c.execute("SELECT * FROM company_jobs WHERE id=?", (job_id,)).fetchone()
         if not row: raise HTTPException(404,"Company job not found.")
@@ -687,18 +689,32 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
         handoffs=c.execute("SELECT role,output_json FROM company_jobs WHERE cycle_id=? AND status='completed' AND role IN ("+
             (",".join("?" for _ in deps) if deps else "NULL")+")", (row["cycle_id"],*deps)).fetchall() if deps else []
         c.execute("UPDATE company_jobs SET status='running',error=NULL,updated_at=? WHERE id=?", (now(),job_id))
+    agent_id = "nexora-" + re.sub(r"[^a-zA-Z0-9._:-]", "-", str(row["role"]).lower())[:80]
+    try:
+        memories = shared_brain_recall(str(row["role"]) + " " + str(row["goal"]), limit=5, agent_id=agent_id)
+        record_brain_event(agent_id, "recall", "completed", len(memories))
+    except Exception:
+        record_brain_event(agent_id, "recall", "failed", 0)
+        with db() as c:
+            c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?",
+                      ("Shared Brain recall failed; disconnected execution blocked.", now(), job_id))
+        raise HTTPException(503,"Shared Brain recall failed; this specialist job was stopped.")
+    memory_context = "\\n\\nSHARED BRAIN CONTEXT (verify current facts):\\n" + "\\n".join(
+        "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
+    ) if memories else "\\n\\nSHARED BRAIN CONTEXT: no matching memories found."
     system=("You are Nexora's specialist agent. Own only the assigned role and produce a concrete, "
             "evidence-aware deliverable. Clearly separate facts, assumptions, and recommendations. "
+            "Use the single shared Nexora Brain context supplied to you and write a concise reusable result back to it. "
             "Do not claim external work was done. Never expose secrets. External outreach, publishing, "
             "spending, trading, and irreversible actions require explicit human approval. "
             "Return headings: Objective, Deliverable, Evidence/Assumptions, Verification, Risks, Handoffs. "
-            "Role: "+row["role"]+"\nMandate: "+row["mandate"])
+            "Role: "+row["role"]+"\\nMandate: "+row["mandate"])
     handoff_text=[]
     for h in handoffs:
         try: handoff_output=json.loads(h["output_json"]).get("output","")
         except Exception: handoff_output=""
         handoff_text.append("COMPLETED HANDOFF FROM "+h["role"]+":\n"+str(handoff_output)[:3500])
-    user="COMPANY MISSION:\n"+row["goal"]+"\n\nCONTEXT:\n"+(row["context"] or "(none)")+"\n\nUPSTREAM HANDOFFS:\n"+("\n\n".join(handoff_text) if handoff_text else "(No prerequisite handoffs)")+"\n\nGUARDRAILS:\nNo fabricated facts; provide actionable work and explicit dependencies."
+    user="COMPANY MISSION:\\n"+row["goal"]+"\\n\\nCONTEXT:\\n"+(row["context"] or "(none)")+memory_context+"\\n\\nUPSTREAM HANDOFFS:\\n"+("\\n\\n".join(handoff_text) if handoff_text else "(No prerequisite handoffs)")+"\\n\\nGUARDRAILS:\\nNo fabricated facts; provide actionable work and explicit dependencies."
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             response=await client.post(base_url+"/chat/completions",
@@ -708,10 +724,20 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
             data=response.json()
         output=data["choices"][0]["message"]["content"]
         if not isinstance(output,str) or not output.strip(): raise ValueError("Empty model output")
-        saved={"role":row["role"],"model":model,"output":output}
+        memory_saved = shared_brain_remember(
+            "company-job:" + str(job_id), "Specialist " + str(row["role"]) + " completed mission work: " + str(row["goal"])[:350],
+            {"role": row["role"], "job_id": str(job_id), "cycle_id": str(row["cycle_id"]),
+             "goal": str(row["goal"])[:1000], "output_summary": output[:5000]},
+            ["nexora", "company-job", re.sub(r"[^a-zA-Z0-9._:-]", "-", str(row["role"]).lower())],
+            agent_id=agent_id,
+        )
+        record_brain_event(agent_id, "remember", "completed" if memory_saved else "failed", 1 if memory_saved else 0)
+        saved={"role":row["role"],"model":model,"output":output,
+               "shared_brain_recalled":len(memories),"shared_brain_saved":memory_saved}
         with db() as c:
             c.execute("UPDATE company_jobs SET status='completed',output_json=?,updated_at=? WHERE id=?", (json.dumps(saved),now(),job_id))
-        return {"job_id":job_id,"cycle_id":row["cycle_id"],"role":row["role"],"status":"completed","model":model,"output":output}
+        return {"job_id":job_id,"cycle_id":row["cycle_id"],"role":row["role"],"status":"completed","model":model,"output":output,
+                "shared_brain":{"recall_count":len(memories),"remembered":memory_saved}}
     except httpx.HTTPStatusError as e:
         with db() as c:
             c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Model provider returned HTTP "+str(e.response.status_code),now(),job_id))
