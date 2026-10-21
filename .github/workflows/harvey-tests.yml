@@ -34,5 +34,4 @@ jobs:
       - name: Validate MCP config JSON
         run: python -c "import json; json.load(open('.mcp.json', encoding='utf-8')); print('MCP config JSON OK')"
       - name: Run Harvey regression tests
-        working-directory: harvey-worker
-        run: python -m unittest discover -s ../tests -p 'test_harvey_worker.py' -v
+        run: python -m unittest discover -s tests -p 'test_harvey_worker.py' -v
