@@ -32,6 +32,9 @@ jobs:
       - name: Syntax-check website chat widget
         run: node --check dashboard/chat-widget.js
 
+      - name: Syntax-check visitor analytics dashboard script
+        run: node --check private-hq/visitor-analytics-ui.js
+
       - name: Syntax-check HQ inline scripts and verify roster
         run: |
           python - <<'PY'
