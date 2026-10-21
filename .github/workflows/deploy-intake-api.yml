@@ -8,7 +8,8 @@ on:
       - "worker/**"
       - "dashboard/website.html"
       - "dashboard/login.html"
-      - "dashboard/inbox.html"\n      - "dashboard/referrals.html"
+      - "dashboard/inbox.html"
+      - "dashboard/referrals.html"
       - "private-hq/inbox.html"
       - ".github/workflows/deploy-intake-api.yml"
   workflow_dispatch:
