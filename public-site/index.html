@@ -403,12 +403,43 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
     try{const u=new URL(location.href),keys=['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];const data={};keys.forEach(k=>{const v=u.searchParams.get(k);if(v)data[k]=v.slice(0,200)});if(Object.keys(data).length)localStorage.setItem('nexora_utm',JSON.stringify({captured_at:new Date().toISOString(),...data}))}catch{}
   }
   try{if(choice==='analytics')trackUtm(true)}catch{}
-  // Search across visible page headings and section copy, linking to the matching section.
+  // Search: delegated click handling survives later markup changes and fails visibly rather than silently.
   const searchOverlay=$('#site-search'), searchInput=$('#site-search-input'), searchResults=$('#site-search-results');
-  const index=()=>Array.from(document.querySelectorAll('main h1,main h2,main h3,main section,main .card')).map((el,i)=>({el,title:(el.innerText||'').trim().split('\n')[0].slice(0,120),text:(el.innerText||'').trim().slice(0,600),id:el.id||(el.id='search-result-'+i)})).filter(x=>x.title&&x.text);
   let items=[];
-  function renderSearch(q){if(!searchResults)return;searchResults.replaceChildren();const term=q.trim().toLowerCase();if(!term){searchResults.textContent='Type a keyword to search this page.';return}const found=items.filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,12);if(!found.length){searchResults.textContent='No matching sections found.';return}found.forEach(x=>{const a=document.createElement('a');a.href='#'+encodeURIComponent(x.id);a.textContent=x.title;a.addEventListener('click',()=>{searchOverlay.hidden=true});searchResults.append(a)})}
-  $('#search-open')?.addEventListener('click',()=>{items=index();searchOverlay.hidden=false;searchInput?.focus();renderSearch('')});
+  function buildSearchIndex(){
+    return Array.from(document.querySelectorAll('main h1,main h2,main h3,main section,main .card'))
+      .map((el,i)=>{
+        const text=(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
+        const title=((el.querySelector('h1,h2,h3')?.innerText)||text).replace(/\s+/g,' ').trim().slice(0,120);
+        if(!el.id)el.id='search-result-'+i;
+        return {el,title,text:text.slice(0,1000),id:el.id};
+      }).filter(x=>x.title&&x.text);
+  }
+  function renderSearch(q){
+    if(!searchResults)return;
+    searchResults.replaceChildren();
+    const term=String(q||'').trim().toLowerCase();
+    if(!term){searchResults.textContent='Type a keyword to search this page.';return}
+    const found=items.filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,12);
+    if(!found.length){searchResults.textContent='No matching sections found.';return}
+    found.forEach(x=>{
+      const a=document.createElement('a');a.href='#'+x.id;a.textContent=x.title;
+      a.addEventListener('click',()=>{if(searchOverlay)searchOverlay.hidden=true});
+      searchResults.appendChild(a);
+    });
+  }
+  function openSiteSearch(){
+    if(!searchOverlay||!searchInput||!searchResults)return;
+    items=buildSearchIndex();
+    searchOverlay.hidden=false;
+    searchOverlay.style.display='grid';
+    renderSearch('');
+    requestAnimationFrame(()=>{searchInput.focus();});
+  }
+  document.addEventListener('click',e=>{
+    const trigger=e.target.closest('#search-open');
+    if(trigger){e.preventDefault();openSiteSearch();}
+  });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
   // Accessible overlay close and confirmation dialog.
   $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
