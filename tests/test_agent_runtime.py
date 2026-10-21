@@ -30,6 +30,31 @@ class AgentRuntimeTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"OPENAI_API_KEY"):
                 call_model("draft_proposal","title","context",api_key="",provider="openai")
 
+    def test_gemini_native_provider_uses_key_header_and_parses_text(self):
+        import io, json
+        from unittest.mock import patch
+        from company.agent_runtime import call_model
+        response = io.BytesIO(json.dumps({
+            "candidates": [{"content": {"parts": [{"text": "Gemini draft output"}]}}]
+        }).encode())
+        response.__enter__ = lambda self: self
+        response.__exit__ = lambda *args: None
+        with patch("company.agent_runtime.urllib.request.urlopen", return_value=response) as urlopen:
+            result = call_model("draft_proposal", "Test title", "Test brief",
+                                api_key="test-secret", provider="gemini", model="gemini-test")
+        self.assertEqual(result, "Gemini draft output")
+        request = urlopen.call_args.args[0]
+        self.assertTrue(request.full_url.endswith("/models/gemini-test:generateContent"))
+        self.assertEqual(request.get_header("X-goog-api-key"), "test-secret")
+        payload = json.loads(request.data.decode())
+        self.assertIn("systemInstruction", payload)
+        self.assertEqual(payload["contents"][0]["role"], "user")
+
+    def test_gemini_provider_requires_key(self):
+        with patch.dict("os.environ", {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "GEMINI_API_KEY"):
+                call_model("draft_proposal", "title", "context", provider="gemini", api_key="")
+
     def test_free_template_mode_needs_no_key(self):
         with patch.dict("os.environ",{},clear=True):
             output = call_model("draft_proposal","Landing page","Need a simple landing page")
