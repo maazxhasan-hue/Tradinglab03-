@@ -209,6 +209,8 @@ form.addEventListener("submit",async e=>{
    if(resp.status===401){localStorage.removeItem("nexora_client_token");window.location.href="login.html?mode=login&next="+encodeURIComponent("website.html#project");return;}
    if(!resp.ok||result.ok!==true)throw new Error(result.error||"The enquiry could not be saved.");
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
+   // Track only after the Worker confirms the enquiry was saved; never send form fields.
+   if(window.nexoraAnalytics)window.nexoraAnalytics.trackKeyEvent("generate_lead");
    statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Nexora AI has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please try again later for follow-up.":"The enquiry is saved. Email notification is not confirmed, so try again later if you need a prompt reply.");
    statusBox.classList.add("ok");
   }catch(err){
