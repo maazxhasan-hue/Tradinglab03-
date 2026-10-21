@@ -117,6 +117,7 @@ jobs:
           fi
           set +x
           BASE_URL="${LLM_BASE_URL:-https://api.openai.com/v1}"
+          BASE_URL="${BASE_URL%/}"
           if [[ "$BASE_URL" == *"generativelanguage.googleapis.com"* ]]; then
             MODEL="${LLM_MODEL:-gemini-2.5-flash}"
           else
