@@ -6,6 +6,31 @@
 <style>
 :root{color-scheme:light;--bg:#f5f5f7;--panel:#fff;--line:#dedee3;--text:#1d1d1f;--muted:#6e6e73;--blue:#0071e3}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#fbfbfd,#f5f5f7);color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:auto;padding:24px}header{padding:18px 24px;border-bottom:1px solid var(--line);background:#ffffffd9;position:sticky;top:0;backdrop-filter:blur(14px)}a{color:var(--blue)}h1{font-size:clamp(2rem,5vw,3.3rem);letter-spacing:-.06em;line-height:1.05;margin:.5rem 0}p{color:var(--muted)}.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;color:var(--blue);font-weight:800}.panel,.post{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 6px 22px #1d1d1f08}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,select,input,textarea{font:inherit;border-radius:10px;padding:11px;border:1px solid #d2d2d7;background:white;color:var(--text)}button{background:var(--blue);color:white;border-color:var(--blue);font-weight:750;cursor:pointer}button.secondary{background:white;color:var(--blue);border-color:#b8cde6}label{display:block;color:var(--muted);font-size:.86rem;margin:8px 0 4px}input,textarea,select{width:100%}textarea{min-height:110px;resize:vertical}.muted{font-size:.85rem;color:var(--muted)}.pill{font-size:.75rem;padding:4px 9px;border-radius:99px;background:#edf4ff;color:#174ea6}.post h2{font-size:1.08rem;margin:.4rem 0}.post p{margin:.4rem 0}.status{padding:10px;background:#f5f5f7;border-radius:10px;color:#515154}@media(max-width:700px){.grid{grid-template-columns:1fr}main{padding:14px}}
+
+/* UNIFIED HQ SKIN: midnight pixel workstation, cyan + warm gold */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{color-scheme:dark;--ink:#070b14;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--gold:#ffc778;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--green:#65f6a4;--pixel-shadow:4px 4px 0 #02050b}
+html{background:#070b14;scroll-behavior:smooth}
+body{background-color:#070b14!important;background-image:linear-gradient(#14213744 1px,transparent 1px),linear-gradient(90deg,#14213744 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%)!important;background-size:16px 16px,16px 16px,100% 100%!important;color:var(--text)!important;font-family:'VT323',monospace!important;font-size:21px;line-height:1.35}
+header{background:#080e1bf5!important;border-bottom:3px solid var(--line)!important;box-shadow:0 4px 0 #03060d!important;backdrop-filter:none!important}
+h1,h2,h3,.brand,.logo,.eyebrow,.label,.facility-name,.station h3,.button,button,.health,.pill{font-family:'Press Start 2P','VT323',monospace!important;letter-spacing:0;line-height:1.65}
+h1{font-size:clamp(17px,2.6vw,27px)!important;text-transform:uppercase;text-shadow:3px 3px #10284a}
+h2{font-size:clamp(11px,1.4vw,16px)!important;color:#b9d2ff}
+h3{font-size:11px!important;color:var(--gold)}
+p,label,.muted,.small,.status, input,select,textarea,pre{font-family:'VT323',monospace!important;font-size:21px!important}
+p,.muted,.small,label{color:var(--muted)}
+.panel,.card,.facility,.activity,.stat,.station,.scene,.toast,.status,.notice,.metric-card,.agent-card,.office,.workstation,.list-card{border-radius:0!important;box-shadow:var(--pixel-shadow)!important}
+.panel,.card,.facility,.activity,.stat,.facility-strip,.lower .panel{background:#0c1524!important;border-color:var(--line)!important}
+button,.button,a.button,input[type=submit]{border:2px solid var(--cyan)!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font-size:9px!important;padding:10px 12px!important}
+button:hover,.button:hover,a.button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #02050b!important;filter:brightness(1.15)}
+button.secondary,.button.secondary{background:#15253a!important;border-color:#516b8e!important;color:var(--text)!important}
+input,select,textarea,pre{background:#070e19!important;border:2px solid var(--line)!important;border-radius:0!important;color:var(--text)!important}
+a{color:#8dc3ff}a:hover{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--gold)!important;outline-offset:3px}
+::selection{background:var(--cyan);color:#061018}
+@media(max-width:700px){header{padding:10px!important;gap:10px}.brand,.logo{font-size:10px!important}main{padding:12px!important}.grid,.stats,.facility-strip,.lower{grid-template-columns:1fr!important}.floor{grid-template-columns:repeat(2,minmax(0,1fr))!important}.facility-name{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 </style></head>
 <body><header><a href="index.html">← Company HQ</a>　·　<strong>Nexora AI / Marketing Studio</strong></header>
 <main><div class="eyebrow">Organic growth · free-first</div><h1>Make useful content.<br>Earn trust.</h1><p>Plan a realistic, repeatable week of content for Nexora AI. Everything here is a draft until reviewed and manually published from an authorized Nexora account.</p>
