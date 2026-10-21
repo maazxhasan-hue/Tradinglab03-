@@ -129,13 +129,17 @@ jobs:
           if [ -n "$GEMINI_API_KEY" ]; then
             # Use Google's native REST API here so this test verifies the Gemini key
             # independently of OpenAI-compatible routing and model alias support.
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          Path("request.json").write_text(json.dumps({
+              "contents": [{"parts": [{"text": "Reply with exactly: Nexora worker test OK"}]}],
+              "generationConfig": {"maxOutputTokens": 20, "temperature": 0}
+          }))
+          PY
             code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
-              --max-time 45 --get \
-              --data-urlencode "key=$GEMINI_API_KEY" \
-              --data-urlencode "alt=json" \
-              "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
-              -H "Content-Type: application/json" \
-              --data-urlencode 'contents=[{"parts":[{"text":"Reply with exactly: Nexora worker test OK"}]}]' )
+              --max-time 45 "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
+              -H "Content-Type: application/json" --data-binary @request.json)
           elif [ -n "$LLM_API_KEY" ] && [ -n "$LLM_BASE_URL" ]; then
             BASE_URL="${LLM_BASE_URL%/}"
             MODEL="${LLM_MODEL:-gpt-4.1-mini}"
