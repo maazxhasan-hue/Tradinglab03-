@@ -31,7 +31,14 @@ jobs:
           cache-dependency-path: harvey-worker/requirements.txt
       - name: Install worker dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r harvey-worker/requirements.txt
-      - name: Validate MCP config JSON
-        run: python -c "import json; json.load(open('.mcp.json', encoding='utf-8')); print('MCP config JSON OK')"
+      - name: Validate MCP config JSON and required Ruflo command
+        run: |
+          python -c "import json; d=json.load(open('.mcp.json', encoding='utf-8')); s=d['mcpServers']['ruflo']; assert s['command']=='npx' and s['args'][-2:]==['mcp','start']; print('MCP config JSON and command OK')"
+      - name: Set up Node.js for Ruflo smoke check
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Verify published Ruflo CLI starts
+        run: npx --yes ruflo@3.59.1 --help
       - name: Run Harvey regression tests
         run: python -m unittest discover -s harvey-worker/tests -p 'test_harvey_worker.py' -v
