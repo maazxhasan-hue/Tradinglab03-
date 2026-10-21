@@ -2,6 +2,8 @@
 
 This folder is the durable handoff record for work on this project. It is stored in GitHub, not only in a ChatGPT conversation, so it remains available if a conversation is deleted or reaches its context limit.
 
+## Master index
+Start with [MASTER_PROJECT_INDEX.md](MASTER_PROJECT_INDEX.md) for the current project map, referral and backup work, integration requests, verification status, and next actions.
 ## Source of truth
 - Repository: https://github.com/maazxhasan-hue/Tradinglab03-
 - Main branch: `main`
