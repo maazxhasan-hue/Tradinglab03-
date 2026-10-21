@@ -173,7 +173,7 @@ async function getMyReferrals(request, env, cors) {
   return response({
     ok:true,
     referral_code:code,
-    referral_url:"https://nexora-ai-public.netlify.app/dashboard/login.html?mode=signup&ref=" + encodeURIComponent(code),
+    referral_url:"https://nexora-ai-sooty-two.vercel.app/dashboard/login.html?mode=signup&ref=" + encodeURIComponent(code),
     referrals:{total:Number(counts && counts.total || 0),qualified:Number(counts && counts.qualified || 0),converted:Number(counts && counts.converted || 0)},
     commissions:(commissions.results || []).map(row=>({status:row.status,amount_paise:Number(row.amount_paise||0),count:Number(row.count||0)})),
     note:"Referral rewards are not guaranteed. Commission is payable only after Nexora verifies actual payment received and approves the commission."
