@@ -1,0 +1,64 @@
+name: Shared Brain Workflow Registry
+
+on:
+  workflow_run:
+    workflows:
+      - AI Draft Worker
+      - Autonomous Client Execution
+      - Client Delivery Builder
+      - Free Client Proposal Pack
+      - Website Draft Builder
+      - Daily Company Operations Report
+      - Hourly Opportunity Scout
+      - Harvey worker tests
+      - Harvey worker health
+      - Company Health Check
+      - Company Health Monitor
+      - Company Operations Health
+      - Company Quality Gate
+      - Daily Client Opportunity Review
+      - Delivery Smoke Tests
+      - End-to-End Delivery
+      - Free Worker Check
+      - Nexora Acceptance
+      - Nexora Instagram Draft Pack
+      - Nexora Intake Quality
+      - Nexora Live Smoke
+      - Nexora Synthetic E2E
+      - Opportunity Qualification Tests
+      - Production Smoke Tests
+      - Synthetic Client Validation
+      - Instagram Content Pack
+      - Instagram Draft Pack
+      - Lead Tracker
+      - Website Draft Builder
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  register-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Register completed workflow run in shared brain
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-workflow-registry
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
+          SOURCE_STATUS: ${{ github.event.workflow_run.conclusion }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: |
+          if [ -z "$SHARED_BRAIN_AGENT_KEY" ]; then
+            echo "Shared brain registry skipped: configure SHARED_BRAIN_AGENT_KEY in repository Actions secrets and Supabase Edge Function secrets."
+            exit 0
+          fi
+          STATUS="$SOURCE_STATUS"
+          case "$STATUS" in success|failure|cancelled|skipped) ;; *) STATUS=unknown ;; esac
+          python -m company.shared_brain_sync --status "$STATUS" --run-id "$SOURCE_RUN_ID" --commit "$SOURCE_SHA" --workflow "$SOURCE_WORKFLOW" --repository "$SOURCE_REPOSITORY"
