@@ -504,6 +504,7 @@ def sync_shared_brain(report: dict) -> dict:
 
 def main():
     report = discover()
+    brain_status = sync_shared_brain(report)
     json_path, md_path = save_report(report)
     print(json.dumps({
         "sources": report["sources_configured"],
