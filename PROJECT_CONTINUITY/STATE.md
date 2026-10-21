@@ -120,3 +120,6 @@ This checkpoint documents the latest known project state from prior work; extern
 - Still blocked on private configuration of `SHARED_BRAIN_AGENT_KEY` in Supabase Edge Function secrets and GitHub Actions secrets. Do not ask for the value in chat.
 - Shared machine key plus `x-agent-id` is not per-agent cryptographic identity; access to the shared key must be restricted. Workflow registry names and direct integrations (especially Harvey) remain unverified.
 - HQ theme redesign remains on hold until the shared brain is configured and cross-agent read/write is tested.
+
+
+- Registry follow-up: corrected workflow names against the actual workflow files in commit `59697bef4cf1ec1eadcdbf0dbf59d7006508fe7`; changelog note committed as `0aa6c6ac1d95f16ce04c3f4e75c8a2d8c27f5b54`. Still requires a real workflow run to validate the `workflow_run` trigger and memory write.
