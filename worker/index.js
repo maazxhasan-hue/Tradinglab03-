@@ -634,9 +634,11 @@ async function getAiDomainSet(env) {
   return new Set((result.results || []).map(row => String(row.hostname || "").toLowerCase()).filter(Boolean));
 }
 function metricsFromRow(row) {
+  // Keep this order aligned with GA4_SOURCE_METRICS: sessions is index 0,
+  // totalUsers is index 1. Do not sum distinct users across source rows.
   return {
-    total_users: gaNumber(row, 0, true),
-    sessions: gaNumber(row, 1, true) || 0,
+    sessions: gaNumber(row, 0, true) || 0,
+    total_users: gaNumber(row, 1, true),
     page_views: gaNumber(row, 2, true) || 0,
     engaged_sessions: gaNumber(row, 3, true),
     engagement_rate: gaNumber(row, 4, false),
