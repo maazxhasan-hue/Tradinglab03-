@@ -19,7 +19,7 @@ KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
 AGENT = "shared-brain-smoke-test"
 
 
-def post(payload: dict) -> tuple[int, dict]:
+def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
     request = urllib.request.Request(
         ENDPOINT,
         data=json.dumps(payload).encode("utf-8"),
@@ -27,7 +27,7 @@ def post(payload: dict) -> tuple[int, dict]:
         headers={
             "Content-Type": "application/json",
             "x-agent-key": KEY,
-            "x-agent-id": AGENT,
+            "x-agent-id": agent,
         },
     )
     try:
@@ -50,12 +50,12 @@ def main() -> int:
     nonce = secrets.token_hex(8)
     memory_key = f"smoke-test:{nonce}"
     marker = f"shared-brain-smoke:{nonce}"
-    status, saved = post({
+    writer_agent = "shared-brain-smoke-writer"\n    reader_agent = "shared-brain-smoke-reader"\n    status, saved = post({
         "action": "remember",
         "project_key": "nexora",
         "namespace": "integration-tests",
         "memory_key": memory_key,
-        "source_agent": AGENT,
+        "source_agent": writer_agent,
         "summary": marker,
         "content": {"marker": marker, "synthetic": True},
         "tags": ["smoke-test"],
@@ -95,7 +95,7 @@ def main() -> int:
         print(f"FAIL: unauthenticated request was not rejected (HTTP {unauth_status})")
         return 1
 
-    print("PASS: authenticated write, cross-request recall, and unauthenticated rejection verified.")
+    print("PASS: writer-to-different-agent recall, authenticated write, and unauthenticated rejection verified.")
     return 0
 
 
