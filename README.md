@@ -9,6 +9,7 @@ Standalone business automation starter for AI-assisted digital services. This re
 - **Owner inbox:** [dashboard/inbox.html](dashboard/inbox.html) — after API activation, enter the private owner key to review, reply to, or delete enquiries. The key is not saved by the page.
 - **Production enquiry API:** [worker/README.md](worker/README.md) — Cloudflare Worker + D1 persistence, spam controls, owner-only submission retrieval/deletion, and optional Resend email notifications. Deployment requires account credentials in GitHub Actions secrets; source code alone does not mean the API is live.
 - **Company operating plan:** [company/OPERATING_PLAN.md](company/OPERATING_PLAN.md)
+- **Ruflo developer orchestration:** [company/RUFLO_INTEGRATION.md](company/RUFLO_INTEGRATION.md) — optional pinned MCP setup for planning, coding, testing, and reviews; not a production Harvey runtime.
 - **Autonomy readiness & validation gates:** [company/AUTONOMY_READINESS.md](company/AUTONOMY_READINESS.md) — honest capability map, current blockers, and controlled end-to-end validation checklist.
 - **Agent roles:** [company/roles.json](company/roles.json)
 - **Hourly opportunity scout:** [company/opportunity_scout.py](company/opportunity_scout.py)
