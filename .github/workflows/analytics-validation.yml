@@ -1,0 +1,61 @@
+name: Analytics validation
+on:
+  pull_request:
+    paths:
+      - "worker/**"
+      - "private-hq/visitor-analytics*"
+      - ".github/workflows/analytics-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - "private-hq/visitor-analytics*"
+      - ".github/workflows/analytics-validation.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: |
+          node --check worker/index.js
+          node --check private-hq/visitor-analytics-ui.js
+      - name: Validate every D1 migration in order
+        run: |
+          python - <<'PY'
+          import pathlib
+          import sqlite3
+
+          db = sqlite3.connect(":memory:")
+          files = sorted(pathlib.Path("worker/migrations").glob("*.sql"))
+          if not files:
+              raise SystemExit("No migrations found")
+          for path in files:
+              try:
+                  db.executescript(path.read_text(encoding="utf-8"))
+              except sqlite3.Error as exc:
+                  raise SystemExit(f"Migration failed: {path}: {exc}") from exc
+              print(f"PASS: {path}")
+          expected = {
+              "visitor_daily_totals": {"conversion_sessions"},
+              "visitor_daily_sources": {"conversion_sessions"},
+              "visitor_daily_landing_pages": {"conversion_sessions"},
+              "visitor_range_snapshots": {"conversion_sessions"},
+              "visitor_range_ai_metrics": {"conversion_sessions"},
+              "visitor_range_sources": {"conversion_sessions"},
+              "visitor_range_landing_pages": {"conversion_sessions"},
+              "visitor_sync_runs": {"property_timezone"},
+          }
+          for table, columns in expected.items():
+              actual = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+              missing = columns - actual
+              if missing:
+                  raise SystemExit(f"Missing columns in {table}: {sorted(missing)}")
+          print("All migrations and analytics columns validated.")
+          PY
