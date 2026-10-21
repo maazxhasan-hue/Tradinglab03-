@@ -41,10 +41,12 @@ class RenderPublicSiteTests(unittest.TestCase):
                     target = posixpath.normpath(posixpath.join(
                         file_path.relative_to(PUBLIC).parent.as_posix(), parts.path
                     ))
+                # normpath removes trailing slashes; preserve directory-link intent
+                # from the original URL so /pricing/ resolves to pricing/index.html.
+                if parts.path.endswith("/") and target not in ("", "."):
+                    target = posixpath.join(target, "index.html")
                 if target in ("", "."):
                     target = "index.html"
-                if target.endswith("/"):
-                    target += "index.html"
                 target_path = PUBLIC / target
                 self.assertTrue(
                     target_path.is_file(),
