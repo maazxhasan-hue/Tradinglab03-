@@ -1,0 +1,38 @@
+name: Harvey worker tests
+
+on:
+  push:
+    paths:
+      - "harvey-worker/**"
+      - "tests/**"
+      - ".github/workflows/harvey-tests.yml"
+  pull_request:
+    paths:
+      - "harvey-worker/**"
+      - "tests/**"
+      - ".github/workflows/harvey-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: harvey-worker/requirements.txt
+      - name: Install worker dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r harvey-worker/requirements.txt
+      - name: Validate MCP config JSON
+        run: python -c "import json; json.load(open('.mcp.json', encoding='utf-8')); print('MCP config JSON OK')"
+      - name: Run Harvey regression tests
+        working-directory: harvey-worker
+        run: python -m unittest discover -s ../tests -p 'test_harvey_worker.py' -v
