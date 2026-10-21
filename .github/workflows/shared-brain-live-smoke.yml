@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "tests/shared_brain_live_smoke.py"
+      - "tests/shared_brain_role_matrix.py"
       - ".github/workflows/shared-brain-live-smoke.yml"
       - "company/shared_brain.py"
       - "company/shared_brain_sync.py"
@@ -29,3 +30,7 @@ jobs:
           SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
           SHARED_BRAIN_AGENT_ID: shared-brain-smoke-test
         run: python tests/shared_brain_live_smoke.py
+      - name: Verify every specialist identity can read and write shared memory
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+        run: python tests/shared_brain_role_matrix.py
