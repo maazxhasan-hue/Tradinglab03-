@@ -19,10 +19,11 @@ SHARED_BRAIN_URL = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.s
 SHARED_BRAIN_AGENT_KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
 SHARED_BRAIN_AGENT_ID = os.getenv("SHARED_BRAIN_AGENT_ID", "harvey-render-worker")
 
-def shared_brain_request(payload: dict) -> dict:
-    """Best-effort shared memory client. Never logs secrets or stored content."""
+def shared_brain_request(payload: dict, agent_id: str | None = None) -> dict:
+    """Authenticated shared-memory client. Never logs secrets or stored content."""
     if not SHARED_BRAIN_AGENT_KEY:
         raise RuntimeError("Shared brain is not configured")
+    safe_agent_id = re.sub(r"[^a-zA-Z0-9._:-]", "-", (agent_id or SHARED_BRAIN_AGENT_ID))[:100]
     request = urllib.request.Request(
         SHARED_BRAIN_URL,
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
@@ -30,7 +31,7 @@ def shared_brain_request(payload: dict) -> dict:
         headers={
             "Content-Type": "application/json",
             "x-agent-key": SHARED_BRAIN_AGENT_KEY,
-            "x-agent-id": SHARED_BRAIN_AGENT_ID,
+            "x-agent-id": safe_agent_id,
         },
     )
     try:
@@ -42,27 +43,40 @@ def shared_brain_request(payload: dict) -> dict:
         raise RuntimeError("Shared brain returned an invalid response")
     return result
 
-def shared_brain_recall(query: str, limit: int = 5) -> list[dict]:
+def shared_brain_recall(query: str, limit: int = 5, agent_id: str | None = None) -> list[dict]:
     result = shared_brain_request({
         "action": "recall", "project_key": "nexora",
         "namespace": "company", "query": query[:120], "limit": min(10, max(1, limit)),
-    })
+    }, agent_id=agent_id)
     memories = result.get("memories")
     return memories if isinstance(memories, list) else []
 
-def shared_brain_remember(memory_key: str, summary: str, content: dict, tags: list[str]) -> bool:
+def shared_brain_remember(memory_key: str, summary: str, content: dict, tags: list[str], agent_id: str | None = None) -> bool:
     if not SHARED_BRAIN_AGENT_KEY:
         return False
     try:
         result = shared_brain_request({
             "action": "remember", "project_key": "nexora",
-            "namespace": "company", "memory_key": memory_key[:180],
-            "source_agent": SHARED_BRAIN_AGENT_ID, "summary": summary[:2000],
+            "namespace": "company", "memory_key": memory_key[:160],
+            "source_agent": agent_id or SHARED_BRAIN_AGENT_ID, "summary": summary[:2000],
             "content": content, "tags": tags[:10], "confidence": 0.75,
-        })
+        }, agent_id=agent_id)
         return result.get("saved") is True
     except Exception:
         return False
+
+def record_brain_event(agent_id: str, action: str, status: str, count: int = 0) -> None:
+    """Store only operational metadata, never memory content or credentials."""
+    try:
+        with db() as c:
+            c.execute(
+                "INSERT INTO tasks(kind,status,input_json,output_json,created_at,updated_at) VALUES(?,?,?,?,?,?)",
+                ("brain:" + action + ":" + re.sub(r"[^a-zA-Z0-9._:-]", "-", agent_id)[:80],
+                 status, json.dumps({"agent_id": agent_id, "action": action}),
+                 json.dumps({"count": int(count)}), now(), now())
+            )
+    except Exception:
+        pass
 
 APP_NAME = "Nexora Harvey Worker"
 DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
@@ -198,7 +212,10 @@ def public_status():
         task_counts = c.execute("SELECT status, COUNT(*) AS n FROM tasks GROUP BY status").fetchall()
         job_counts = c.execute("SELECT status, COUNT(*) AS n FROM company_jobs GROUP BY status").fetchall()
         recent_tasks = c.execute(
-            "SELECT kind, status, created_at, updated_at FROM tasks ORDER BY id DESC LIMIT 8"
+            "SELECT kind, status, created_at, updated_at FROM tasks ORDER BY id DESC LIMIT 12"
+        ).fetchall()
+        brain_counts = c.execute(
+            "SELECT kind, status, COUNT(*) AS n FROM tasks WHERE kind LIKE 'brain:%' GROUP BY kind, status"
         ).fetchall()
         recent_jobs = c.execute(
             "SELECT role, status, created_at, updated_at FROM company_jobs ORDER BY id DESC LIMIT 8"
@@ -223,6 +240,8 @@ def public_status():
                                          "created_at": row["created_at"], "updated_at": row["updated_at"]}
                                         for row in recent_jobs]},
             "shared_brain": "configured" if brain_configured else "not_configured",
+            "brain_events": [{"kind": str(row["kind"]), "status": str(row["status"]), "count": int(row["n"])} for row in brain_counts],
+            "brain_architecture": "single shared Supabase brain; specialist runs recall before execution and write run summaries after completion",
             "model_configured": model_configured,
             "privacy": "No task inputs, outputs, prospect details, approval content, or secrets are exposed."
         }
@@ -440,6 +459,18 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY in the server environment; LLM_MODEL or OPENAI_MODEL is optional.")
     if req.role not in AGENT_ROLES:
         raise HTTPException(400, "Unknown role. Use a role returned by /agents/status.")
+    if not SHARED_BRAIN_AGENT_KEY:
+        raise HTTPException(503, "Shared Brain is required for every specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
+    agent_id = "nexora-" + re.sub(r"[^a-zA-Z0-9._:-]", "-", req.role.lower())[:80]
+    try:
+        memories = shared_brain_recall(req.role + " " + req.goal, limit=5, agent_id=agent_id)
+        record_brain_event(agent_id, "recall", "completed", len(memories))
+    except Exception:
+        record_brain_event(agent_id, "recall", "failed", 0)
+        raise HTTPException(503, "Shared Brain recall failed; agent run stopped to prevent disconnected execution.")
+    memory_context = "\n\nSHARED BRAIN CONTEXT (verify against current facts):\n" + "\n".join(
+        "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
+    ) if memories else "\n\nSHARED BRAIN CONTEXT: no matching memories found."
     system = (
         "You are a specialist in the assigned role within Nexora. Apply careful, high-quality reasoning. "
         "Understand the goal and constraints, plan before answering, distinguish facts from assumptions, "
@@ -454,7 +485,7 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         "temperature": 0.2,
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user", "content": "GOAL:\n" + req.goal + "\n\nCONTEXT:\n" + (req.context or "(none)") + "\n\nCONSTRAINTS:\n" + req.constraints}
+            {"role": "user", "content": "GOAL:\n" + req.goal + "\n\nCONTEXT:\n" + (req.context or "(none)") + memory_context + "\n\nCONSTRAINTS:\n" + req.constraints}
         ]
     }
     task_id = None
@@ -475,10 +506,18 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         output = data["choices"][0]["message"]["content"]
         if not isinstance(output, str) or not output.strip():
             raise ValueError("Model returned an empty response")
+        memory_saved = shared_brain_remember(
+            "agent-run:" + str(task_id), "Agent " + req.role + " completed a run: " + req.goal[:400],
+            {"role": req.role, "task_id": str(task_id), "goal": req.goal[:1000], "output_summary": output[:5000]},
+            ["nexora", "agent-run", re.sub(r"[^a-zA-Z0-9._:-]", "-", req.role.lower())],
+            agent_id=agent_id,
+        )
+        record_brain_event(agent_id, "remember", "completed" if memory_saved else "failed", 1 if memory_saved else 0)
         with db() as c:
             c.execute("UPDATE tasks SET status='completed',output_json=?,updated_at=? WHERE id=?",
-                      (__import__("json").dumps({"role":req.role,"model":model,"output":output}), now(), task_id))
+                      (__import__("json").dumps({"role":req.role,"model":model,"output":output,"shared_brain_recalled":len(memories),"shared_brain_saved":memory_saved}), now(), task_id))
         return {"task_id":task_id,"role":req.role,"status":"completed","model":model,"output":output,
+                "shared_brain": {"recall_count": len(memories), "remembered": memory_saved},
                 "human_approval_required_for_external_actions":True}
     except httpx.HTTPStatusError as e:
         with db() as c:
