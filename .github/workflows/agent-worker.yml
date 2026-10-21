@@ -31,6 +31,8 @@ jobs:
           python-version: "3.11"
       - name: Create task and run one worker (free template mode)
         env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-ai-draft-worker
           AI_PROVIDER: template
           TASK_TYPE: ${{ inputs.task_type }}
           TASK_TITLE: ${{ inputs.title }}
