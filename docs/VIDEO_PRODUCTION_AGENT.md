@@ -35,12 +35,12 @@ Use https://github.com/yihui-dev/awesome-opus5-5-videos as a **creative prompt/e
 
 ## Current implementation status
 
-- Public client brief form: `public-site/video-studio.html`.
+- Public client brief form and browser-side silent WebM motion-graphics draft renderer: `public-site/video-studio.html`.
 - HQ workflow and quality-gate panel: `private-hq/video-agent.html`.
 - Agent Town role: `Cinematic Video Production Agent`.
 - Metadata QA utility: `tools/video_qa.py`.
 
-**Not yet connected:** a secure video-generation/rendering provider, background job queue, persistent asset storage, upload service, billing integration, and authenticated client review/delivery. The UI must not claim a video is rendering or delivered until a real provider returns a job ID/output and the resulting file passes QA. Keep provider credentials on the server; never expose API keys in the public page or client browser.
+**Working locally:** the public Studio renders a silent WebM motion-graphics draft in the user's browser using brief text, with preview and download. This is not photorealistic/AI video generation and does not import the supplied audio or linked assets.\n\n**Not yet connected:** a secure cloud AI video-generation/rendering provider, background job queue, persistent asset storage, upload service, billing integration, audio/asset ingestion, and authenticated client review/delivery. The UI must not claim a video is rendering or delivered until a real provider returns a job ID/output and the resulting file passes QA. Keep provider credentials on the server; never expose API keys in the public page or client browser.
 
 ## Suggested job states
 
