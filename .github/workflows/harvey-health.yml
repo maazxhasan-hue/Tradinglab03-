@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "harvey-worker/**"
-      - "tests/**"
+      - "harvey-worker/tests/**"
       - ".github/workflows/harvey-health.yml"
       - ".github/workflows/harvey-tests.yml"
   workflow_dispatch:
