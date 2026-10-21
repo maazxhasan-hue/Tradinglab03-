@@ -13,11 +13,12 @@ class PublicSiteIntakeTests(unittest.TestCase):
         self.assertIn('"/api/auth/"+(mode==="login"?"login":"register")', (ROOT / "dashboard" / "login.html").read_text(encoding="utf-8"))
         self.assertIn("Never include passwords, API keys, or sensitive customer data.", html)
 
-    def test_public_hq_page_redirects_to_protected_workspace(self):
+    def test_public_hq_page_does_not_redirect_to_retired_host(self):
         html = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("Company HQ moved", html)
+        self.assertIn("PRIVATE HQ HOSTING NOT CONFIGURED", html)
         self.assertIn("noindex,nofollow,noarchive", html)
-        self.assertIn("https://vercel.com/maazxhasan-8752/nexora-private-hq", html)
+        self.assertNotIn("vercel.app", html.lower())
+        self.assertNotIn("location.replace", html)
         self.assertNotIn('id="quickProposal"', html)
         private_html = (ROOT / "private-hq" / "index.html").read_text(encoding="utf-8")
         self.assertIn("autonomous-client-execution.yml", private_html)
@@ -26,10 +27,11 @@ class PublicSiteIntakeTests(unittest.TestCase):
 
 
 
-    def test_public_owner_inbox_redirects_to_private_hq(self):
+    def test_public_owner_inbox_does_not_redirect_to_retired_host(self):
         html = (ROOT / "dashboard" / "inbox.html").read_text(encoding="utf-8")
-        self.assertIn("https://nexora-private-hq.vercel.app/", html)
-        self.assertIn("window.location.replace", html)
+        self.assertIn("PRIVATE HQ HOSTING NOT CONFIGURED", html)
+        self.assertNotIn("vercel.app", html.lower())
+        self.assertNotIn("location.replace", html)
         self.assertNotIn('id="adminKey"', html)
         self.assertNotIn("api/admin/submissions", html)
 
