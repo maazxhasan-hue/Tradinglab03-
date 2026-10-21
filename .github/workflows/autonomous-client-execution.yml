@@ -53,6 +53,8 @@ jobs:
       - name: Attempt bounded tool-using agent pass
         if: always()
         env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-autonomous-client-execution
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           if [ ! -f data/autonomous_client_brief.json ]; then
@@ -64,6 +66,8 @@ jobs:
       - name: Run role-specific specialist passes
         if: always()
         env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-specialist-orchestrator
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           if [ ! -f data/autonomous_client_brief.json ]; then
