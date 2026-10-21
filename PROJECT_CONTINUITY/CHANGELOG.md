@@ -34,3 +34,5 @@
 - Known follow-ups: test with real signed-in user session, improve concurrent version increments/expiry validation, inventory each agent runtime, design separate server-to-server identity where needed, then integrate and run cross-agent isolation tests.
 
 - Added `company/shared_brain.py` (commit `2e04e0dd34362ceb7c82e9df89109512d52d273e`), an authenticated Python client exposing `recall` and `remember` with bounded requests, timeouts, and redacted errors. It is a reusable integration adapter; existing Python/Harvey/GitHub workflow agents have not yet been wired to it or tested with real credentials.
+
+- Integrated optional shared-brain recall/write into `company/agent_runtime.py` (commit `b9b6f085e6ca79dba2f63e1fe717c771f42fb13d`). When a valid Supabase user access token and publishable key are supplied via environment variables, this runtime recalls scoped company memories before drafting and writes a task-result metadata record after completion. If shared brain is unavailable, task processing continues and reports the status. Not yet run through repository tests or verified with live credentials; the other agent families remain to be integrated.
