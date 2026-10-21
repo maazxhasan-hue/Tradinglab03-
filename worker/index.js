@@ -458,6 +458,408 @@ async function listSubmissions(request, env, cors) {
   }
   return response({ submissions: result.results || [] }, 200, { ...cors, "cache-control": "no-store" });
 }
+
+
+const ANALYTICS_SITE_ID = "nexora-ai-public";
+const GA4_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
+const GA4_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GA4_API_BASE = "https://analyticsdata.googleapis.com/v1beta/properties/";
+const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents"];
+const AI_SOURCE_REGEX = "(chatgpt|openai|perplexity|claude|gemini|copilot|poe\\.com|phind|you\\.com|meta\\.ai|deepseek|mistral|huggingface)";
+
+function analyticsApiConfigured(env) {
+  return /^\d+$/.test(String(env.GA4_PROPERTY_ID || "")) &&
+    /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(env.GA4_CLIENT_EMAIL || "")) &&
+    String(env.GA4_PRIVATE_KEY || "").includes("PRIVATE KEY");
+}
+function analyticsWebsiteTagConfigured(env) {
+  return /^G-[A-Z0-9]+$/.test(String(env.GA4_MEASUREMENT_ID || "").trim());
+}
+function base64UrlBytes(input) {
+  const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + 0x8000, bytes.length)));
+  }
+  return btoa(binary).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+function base64UrlJson(value) {
+  return base64UrlBytes(new TextEncoder().encode(JSON.stringify(value)));
+}
+function getPrivateKeyBytes(pem) {
+  const normalized = String(pem || "").replace(/\\n/g, "\n");
+  const body = normalized.replace(/-----BEGIN PRIVATE KEY-----/g, "")
+    .replace(/-----END PRIVATE KEY-----/g, "").replace(/\s/g, "");
+  if (!body || !/^[A-Za-z0-9+/=]+$/.test(body)) throw new Error("ga4_private_key_format_invalid");
+  const binary = atob(body);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+async function googleAnalyticsAccessToken(env) {
+  if (!analyticsApiConfigured(env)) throw new Error("ga4_not_configured");
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64UrlJson({ alg: "RS256", typ: "JWT" });
+  const claims = base64UrlJson({
+    iss: String(env.GA4_CLIENT_EMAIL),
+    scope: GA4_SCOPE,
+    aud: GA4_TOKEN_URL,
+    iat: now - 30,
+    exp: now + 3600
+  });
+  const assertionInput = header + "." + claims;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    getPrivateKeyBytes(env.GA4_PRIVATE_KEY),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(assertionInput));
+  const assertion = assertionInput + "." + base64UrlBytes(new Uint8Array(signature));
+  const form = new URLSearchParams({
+    grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    assertion
+  });
+  const tokenResponse = await fetch(GA4_TOKEN_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "accept": "application/json" },
+    body: form.toString()
+  });
+  const payload = await tokenResponse.json().catch(() => ({}));
+  if (!tokenResponse.ok || !payload.access_token) {
+    throw new Error("ga4_oauth_http_" + tokenResponse.status + (payload.error ? "_" + clean(payload.error, 80) : ""));
+  }
+  return payload.access_token;
+}
+async function runGa4Report(env, accessToken, reportBody) {
+  const url = GA4_API_BASE + encodeURIComponent(String(env.GA4_PROPERTY_ID)) + ":runReport";
+  const pageSize = 100000;
+  const maxRows = 250000;
+  let offset = 0;
+  let expectedRows = null;
+  let allRows = [];
+  let dimensionHeaders = [];
+  let metricHeaders = [];
+  let metadata = {};
+  do {
+    const body = { ...reportBody, limit: String(pageSize), offset: String(offset) };
+    const result = await fetch(url, {
+      method: "POST",
+      headers: {
+        "authorization": "Bearer " + accessToken,
+        "content-type": "application/json",
+        "accept": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await result.json().catch(() => ({}));
+    if (!result.ok) {
+      const apiMessage = data && data.error && typeof data.error.message === "string" ? data.error.message.slice(0, 140) : "";
+      throw new Error("ga4_report_http_" + result.status + (apiMessage ? "_" + apiMessage.replace(/[^A-Za-z0-9 ._:-]/g, "") : ""));
+    }
+    if (!Array.isArray(data.rows)) data.rows = [];
+    if (expectedRows === null) {
+      expectedRows = Number(data.rowCount || data.rows.length);
+      dimensionHeaders = Array.isArray(data.dimensionHeaders) ? data.dimensionHeaders : [];
+      metricHeaders = Array.isArray(data.metricHeaders) ? data.metricHeaders : [];
+      metadata = data.metadata || {};
+    }
+    allRows = allRows.concat(data.rows);
+    if (allRows.length >= expectedRows || data.rows.length === 0) break;
+    offset = allRows.length;
+  } while (offset < maxRows);
+  if (expectedRows !== null && allRows.length < expectedRows) throw new Error("ga4_report_row_limit_exceeded");
+  return { rows: allRows, rowCount: allRows.length, dimensionHeaders, metricHeaders, metadata };
+}
+function analyticsDate(value) {
+  const text = String(value || "");
+  if (/^\d{8}$/.test(text)) return text.slice(0,4) + "-" + text.slice(4,6) + "-" + text.slice(6,8);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  return "";
+}
+function addDaysIso(dateText, amount) {
+  const d = new Date(dateText + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + amount);
+  return d.toISOString().slice(0, 10);
+}
+function gaNumber(row, index, integer) {
+  const raw = row && row.metricValues && row.metricValues[index] ? row.metricValues[index].value : null;
+  if (raw === null || raw === undefined || raw === "") return null;
+  const number = Number(raw);
+  if (!Number.isFinite(number)) return null;
+  return integer ? Math.round(number) : number;
+}
+function safeAnalyticsLabel(value, max = 250) {
+  return clean(typeof value === "string" ? value : "", max).replace(/[\u0000-\u001f\u007f]/g, "");
+}
+function normalizedSourceHost(source) {
+  const input = safeAnalyticsLabel(source, 250).toLowerCase();
+  if (!input || input === "(direct)" || input === "(not set)") return input;
+  try {
+    const url = new URL(input.includes("://") ? input : "https://" + input);
+    return url.hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return input.split(/[/?#]/)[0].replace(/^www\./, "");
+  }
+}
+function sourceCategory(source, medium, knownDomains) {
+  const rawSource = safeAnalyticsLabel(source, 250).toLowerCase();
+  const rawMedium = safeAnalyticsLabel(medium, 100).toLowerCase();
+  const host = normalizedSourceHost(source);
+  if (rawSource === "(direct)" || rawMedium === "(none)" || rawMedium === "(direct)") return "direct";
+  if (Array.from(knownDomains).some(domain => host === domain || host.endsWith("." + domain))) return "ai_referral";
+  if (/chatgpt|openai|perplexity|claude|gemini|copilot|poe|phind|deepseek|mistral|huggingface/.test(rawSource)) return "ai_referral";
+  if (["organic", "organic_search"].includes(rawMedium) || ["google", "bing", "yahoo", "duckduckgo", "baidu", "yandex", "ecosia"].includes(host)) return "organic_search";
+  if (["cpc", "ppc", "paid_search", "paidsearch"].includes(rawMedium)) return "paid_search";
+  if (["email", "e-mail"].includes(rawMedium)) return "email";
+  if (["social", "organic_social", "paid_social", "social-network", "social-media"].includes(rawMedium)) return rawMedium.includes("paid") ? "paid_social" : "social";
+  if (["referral", "referrer"].includes(rawMedium)) return "referral";
+  if (["display", "banner", "paid_display"].includes(rawMedium)) return "display";
+  if (!rawSource || rawSource === "(not set)") return "unknown";
+  return "other";
+}
+async function getAiDomainSet(env) {
+  const result = await env.DB.prepare("SELECT hostname FROM ai_referral_domains WHERE enabled = 1").all();
+  return new Set((result.results || []).map(row => String(row.hostname || "").toLowerCase()).filter(Boolean));
+}
+function metricsFromRow(row) {
+  return {
+    total_users: gaNumber(row, 0, true),
+    sessions: gaNumber(row, 1, true) || 0,
+    page_views: gaNumber(row, 2, true) || 0,
+    engaged_sessions: gaNumber(row, 3, true),
+    engagement_rate: gaNumber(row, 4, false),
+    key_events: gaNumber(row, 5, false) || 0
+  };
+}
+function reportRowDate(row) {
+  return analyticsDate(row && row.dimensionValues && row.dimensionValues[0] ? row.dimensionValues[0].value : "");
+}
+async function batchAnalyticsWrites(db, statements) {
+  const batchSize = 80;
+  for (let i = 0; i < statements.length; i += batchSize) {
+    await db.batch(statements.slice(i, i + batchSize));
+  }
+}
+async function recordAnalyticsSyncFailure(env, runId, error, processed, startedAt) {
+  const isNotConfigured = String(error && error.message || error) === "ga4_not_configured";
+  const code = isNotConfigured ? "ga4_not_configured" : safeAnalyticsLabel(String(error && error.message || "analytics_sync_failed"), 180);
+  const status = isNotConfigured ? "not_configured" : (processed > 0 ? "partial" : "failed");
+  await env.DB.prepare("UPDATE visitor_sync_runs SET status=?,finished_at=?,rows_processed=?,error_code=?,error_message=? WHERE id=?")
+    .bind(status, new Date().toISOString(), processed, code, isNotConfigured ? "GA4 report access is not configured." : "The analytics sync failed. See the sync error code for troubleshooting.", runId).run();
+  return { ok: false, status, error_code: code, started_at: startedAt, rows_processed: processed };
+}
+async function runVisitorAnalyticsSync(env) {
+  const runId = crypto.randomUUID();
+  const startedAt = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO visitor_sync_runs (id,provider,started_at,status,rows_processed) VALUES (?,'ga4',?,'running',0)")
+    .bind(runId, startedAt).run();
+  if (!analyticsApiConfigured(env)) {
+    await recordAnalyticsSyncFailure(env, runId, new Error("ga4_not_configured"), 0, startedAt);
+    return { ok: false, status: "not_configured", error_code: "ga4_not_configured", started_at: startedAt, rows_processed: 0 };
+  }
+  let processed = 0;
+  try {
+    const accessToken = await googleAnalyticsAccessToken(env);
+    const dailyRange = [{ startDate: "89daysAgo", endDate: "yesterday" }];
+    const dailyBase = {
+      dateRanges: dailyRange,
+      metrics: GA4_SOURCE_METRICS.map(name => ({ name }))
+    };
+    const dailyReports = await Promise.all([
+      runGa4Report(env, accessToken, { ...dailyBase, dimensions: [{ name: "date" }] }),
+      runGa4Report(env, accessToken, { ...dailyBase, dimensions: [{ name: "date" }, { name: "sessionSource" }, { name: "sessionMedium" }] }),
+      runGa4Report(env, accessToken, {
+        dateRanges: dailyRange,
+        dimensions: [{ name: "date" }, { name: "landingPage" }, { name: "sessionSource" }, { name: "sessionMedium" }],
+        metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }]
+      })
+    ]);
+    const knownDomains = await getAiDomainSet(env);
+    const dayRows = dailyReports[0].rows;
+    const latestDate = dayRows.map(reportRowDate).filter(Boolean).sort().slice(-1)[0] || addDaysIso(new Date().toISOString().slice(0,10), -1);
+    const statements = [];
+    const fetchedAt = new Date().toISOString();
+    for (const row of dayRows) {
+      const date = reportRowDate(row);
+      if (!date) continue;
+      const m = metricsFromRow(row);
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_totals (site_id,snapshot_date,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,data_status,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?, 'complete',?) ON CONFLICT(site_id,snapshot_date,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,data_status='complete',fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,m.total_users,m.sessions,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+    }
+    for (const row of dailyReports[1].rows) {
+      const date = reportRowDate(row);
+      const dims = row.dimensionValues || [];
+      const source = safeAnalyticsLabel(dims[1] && dims[1].value || "(not set)");
+      const medium = safeAnalyticsLabel(dims[2] && dims[2].value || "(not set)",100);
+      if (!date) continue;
+      const m = metricsFromRow(row);
+      const category = sourceCategory(source,medium,knownDomains);
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_sources (site_id,snapshot_date,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,source,medium,category,m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+    }
+    for (const row of dailyReports[2].rows) {
+      const dims = row.dimensionValues || [];
+      const date = analyticsDate(dims[0] && dims[0].value);
+      if (!date) continue;
+      const path = safeLandingPath(dims[1] && dims[1].value || "/");
+      const source = safeAnalyticsLabel(dims[2] && dims[2].value || "(not set)");
+      const medium = safeAnalyticsLabel(dims[3] && dims[3].value || "(not set)",100);
+      const category = sourceCategory(source,medium,knownDomains);
+      statements.push(env.DB.prepare("INSERT INTO visitor_daily_landing_pages (site_id,snapshot_date,provider,landing_path,source,medium,source_category,sessions,users,key_events,fetched_at) VALUES (?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,date,path,source,medium,category,gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,fetchedAt));
+    }
+    processed += statements.length;
+    // GA4's distinct-user metric is not additive across days. Save exact range totals
+    // and exact AI-filtered range totals alongside source/landing-page breakdowns.
+    const rangeWriteStatements = [];
+    const periodResults = [];
+    for (const days of [7, 30, 90]) {
+      const range = [{ startDate: String(days - 1) + "daysAgo", endDate: "yesterday" }];
+      const common = { dateRanges: range, metrics: GA4_SOURCE_METRICS.map(name => ({ name })) };
+      const reports = await Promise.all([
+        runGa4Report(env, accessToken, common),
+        runGa4Report(env, accessToken, {
+          ...common,
+          dimensions: [{ name: "sessionSource" }, { name: "sessionMedium" }]
+        }),
+        runGa4Report(env, accessToken, {
+          dateRanges: range,
+          dimensions: [{ name: "landingPage" }, { name: "sessionSource" }, { name: "sessionMedium" }],
+          metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "keyEvents" }]
+        }),
+        runGa4Report(env, accessToken, {
+          ...common,
+          dimensionFilter: {
+            filter: {
+              fieldName: "sessionSource",
+              stringFilter: { matchType: "PARTIAL_REGEXP", value: AI_SOURCE_REGEX }
+            }
+          }
+        })
+      ]);
+      periodResults.push({ days, total: reports[0], sources: reports[1], landing: reports[2], ai: reports[3] });
+    }
+    for (const period of periodResults) {
+      const days = period.days;
+      const totalMetrics = metricsFromRow(period.total.rows[0] || null);
+      const aiMetrics = metricsFromRow(period.ai.rows[0] || null);
+      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_snapshots (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,latestDate,days,totalMetrics.total_users,totalMetrics.sessions,totalMetrics.page_views,totalMetrics.engaged_sessions,totalMetrics.engagement_rate,totalMetrics.key_events,fetchedAt));
+      rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_ai_metrics (site_id,snapshot_date,range_days,provider,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider) DO UPDATE SET total_users=excluded.total_users,sessions=excluded.sessions,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+        .bind(ANALYTICS_SITE_ID,latestDate,days,aiMetrics.total_users,aiMetrics.sessions,aiMetrics.page_views,aiMetrics.engaged_sessions,aiMetrics.engagement_rate,aiMetrics.key_events,fetchedAt));
+      for (const row of period.sources.rows) {
+        const dims = row.dimensionValues || [];
+        const source = safeAnalyticsLabel(dims[0] && dims[0].value || "(not set)");
+        const medium = safeAnalyticsLabel(dims[1] && dims[1].value || "(not set)",100);
+        const m = metricsFromRow(row);
+        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_sources (site_id,snapshot_date,range_days,provider,source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,page_views=excluded.page_views,engaged_sessions=excluded.engaged_sessions,engagement_rate=excluded.engagement_rate,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+          .bind(ANALYTICS_SITE_ID,latestDate,days,source,medium,sourceCategory(source,medium,knownDomains),m.sessions,m.total_users,m.page_views,m.engaged_sessions,m.engagement_rate,m.key_events,fetchedAt));
+      }
+      for (const row of period.landing.rows) {
+        const dims = row.dimensionValues || [];
+        const path = safeLandingPath(dims[0] && dims[0].value || "/");
+        const source = safeAnalyticsLabel(dims[1] && dims[1].value || "(not set)");
+        const medium = safeAnalyticsLabel(dims[2] && dims[2].value || "(not set)",100);
+        rangeWriteStatements.push(env.DB.prepare("INSERT INTO visitor_range_landing_pages (site_id,snapshot_date,range_days,provider,landing_path,source,medium,source_category,sessions,users,key_events,fetched_at) VALUES (?,?,?,'ga4',?,?,?,?,?,?,?,?) ON CONFLICT(site_id,snapshot_date,range_days,provider,landing_path,source,medium) DO UPDATE SET source_category=excluded.source_category,sessions=excluded.sessions,users=excluded.users,key_events=excluded.key_events,fetched_at=excluded.fetched_at")
+          .bind(ANALYTICS_SITE_ID,latestDate,days,path,source,medium,sourceCategory(source,medium,knownDomains),gaNumber(row,0,true)||0,gaNumber(row,1,true),gaNumber(row,2,false)||0,fetchedAt));
+      }
+    }
+    await batchAnalyticsWrites(env.DB, statements);
+    processed += rangeWriteStatements.length;
+    await batchAnalyticsWrites(env.DB, rangeWriteStatements);
+    await env.DB.prepare("UPDATE visitor_sync_runs SET status='success',finished_at=?,rows_processed=?,snapshot_date=?,error_code=NULL,error_message=NULL WHERE id=?")
+      .bind(new Date().toISOString(),processed,latestDate,runId).run();
+    return { ok: true, status: "success", snapshot_date: latestDate, rows_processed: processed, started_at: startedAt };
+  } catch (error) {
+    console.error("Visitor analytics sync failed:", error && error.message ? error.message : "unknown error");
+    return await recordAnalyticsSyncFailure(env,runId,error,processed,startedAt);
+  }
+}
+function safeLandingPath(value) {
+  let path = safeAnalyticsLabel(value, 700);
+  if (!path) return "/";
+  try {
+    if (/^https?:\/\//i.test(path)) path = new URL(path).pathname;
+  } catch { return "/"; }
+  path = path.split("?")[0].split("#")[0] || "/";
+  if (/@/.test(path) || /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(path)) return "/[redacted]";
+  return path.slice(0, 500);
+}
+function isValidIsoDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + "T00:00:00Z")) &&
+    new Date(value + "T00:00:00Z").toISOString().slice(0,10) === value;
+}
+function validAdminRequest(request, env) {
+  return Boolean(env.ADMIN_API_KEY) && (request.headers.get("Authorization") || "") === "Bearer " + env.ADMIN_API_KEY;
+}
+async function getVisitorAnalytics(request, env, cors) {
+  if (!validAdminRequest(request,env)) return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  const origin = request.headers.get("Origin") || "";
+  if (origin && !originAllowed(request,env)) return response({error:"This origin is not allowed."},403);
+  const url = new URL(request.url);
+  const days = Number.parseInt(url.searchParams.get("days") || "7",10);
+  if (![7,30,90].includes(days)) return response({error:"Choose a supported reporting period: 7, 30, or 90 days."},422,cors);
+  const apiConfigured = analyticsApiConfigured(env);
+  const websiteTrackingConfigured = analyticsWebsiteTagConfigured(env);
+  const lastSync = await env.DB.prepare("SELECT id,started_at,finished_at,status,rows_processed,snapshot_date,error_code,error_message FROM visitor_sync_runs WHERE provider='ga4' ORDER BY started_at DESC LIMIT 1").first();
+  const successful = await env.DB.prepare("SELECT snapshot_date,finished_at FROM visitor_sync_runs WHERE provider='ga4' AND status='success' AND snapshot_date IS NOT NULL ORDER BY finished_at DESC LIMIT 1").first();
+  if (!successful) return response({
+    ok:true,
+    configuration:{api_configured:apiConfigured,website_tracking_configured:websiteTrackingConfigured},
+    days,
+    as_of:null,
+    metrics:null,
+    ai_metrics:null,
+    series:[],
+    sources:[],
+    landing_pages:[],
+    sync:lastSync || null,
+    message: apiConfigured ? "GA4 is configured, but no successful report sync is available yet. Run a sync and check that the service account has Viewer access to the correct GA4 property." : "GA4 reporting access is not configured. Add the GA4 property ID and service-account credentials to the repository settings/secrets, then deploy the Worker."
+  },200,{...cors,"cache-control":"no-store"});
+  const asOf = successful.snapshot_date;
+  const from = addDaysIso(asOf,-(days-1));
+  const summary = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at FROM visitor_range_snapshots WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
+  const ai = await env.DB.prepare("SELECT total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events,fetched_at FROM visitor_range_ai_metrics WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4'").bind(ANALYTICS_SITE_ID,asOf,days).first();
+  const series = await env.DB.prepare("SELECT snapshot_date AS date,total_users,sessions,page_views,engaged_sessions,engagement_rate,key_events FROM visitor_daily_totals WHERE site_id=? AND provider='ga4' AND snapshot_date BETWEEN ? AND ? ORDER BY snapshot_date").bind(ANALYTICS_SITE_ID,from,asOf).all();
+  const sources = await env.DB.prepare("SELECT source,medium,source_category,sessions,users,page_views,engaged_sessions,engagement_rate,key_events FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 60").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const landingPages = await env.DB.prepare("SELECT landing_path,source,medium,source_category,sessions,users,key_events FROM visitor_range_landing_pages WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const aiSources = await env.DB.prepare("SELECT source,medium,sessions,users,key_events FROM visitor_range_sources WHERE site_id=? AND snapshot_date=? AND range_days=? AND provider='ga4' AND source_category='ai_referral' ORDER BY sessions DESC LIMIT 30").bind(ANALYTICS_SITE_ID,asOf,days).all();
+  const aiSessions = Number(ai && ai.sessions || 0);
+  const allSessions = Number(summary && summary.sessions || 0);
+  return response({
+    ok:true,
+    configuration:{api_configured:apiConfigured,website_tracking_configured:websiteTrackingConfigured},
+    days,
+    from,
+    to:asOf,
+    as_of:asOf,
+    metrics:summary || null,
+    ai_metrics:ai || null,
+    ai_share_of_sessions:allSessions > 0 ? aiSessions / allSessions : 0,
+    series:series.results || [],
+    sources:sources.results || [],
+    ai_sources:aiSources.results || [],
+    landing_pages:landingPages.results || [],
+    sync:lastSync || null,
+    message:!websiteTrackingConfigured ? "GA4 reporting access is configured, but the public website Measurement ID is missing. Add the verified G- ID to the deployment variable before treating these reports as complete website analytics." : ""
+  },200,{...cors,"cache-control":"no-store"});
+}
+async function adminAnalyticsSync(request, env, cors) {
+  if (!validAdminRequest(request,env)) return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  const origin = request.headers.get("Origin") || "";
+  if (origin && !originAllowed(request,env)) return response({error:"This origin is not allowed."},403);
+  const result = await runVisitorAnalyticsSync(env);
+  return response(result,result.ok ? 200 : result.status === "not_configured" ? 503 : 502,{...cors,"cache-control":"no-store"});
+}
+async function handleAnalyticsConfig(request, env, cors) {
+  if (request.method !== "GET") return response({error:"Method not allowed."},405,cors);
+  if (!originAllowed(request,env)) return response({error:"This origin is not allowed."},403);
+  const measurementId = analyticsWebsiteTagConfigured(env) ? String(env.GA4_MEASUREMENT_ID).trim() : "";
+  return response({ok:true,configured:Boolean(measurementId),measurement_id:measurementId || null},200,{...cors,"cache-control":"no-store"});
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -465,6 +867,18 @@ export default {
     if (request.method === "OPTIONS") {
       if (!originAllowed(request, env)) return new Response(null, { status: 403 });
       return new Response(null, { status: 204, headers: cors });
+    }
+    if (url.pathname === "/api/analytics/config") {
+      try { return await handleAnalyticsConfig(request, env, cors); }
+      catch (error) { console.error("Analytics configuration lookup failed:", error && error.message ? error.message : "unknown error"); return response({error:"Analytics configuration is temporarily unavailable."},503,cors); }
+    }
+    if (url.pathname === "/api/admin/analytics/visitors" && request.method === "GET") {
+      try { return await getVisitorAnalytics(request, env, cors); }
+      catch (error) { console.error("Visitor analytics dashboard failed:", error && error.message ? error.message : "unknown error"); return response({error:"Visitor analytics are temporarily unavailable."},503,cors); }
+    }
+    if (url.pathname === "/api/admin/analytics/sync" && request.method === "POST") {
+      try { return await adminAnalyticsSync(request, env, cors); }
+      catch (error) { console.error("Visitor analytics sync request failed:", error && error.message ? error.message : "unknown error"); return response({error:"Visitor analytics sync failed."},503,cors); }
     }
     if (url.pathname === "/health" && request.method === "GET") {
       try {
@@ -560,5 +974,11 @@ export default {
       catch { return response({ error: "Could not delete the submission." }, 503, cors); }
     }
     return response({ error: "Not found." }, 404, cors);
+  }
+  ,
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runVisitorAnalyticsSync(env).catch(error => {
+      console.error("Scheduled visitor analytics sync failed:", error && error.message ? error.message : "unknown error");
+    }));
   }
 };
