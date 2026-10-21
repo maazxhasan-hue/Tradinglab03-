@@ -1,0 +1,31 @@
+name: Shared Brain Live Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tests/shared_brain_live_smoke.py"
+      - ".github/workflows/shared-brain-live-smoke.yml"
+      - "company/shared_brain.py"
+      - "company/shared_brain_sync.py"
+      - "company/agent_runtime.py"
+      - "company/tool_agent.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify live shared brain
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: shared-brain-smoke-test
+        run: python tests/shared_brain_live_smoke.py
