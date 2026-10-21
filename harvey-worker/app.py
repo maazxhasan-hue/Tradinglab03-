@@ -221,6 +221,19 @@ def public_status():
             "SELECT role, status, created_at, updated_at FROM company_jobs ORDER BY id DESC LIMIT 8"
         ).fetchall()
         brain_configured = bool(SHARED_BRAIN_AGENT_KEY)
+        brain_connection = "not_configured"
+        if brain_configured:
+            try:
+                # Authenticated read-only probe verifies the worker key against the deployed
+                # Edge Function and its service-role-backed shared facts table.
+                shared_brain_request({
+                    "action": "recall", "project_key": "nexora",
+                    "namespace": "company", "query": "Nexora shared brain connectivity check",
+                    "limit": 1,
+                }, agent_id="nexora-hq-health")
+                brain_connection = "connected"
+            except Exception:
+                brain_connection = "failed"
         model_configured = bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")))
         return {
             "service": APP_NAME,
@@ -240,6 +253,7 @@ def public_status():
                                          "created_at": row["created_at"], "updated_at": row["updated_at"]}
                                         for row in recent_jobs]},
             "shared_brain": "configured" if brain_configured else "not_configured",
+            "shared_brain_connection": brain_connection,
             "brain_events": [{"kind": str(row["kind"]), "status": str(row["status"]), "count": int(row["n"])} for row in brain_counts],
             "brain_architecture": "single shared Supabase brain; specialist runs recall before execution and write run summaries after completion",
             "model_configured": model_configured,
