@@ -46,3 +46,9 @@
 - Added `.github/workflows/shared-brain-registry.yml` (commit `f8135b72002d4b3febdfaff6c15085234294fe60`) to register completed runs from major workflow families. Added machine-auth setup instructions in `docs/SHARED_BRAIN_API.md` (commit `77652c8461262320727822b62ce143f1edda2649`).
 - Python company runtime and bounded tool agent can recall/save memory when machine credentials are configured; company runtime integration commit `b9b6f085e6ca79dba2f63e1fe717c771f42fb13d`, tool-agent integration commit `f24f184c81ca2e9109400d567d781be077086603`.
 - BLOCKER: `SHARED_BRAIN_AGENT_KEY` must be set privately in both Supabase Edge Function secrets and GitHub Actions repository secrets before unattended integrations can write. This secret has not been configured or tested in this session. No authenticated end-to-end cross-agent test has passed yet. Other direct service runtimes (including Harvey API internals) are not yet proven to consume shared memories. HQ theme redesign intentionally not started until shared brain work is verified.
+
+
+## 2026-10-21 — Shared Brain client tests and honest status
+- Added `tests/test_shared_brain_client.py` (commit `29b66029f1362b504abd8d3eb9ec44041d02a6c1`) for safe auth header selection, unconfigured client behavior, bounded query/limit values, malformed responses, and credential-redacted HTTP failures. Test execution is still pending; commit is not equivalent to a passing test run.
+- Updated the shared-brain implementation checkpoint (commit `adbaa7f1cd024158aa404e7d1be910650aa734dd`) and project state (commit `6cadfab58effe854095a19d1e096f8c9181c0900`) to record current blockers and the shared machine-key identity limitation.
+- No HQ theme changes made. Full fleet integration is not yet verified: private machine key setup, live cross-agent memory exchange, registry workflow-name audit, and direct Harvey runtime integration remain open.
