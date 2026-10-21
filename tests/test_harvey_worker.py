@@ -2,12 +2,15 @@
 import os
 import tempfile
 import unittest
+import sys
 
 # Isolate the SQLite database before importing the app (which initializes tables).
 _TEST_DIR = tempfile.TemporaryDirectory(prefix="harvey-tests-")
 os.environ["DATABASE_PATH"] = os.path.join(_TEST_DIR.name, "harvey-test.db")
 os.environ.pop("DATABASE_URL", None)
 os.environ["HARVEY_API_KEY"] = "test-only-secret"
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "harvey-worker"))
 
 from fastapi.testclient import TestClient
 import app as worker
