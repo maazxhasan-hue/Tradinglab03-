@@ -170,6 +170,11 @@ class DraftRequest(BaseModel):
 class DecisionRequest(BaseModel):
     decision: str = Field(pattern="^(approve|reject)$")
 
+@app.get("/", include_in_schema=False)
+def root():
+    return {"service": APP_NAME, "status": "ready", "health": "/health", "docs": "/docs"}
+
+
 @app.get("/health")
 def health():
     with db() as c:
