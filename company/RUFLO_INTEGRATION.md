@@ -8,7 +8,7 @@ The project remains the source of truth. Ruflo is not the production Harvey work
 
 ## What is configured
 
-- `.mcp.json` registers a project-local Ruflo MCP server via the upstream CLI at version `3.59.7`.
+- `.mcp.json` registers a project-local Ruflo MCP server via the published `ruflo` CLI at version `3.59.1`.
 - The server is started on demand by a compatible local MCP client. This is **not** installed into the Render container and does not run as a public web service.
 - Keep the version pinned; review the upstream changelog and security notes before changing it.
 
