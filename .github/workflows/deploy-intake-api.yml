@@ -108,9 +108,11 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
+          GA4_PROPERTY_ID: ${{ vars.NEXORA_GA4_PROPERTY_ID }}
+          GA4_MEASUREMENT_ID: ${{ vars.NEXORA_GA4_MEASUREMENT_ID }}
         run: |
           python - <<'PY'
           import json, os, pathlib, re
@@ -119,7 +121,9 @@ jobs:
               "__D1_DATABASE_ID__": os.environ["D1_DATABASE_ID"],
               "__SITE_ORIGINS__": ",".join(dict.fromkeys([origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()] + ["https://nexora-ai-public.netlify.app"]),),
               "__NOTIFY_EMAIL__": os.environ.get("NOTIFY_EMAIL", ""),
-              "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", "")
+              "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", ""),
+              "__GA4_PROPERTY_ID__": os.environ.get("GA4_PROPERTY_ID", "").strip(),
+              "__GA4_MEASUREMENT_ID__": os.environ.get("GA4_MEASUREMENT_ID", "").strip()
           }
           for marker, value in values.items():
               template = template.replace('"' + marker + '"', json.dumps(value))
@@ -132,15 +136,36 @@ jobs:
           node-version: "22"
       - name: Validate Worker JavaScript syntax
         run: node --check worker/index.js
+      - name: Validate all D1 migrations against isolated SQLite
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+          db = sqlite3.connect(":memory:")
+          for migration in sorted(Path("worker/migrations").glob("*.sql")):
+              db.executescript(migration.read_text(encoding="utf-8"))
+          required = {
+              "submissions", "client_accounts", "client_sessions", "client_auth_attempts",
+              "referrals", "referral_commissions", "referral_audit_log",
+              "visitor_daily_totals", "visitor_daily_sources", "visitor_daily_landing_pages",
+              "visitor_range_snapshots", "visitor_range_ai_metrics", "visitor_range_sources",
+              "visitor_range_landing_pages", "ai_referral_domains", "visitor_sync_runs"
+          }
+          existing = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          missing = sorted(required - existing)
+          if missing:
+              raise SystemExit("Migration chain missing tables: " + ", ".join(missing))
+          print("PASS: all D1 migrations apply to an isolated SQLite database and analytics tables exist.")
+          PY
       - name: Apply database migrations
         run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
       - name: Verify client authentication and referral tables exist
         shell: bash
         run: |
           set -euo pipefail
-          output="$(npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log') ORDER BY name;")"
+          output="$(npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log','visitor_daily_totals','visitor_daily_sources','visitor_daily_landing_pages','visitor_range_snapshots','visitor_range_ai_metrics','visitor_range_sources','visitor_range_landing_pages','ai_referral_domains','visitor_sync_runs') ORDER BY name;")"
           printf '%s\n' "$output"
-          for table in submissions client_accounts client_sessions client_auth_attempts referrals referral_commissions referral_audit_log; do
+          for table in submissions client_accounts client_sessions client_auth_attempts referrals referral_commissions referral_audit_log visitor_daily_totals visitor_daily_sources visitor_daily_landing_pages visitor_range_snapshots visitor_range_ai_metrics visitor_range_sources visitor_range_landing_pages ai_referral_domains visitor_sync_runs; do
             if ! grep -Fq "$table" <<<"$output"; then
               echo "::error::Expected D1 table is missing: $table"
               exit 1
@@ -158,6 +183,18 @@ jobs:
             printf '%s' "$RESEND_API_KEY" | npx --yes wrangler@4 secret put RESEND_API_KEY --config worker/wrangler.toml
           else
             echo "RESEND_API_KEY is not configured; enquiries will still be saved but no email alert will be sent."
+          fi
+      - name: Configure optional GA4 reporting credentials
+        env:
+          NEXORA_GA4_CLIENT_EMAIL: ${{ secrets.NEXORA_GA4_CLIENT_EMAIL }}
+          NEXORA_GA4_PRIVATE_KEY: ${{ secrets.NEXORA_GA4_PRIVATE_KEY }}
+        run: |
+          if [ -n "$NEXORA_GA4_CLIENT_EMAIL" ] && [ -n "$NEXORA_GA4_PRIVATE_KEY" ]; then
+            printf '%s' "$NEXORA_GA4_CLIENT_EMAIL" | npx --yes wrangler@4 secret put GA4_CLIENT_EMAIL --config worker/wrangler.toml
+            printf '%s' "$NEXORA_GA4_PRIVATE_KEY" | npx --yes wrangler@4 secret put GA4_PRIVATE_KEY --config worker/wrangler.toml
+            echo "GA4 service-account credentials configured without printing their values."
+          else
+            echo "::notice::GA4 reporting credentials are not configured yet. The visitor dashboard will report Not connected until NEXORA_GA4_CLIENT_EMAIL and NEXORA_GA4_PRIVATE_KEY are added as repository Actions secrets."
           fi
       - name: Deploy Worker and capture endpoint
         id: worker
@@ -226,10 +263,39 @@ jobs:
           else:
               raise SystemExit("Intake health check failed after 3 attempts: " + str(last_error))
           PY
+      - name: Verify visitor analytics endpoints and access control
+        env:
+          INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
+          SITE_ORIGIN: 'https://nexora-ai-public.netlify.app'
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          base = os.environ["INTAKE_ENDPOINT"].rstrip("/")
+          origin = os.environ["SITE_ORIGIN"]
+          def request(path, method="GET", headers=None):
+              hdr = {"Accept":"application/json","Origin":origin,"User-Agent":"Nexora-Analytics-Smoke/1.0"}
+              hdr.update(headers or {})
+              req = urllib.request.Request(base + path, headers=hdr, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as res:
+                      return res.status, json.load(res)
+              except urllib.error.HTTPError as exc:
+                  return exc.code, json.loads(exc.read().decode("utf-8","replace") or "{}")
+          code, config = request("/api/analytics/config")
+          if code != 200 or config.get("ok") is not True or "configured" not in config:
+              raise SystemExit("Public analytics config endpoint failed its non-secret health check.")
+          code, private = request("/api/admin/analytics/visitors?days=7")
+          if code != 401:
+              raise SystemExit("Visitor analytics endpoint must reject anonymous access (expected 401, got " + str(code) + ").")
+          code, manual = request("/api/admin/analytics/sync", "POST")
+          if code != 401:
+              raise SystemExit("Manual analytics sync must reject anonymous access (expected 401, got " + str(code) + ").")
+          print("PASS: public config exposes only the Measurement ID/status; private analytics and manual sync require the owner key.")
+          PY
       - name: Verify live website AI chat
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error
@@ -256,7 +322,7 @@ jobs:
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
