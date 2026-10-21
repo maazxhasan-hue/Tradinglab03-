@@ -108,7 +108,7 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
         run: |
@@ -130,11 +130,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Validate Worker JavaScript syntax
+        run: node --check worker/index.js
       - name: Apply database migrations
         run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
-      - name: Verify client authentication tables exist
+      - name: Verify client authentication and referral tables exist
+        shell: bash
         run: |
-          npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log') ORDER BY name;"
+          set -euo pipefail
+          output="$(npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log') ORDER BY name;")"
+          printf '%s\n' "$output"
+          for table in submissions client_accounts client_sessions client_auth_attempts referrals referral_commissions referral_audit_log; do
+            if ! grep -Fq "$table" <<<"$output"; then
+              echo "::error::Expected D1 table is missing: $table"
+              exit 1
+            fi
+          done
       - name: Configure owner-only access key
         env:
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
@@ -218,7 +229,7 @@ jobs:
       - name: Verify live website AI chat
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
-          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error
@@ -245,7 +256,7 @@ jobs:
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-          SITE_ORIGINS: ${{ vars.TRADINGLAB03_SITE_ORIGINS || 'https://tradinglab03.vercel.app,https://nexora-ai-sooty-two.vercel.app,https://maazxhasan-hue.github.io' }}
+          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
