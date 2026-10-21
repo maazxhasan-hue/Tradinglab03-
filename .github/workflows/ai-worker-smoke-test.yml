@@ -149,10 +149,10 @@ jobs:
           PY
           )
             if [ "$quota_state" = "quota_blocked" ]; then
-              echo "::warning::Provider credentials are accepted but the account has no usable API credits. Unit tests and live health passed; AI generation remains blocked until provider billing/credits are restored."
-              echo "### AI provider blocked by quota" >> "$GITHUB_STEP_SUMMARY"
-              echo "Worker code tests and live health passed, but live model generation could not be verified because the provider reports insufficient quota / exhausted credits. Restore provider credits and rerun this workflow." >> "$GITHUB_STEP_SUMMARY"
-              exit 0
+              echo "::error::Provider credentials are accepted but the account has no usable API credits. Live AI generation is blocked until provider billing/credits are restored."
+              echo "### BLOCKED: AI provider quota exhausted" >> "$GITHUB_STEP_SUMMARY"
+              echo "Worker code tests and live health passed, but live model generation is blocked because the provider reports insufficient quota / exhausted credits. Restore provider credits and rerun this workflow. This check intentionally fails instead of reporting a green smoke test." >> "$GITHUB_STEP_SUMMARY"
+              exit 1
             fi
             exit 1
           fi
