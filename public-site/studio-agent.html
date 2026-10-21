@@ -105,7 +105,7 @@ $('briefForm').addEventListener('submit',e=>{e.preventDefault();generate()});$('
 
 const projectForm=$('projectBuildForm'),workerUrl=$('workerUrl'),workerKey=$('workerKey'),buildBtn=$('buildProjectBtn'),buildStatus=$('projectBuildStatus'),buildResult=$('projectBuildResult');
 let builtProject=null;
-function apiBase(){return workerUrl.value.trim().replace(/\\/+$/,'')}
+function apiBase(){return workerUrl.value.trim().replace(/\/+$/,'')}
 function showBuildStatus(message,kind=''){buildStatus.textContent=message;buildStatus.className='status'+(kind?' '+kind:'')}
 $('testWorkerConnection').addEventListener('click',async()=>{
  const base=apiBase(),btn=$('testWorkerConnection');
