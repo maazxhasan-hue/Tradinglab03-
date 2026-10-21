@@ -1,6 +1,7 @@
-"""Live synthetic shared-brain read/write matrix for every specialist identity.
+"""Live synthetic Shared Brain read/write matrix for all specialist identities.
 
-No model calls are made. All writes use the isolated integration-tests namespace.
+Runs a bounded number of parallel requests. No model calls are made; all records
+are synthetic and confined to the isolated integration-tests namespace.
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import re
 import secrets
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ENDPOINT = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain")
 KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
@@ -38,7 +40,7 @@ def post(payload: dict, identity: str) -> tuple[int, dict]:
         headers={"Content-Type": "application/json", "x-agent-key": KEY, "x-agent-id": identity},
     )
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=12) as response:
             return response.status, json.loads(response.read(128_000).decode("utf-8"))
     except urllib.error.HTTPError as exc:
         try:
@@ -48,37 +50,53 @@ def post(payload: dict, identity: str) -> tuple[int, dict]:
         return exc.code, body
 
 
+def check_role(role: str, nonce: str) -> tuple[str, bool, str]:
+    identity = agent_id(role)
+    slug = re.sub(r"[^a-z0-9]+", "-", role.lower()).strip("-")
+    memory_key = f"role-matrix:{nonce}:{slug}"
+    marker = f"role-matrix:{nonce}:{role}"
+    status, saved = post({
+        "action": "remember", "project_key": "nexora", "namespace": NAMESPACE,
+        "memory_key": memory_key, "source_agent": identity,
+        "summary": marker, "content": {"synthetic": True, "role": role, "nonce": nonce},
+        "tags": ["acceptance-test", "synthetic", "role-matrix"], "confidence": 1.0,
+    }, identity)
+    if status != 201 or saved.get("saved") is not True:
+        return role, False, f"write failed (HTTP {status})"
+    status, recalled = post({
+        "action": "recall", "project_key": "nexora", "namespace": NAMESPACE,
+        "query": marker, "limit": 5,
+    }, identity)
+    memories = recalled.get("memories")
+    if status != 200 or not isinstance(memories, list) or not any(
+        isinstance(row, dict) and row.get("memory_key") == memory_key for row in memories
+    ):
+        return role, False, f"read-after-write failed (HTTP {status})"
+    return role, True, "ok"
+
+
 def main() -> int:
     if not KEY:
         print("FAIL: SHARED_BRAIN_AGENT_KEY is missing; role matrix cannot be skipped.")
         return 1
     nonce = secrets.token_hex(8)
-    passed = 0
-    for role in ROLES:
-        identity = agent_id(role)
-        memory_key = f"role-matrix:{nonce}:{re.sub(r'[^a-z0-9]+', '-', role.lower()).strip('-')}"
-        marker = f"role-matrix:{nonce}:{role}"
-        status, saved = post({
-            "action": "remember", "project_key": "nexora", "namespace": NAMESPACE,
-            "memory_key": memory_key, "source_agent": identity,
-            "summary": marker, "content": {"synthetic": True, "role": role, "nonce": nonce},
-            "tags": ["acceptance-test", "synthetic", "role-matrix"], "confidence": 1.0,
-        }, identity)
-        if status != 201 or saved.get("saved") is not True:
-            print(f"FAIL: {role} write failed (HTTP {status}).")
-            return 1
-        status, recalled = post({
-            "action": "recall", "project_key": "nexora", "namespace": NAMESPACE,
-            "query": marker, "limit": 5,
-        }, identity)
-        memories = recalled.get("memories")
-        if status != 200 or not isinstance(memories, list) or not any(
-            isinstance(row, dict) and row.get("memory_key") == memory_key for row in memories
-        ):
-            print(f"FAIL: {role} read-after-write failed (HTTP {status}).")
-            return 1
-        passed += 1
-    print(f"PASS: {passed}/{len(ROLES)} role identities completed isolated synthetic Shared Brain write/read checks; no model calls made.")
+    failures = []
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(check_role, role, nonce): role for role in ROLES}
+        for future in as_completed(futures):
+            role = futures[future]
+            try:
+                name, ok, reason = future.result()
+            except Exception as exc:
+                name, ok, reason = role, False, type(exc).__name__
+            if not ok:
+                failures.append((name, reason))
+    if failures:
+        for role, reason in sorted(failures):
+            print(f"FAIL: {role}: {reason}")
+        print(f"FAIL: {len(ROLES) - len(failures)}/{len(ROLES)} identities passed the live Shared Brain matrix.")
+        return 1
+    print(f"PASS: {len(ROLES)}/{len(ROLES)} identities passed synthetic Shared Brain write/read checks; no model calls made.")
     return 0
 
 
