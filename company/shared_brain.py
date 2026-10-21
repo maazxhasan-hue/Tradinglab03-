@@ -22,24 +22,26 @@ class SharedBrainClient:
         self.endpoint = (endpoint or os.getenv("SHARED_BRAIN_URL") or DEFAULT_URL).rstrip("/")
         self.publishable_key = publishable_key or os.getenv("SUPABASE_PUBLISHABLE_KEY", "")
         self.access_token = access_token or os.getenv("SUPABASE_ACCESS_TOKEN", "")
+        self.agent_key = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
+        self.agent_id = os.getenv("SHARED_BRAIN_AGENT_ID", "company-agent-runtime")
         self.timeout = timeout
 
     @property
     def configured(self) -> bool:
-        return bool(self.endpoint and self.publishable_key and self.access_token)
+        return bool(self.endpoint and ((self.publishable_key and self.access_token) or (self.agent_key and self.agent_id)))
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.configured:
-            raise SharedBrainError("Shared brain needs a valid user session and publishable key.")
+            raise SharedBrainError("Shared brain needs agent credentials or a valid user session.")
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        request = urllib.request.Request(
-            self.endpoint, data=data, method="POST",
-            headers={
-                "Authorization": "Bearer " + self.access_token,
-                "apikey": self.publishable_key,
-                "Content-Type": "application/json",
-            },
-        )
+        headers = {"Content-Type": "application/json"}
+        if self.agent_key:
+            headers["x-agent-key"] = self.agent_key
+            headers["x-agent-id"] = self.agent_id
+        else:
+            headers["Authorization"] = "Bearer " + self.access_token
+            headers["apikey"] = self.publishable_key
+        request = urllib.request.Request(self.endpoint, data=data, method="POST", headers=headers)
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 result = json.loads(response.read(128_000).decode("utf-8"))
