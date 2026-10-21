@@ -1,6 +1,9 @@
 [build]
-  command = "set -eu; mkdir -p public-site/dashboard; cp index.html og-image.svg privacy.html robots.txt sitemap.xml 404.html public-site/; cp -R about blog pricing portfolio-sample public-site/; cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html public-site/dashboard/; test -s public-site/index.html; test -s public-site/dashboard/website.html; test ! -e public-site/private-hq; test ! -e public-site/owner-console; test ! -e public-site/company; test ! -e public-site/config; test ! -e public-site/data; test ! -e public-site/worker; test ! -e public-site/harvey-worker; test ! -e public-site/botlab; test ! -e public-site/tests"
+  command = "set -eu; mkdir -p public-site/dashboard; cp index.html og-image.svg privacy.html robots.txt sitemap.xml 404.html public-site/; cp -R about blog pricing portfolio-sample public-site/; cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html dashboard/mythos.html public-site/dashboard/; test -s public-site/index.html; test -s public-site/dashboard/website.html; test ! -e public-site/private-hq; test ! -e public-site/owner-console; test ! -e public-site/company; test ! -e public-site/config; test ! -e public-site/data; test ! -e public-site/worker; test ! -e public-site/harvey-worker; test ! -e public-site/botlab; test ! -e public-site/tests"
   publish = "public-site"
+
+[functions]
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/private-hq"
