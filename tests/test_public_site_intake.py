@@ -15,11 +15,14 @@ class PublicSiteIntakeTests(unittest.TestCase):
 
     def test_public_hq_page_does_not_redirect_to_retired_host(self):
         html = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("PRIVATE HQ HOSTING NOT CONFIGURED", html)
         self.assertIn("noindex,nofollow,noarchive", html)
+        self.assertIn("NEURAL COMMAND", html)
+        self.assertIn("/public-status", html)
         self.assertNotIn("vercel.app", html.lower())
         self.assertNotIn("location.replace", html)
         self.assertNotIn('id="quickProposal"', html)
+        self.assertNotIn('id="adminKey"', html)
+        self.assertIn("No task inputs, outputs", (ROOT / "harvey-worker" / "app.py").read_text(encoding="utf-8"))
         private_html = (ROOT / "private-hq" / "index.html").read_text(encoding="utf-8")
         self.assertIn("autonomous-client-execution.yml", private_html)
         self.assertIn("https://www.instagram.com/direct/inbox/", private_html)
