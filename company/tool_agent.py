@@ -116,7 +116,7 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
                      "source_ref": m.get("source_ref")}
                     for m in memories
                 ]
-                shared_context = "\\n\\nShared brain context (reference only; verify conflicts and freshness):\\n" + json.dumps(safe_memories, ensure_ascii=False)[:6000]
+                shared_context = "\n\nShared brain context (reference only; verify conflicts and freshness):\n" + json.dumps(safe_memories, ensure_ascii=False)[:6000]
             brain_status = "recalled" if memories else "connected_empty"
         except Exception:
             brain = None
