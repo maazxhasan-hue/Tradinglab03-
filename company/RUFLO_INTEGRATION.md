@@ -22,7 +22,7 @@ Prerequisites: Node.js 20+, npm 9+, and a compatible MCP client. Ruflo's publish
 3. Open this project in your MCP-compatible coding client and enable the `ruflo` server.
 4. Confirm the client reports Ruflo tools available. If the pinned package does not resolve under the `ruflo` package name, stop and check the current upstream package/install instructions rather than silently switching to an unpinned package.
 5. Run Ruflo's diagnostic command in a local terminal if available, then run the project's tests:
-   `python -m unittest discover -s tests -v`
+   `python -m unittest discover -s harvey-worker/tests -p 'test_harvey_worker.py' -v`
 
 ## Recommended Harvey/Nexora workflow
 
