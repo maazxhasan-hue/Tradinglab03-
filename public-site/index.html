@@ -353,7 +353,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
 <script>
 (function(){
   const $=(s,root=document)=>root.querySelector(s);
-  const $=(s,root=document)=>Array.from(root.querySelectorAll(s));
+  const $$=(s,root=document)=>Array.from(root.querySelectorAll(s));
   // Give the main page a real skip target and accessible mobile navigation toggle.
   const nav=$('.nav'), main=$('main');
   if(main){main.id=main.id||'main-content';}
@@ -363,7 +363,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
       const b=document.createElement('button');b.id='mobile-menu-toggle';b.type='button';b.className='btn secondary';b.textContent='Menu';b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','site-navigation');
       links.id='site-navigation';nav.insertBefore(b,links);
       b.addEventListener('click',()=>{const open=links.classList.toggle('ux-menu-open');b.setAttribute('aria-expanded',String(open));b.textContent=open?'Close menu':'Menu';});
-      $('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
+      $$('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
     }
   }
   // Theme preference is local-only; no tracking needed.
@@ -390,9 +390,9 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   $('#search-open')?.addEventListener('click',()=>{items=index();searchOverlay.hidden=false;searchInput?.focus();renderSearch('')});
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
   // Accessible overlay close and confirmation dialog.
-  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
+  $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
   [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.hidden=true}));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>x.hidden=true)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.ux-overlay').forEach(x=>x.hidden=true)});
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
   window.nexoraConfirm=(message,action)=>{const copy=$('#confirm-copy');if(copy)copy.textContent=String(message||'Please confirm this action.');confirmAction=typeof action==='function'?action:null;if(confirmDialog)confirmDialog.hidden=false;$('#confirm-yes')?.focus()};
   const contact=$('.floating-contact');contact?.addEventListener('click',e=>{e.preventDefault();window.nexoraConfirm('This opens Nexora AI on Instagram in a new tab. Continue?',()=>window.open(contact.href,'_blank','noopener,noreferrer'))});
