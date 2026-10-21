@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "worker/**"
+      - "worker/migrations/**" # Explicitly redeploy when database migrations change.
       - "dashboard/website.html"
       - "dashboard/login.html"
       - "dashboard/inbox.html"
