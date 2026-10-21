@@ -513,6 +513,8 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
             agent_id=agent_id,
         )
         record_brain_event(agent_id, "remember", "completed" if memory_saved else "failed", 1 if memory_saved else 0)
+        if not memory_saved:
+            raise RuntimeError("Shared Brain write failed; specialist run cannot be marked complete.")
         with db() as c:
             c.execute("UPDATE tasks SET status='completed',output_json=?,updated_at=? WHERE id=?",
                       (__import__("json").dumps({"role":req.role,"model":model,"output":output,"shared_brain_recalled":len(memories),"shared_brain_saved":memory_saved}), now(), task_id))
@@ -732,6 +734,8 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
             agent_id=agent_id,
         )
         record_brain_event(agent_id, "remember", "completed" if memory_saved else "failed", 1 if memory_saved else 0)
+        if not memory_saved:
+            raise RuntimeError("Shared Brain write failed; company specialist job cannot be marked complete.")
         saved={"role":row["role"],"model":model,"output":output,
                "shared_brain_recalled":len(memories),"shared_brain_saved":memory_saved}
         with db() as c:
@@ -912,6 +916,11 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
             tags=["nexora", "creative-agent", "project-build"],
         )
         record_brain_event(agent_id, "remember", "completed" if brain_saved else "failed", 1 if brain_saved else 0)
+        if not brain_saved:
+            with db() as c:
+                c.execute("UPDATE projects SET status='failed',error=?,updated_at=? WHERE id=?",
+                          ("Shared Brain write failed; project build cannot be marked complete.", now(), project_id))
+            raise HTTPException(503, "Shared Brain write failed; project build was not marked complete.")
         return {"project_id":project_id,"name":req.name,"status":"completed","model":model,
                 "summary":manifest.get("summary",""),"run_instructions":manifest.get("run_instructions",[]),
                 "files":[{"path":x["path"],"bytes":len(x["content"].encode("utf-8"))} for x in clean_files],
