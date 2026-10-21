@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f5f7">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Nexora AI payment instructions for approved project quotes.">
+<title>Project Payment | Nexora AI</title>
+<style>
+:root{color-scheme:light;--bg:#f5f5f7;--panel:#fff;--line:#dedee3;--text:#171719;--muted:#66666d;--accent:#167d49}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{width:min(680px,calc(100% - 32px));margin:0 auto;padding:32px 0 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 0 28px}
+.brand{font-weight:850;text-decoration:none;color:var(--text);letter-spacing:-.03em}.brand span{color:var(--accent)}
+a{color:#146a40} .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,34px);box-shadow:0 12px 36px rgba(0,0,0,.05)}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:800}
+h1{font-size:clamp(2rem,7vw,3.1rem);line-height:1.08;letter-spacing:-.045em;margin:.55rem 0 1rem}
+.muted{color:var(--muted)}label{display:block;font-weight:700;margin:18px 0 6px}input,textarea{width:100%;font:inherit;padding:12px 13px;border:1px solid #c9c9d1;border-radius:10px;background:#fff;color:#171719}
+button,.button{display:inline-flex;justify-content:center;align-items:center;gap:8px;margin-top:16px;padding:12px 16px;border:0;border-radius:11px;background:var(--accent);color:#fff;font:750 15px system-ui;text-decoration:none;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:14px 16px;background:#f0f5f1;border:1px solid #d4e4d8;border-radius:12px;margin:20px 0}.notice strong{display:block;margin-bottom:4px}
+.small{font-size:.9rem}.error{color:#9a2828;min-height:1.4em}footer{margin-top:24px;font-size:.9rem;color:var(--muted)}
+:focus-visible{outline:3px solid #167d49;outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/" aria-label="Nexora AI home">NEXORA <span>AI</span></a><a href="/pricing/">Pricing</a></header>
+<main class="card">
+<div class="eyebrow">Project payments</div>
+<h1>Pay for your Nexora project.</h1>
+<p class="muted">Use this page only after you have received and approved a written quote from Nexora AI. Enter the exact amount from that quote.</p>
+<div class="notice" role="status">
+<strong>UPI payment details configured</strong>
+For an approved quote, the page can open your UPI app with the amount and project reference filled in. Confirm the payee name and amount in your UPI app before authorizing payment.
+</div>
+<form id="payment-form">
+<label for="amount">Approved amount (INR)</label>
+<input id="amount" name="amount" type="number" min="1" max="10000000" step="0.01" inputmode="decimal" placeholder="e.g. 5000.00" required>
+<label for="reference">Quote / project reference</label>
+<input id="reference" name="reference" type="text" maxlength="80" autocomplete="off" placeholder="e.g. NX-2026-001" required>
+<p id="form-error" class="error" role="alert"></p>
+<button id="pay-button" type="submit">Continue to UPI app</button>
+</form>
+<p class="small muted">Never share your UPI PIN, OTP, or banking password with anyone. A payment is complete only after your UPI app and bank confirm success. Do not rely on screenshots alone.</p>
+<p><a href="mailto:rayanahmed10077@gmail.com?subject=Nexora%20AI%20UPI%20payment%20setup">Email Nexora AI about payment setup</a></p>
+</main>
+<footer>© <span id="year"></span> Nexora AI · <a href="/privacy.html">Privacy</a></footer>
+</div>
+<script>
+"use strict";
+document.getElementById("year").textContent = new Date().getFullYear();
+// Set a verified merchant VPA here only after confirming ownership with the account holder.
+// Keep blank until the business UPI ID is provided; payment remains intentionally disabled.
+const MERCHANT_UPI_ID = "7892708813@superyes";
+const MERCHANT_NAME = "Nexora AI";
+const form = document.getElementById("payment-form");
+const amount = document.getElementById("amount");
+const reference = document.getElementById("reference");
+const button = document.getElementById("pay-button");
+const error = document.getElementById("form-error");
+if (MERCHANT_UPI_ID && /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z0-9.-]{2,64}$/.test(MERCHANT_UPI_ID)) {
+  button.disabled = false;
+  button.textContent = "Continue to UPI app";
+}
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  error.textContent = "";
+  const value = Number(amount.value);
+  const ref = reference.value.trim().replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 50);
+  if (!MERCHANT_UPI_ID || !/^[a-zA-Z0-9._-]{2,256}@[a-zA-Z0-9.-]{2,64}$/.test(MERCHANT_UPI_ID)) {
+    error.textContent = "UPI checkout is not enabled yet. Please email Nexora AI for verified payment instructions.";
+    return;
+  }
+  if (!Number.isFinite(value) || value < 1 || value > 10000000 || !ref) {
+    error.textContent = "Enter a valid approved amount and quote reference.";
+    return;
+  }
+  const params = new URLSearchParams({ pa: MERCHANT_UPI_ID, pn: MERCHANT_NAME, am: value.toFixed(2), cu: "INR", tn: "Nexora project " + ref, tr: ref });
+  window.location.href = "upi://pay?" + params.toString();
+});
+</script>
+</body>
+</html>
