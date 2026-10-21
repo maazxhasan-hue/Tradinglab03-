@@ -286,16 +286,22 @@ async function handleAuth(request, env, cors, action) {
     try {
       await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled,referral_code) VALUES (?,?,?,?,?,0,?)")
         .bind(id,email,salt,hash,new Date().toISOString(),ownReferralCode).run();
-      account = {id,email,referral_code:ownReferralCode};
-      if (referralCode && /^[A-Z0-9]{4,32}$/.test(referralCode)) {
+    } catch {
+      return response({error:"An account may already exist for this email. Try signing in instead."}, 409, cors);
+    }
+    account = {id,email,referral_code:ownReferralCode};
+    // Attribution is best-effort after account creation: a referral-table outage must
+    // not strand a successfully created account behind a misleading 409 response.
+    if (referralCode && /^[A-Z0-9]{4,32}$/.test(referralCode)) {
+      try {
         const referrer = await env.DB.prepare("SELECT id FROM client_accounts WHERE referral_code = ? AND disabled = 0").bind(referralCode).first();
         if (referrer && referrer.id !== id) {
           await env.DB.prepare("INSERT OR IGNORE INTO referrals (id,referrer_account_id,referred_account_id,referral_code,status,created_at) VALUES (?,?,?,?, 'registered', ?)")
             .bind(crypto.randomUUID(),referrer.id,id,referralCode,new Date().toISOString()).run();
         }
+      } catch (error) {
+        console.error("Referral attribution failed after account registration:", error && error.message ? error.message : "unknown error");
       }
-    } catch {
-      return response({error:"An account may already exist for this email. Try signing in instead."}, 409, cors);
     }
   } else if (action === "login") {
     account = await env.DB.prepare("SELECT id,email,password_salt,password_hash FROM client_accounts WHERE email = ? AND disabled = 0").bind(email).first();
