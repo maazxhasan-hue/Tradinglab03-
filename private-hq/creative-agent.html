@@ -52,7 +52,7 @@
 <div class="field full"><label for="projectName">Project name *</label><input id="projectName" maxlength="100" required value="Nexora generated project"></div>
 <div class="field full"><label for="projectBrief">What should it build? *</label><textarea id="projectBrief" maxlength="8000" required style="min-height:150px" placeholder="Describe the product, target users, screens, behavior, data model, integrations, design system, edge cases, and acceptance criteria."></textarea></div>
 <div class="field full"><label for="projectConstraints">Quality and technical constraints</label><textarea id="projectConstraints" maxlength="3000">Use maintainable architecture, accessible responsive UI, input validation, clear error states, README setup instructions, practical tests, and no hard-coded secrets. List assumptions and unresolved dependencies. Do not claim tests were run unless they were actually executed.</textarea></div>
-</div><div class="btns"><button id="testWorkerConnection" class="btn secondary" type="button">Test worker connection</button><button id="buildProjectBtn" class="btn" type="submit">Build project ZIP</button><button id="clearWorkerKey" class="btn secondary" type="button">Clear API key</button></div></form>
+</div><div class="btns"><button id="testWorkerConnection" class="btn secondary" type="button">Test worker connection</button><button id="testBrainConnection" class="btn secondary" type="button">Check Brain connection</button><button id="buildProjectBtn" class="btn" type="submit">Build project ZIP</button><button id="clearWorkerKey" class="btn secondary" type="button">Clear API key</button></div></form>
 <div id="projectBuildStatus" class="status" role="status">Worker connection has not been tested yet.</div>
 <div id="projectBuildResult" hidden><h3>Build report</h3><p id="projectBuildSummary"></p><ul id="projectBuildFiles" class="checklist"></ul><div class="btns"><button id="downloadProjectZip" class="btn" type="button">Download source ZIP</button></div><p class="small">The report distinguishes generated files from executed tests. No code is run by the generator service.</p></div>
 </section>
@@ -120,6 +120,19 @@ $('testWorkerConnection').addEventListener('click',async()=>{
  }catch(err){showBuildStatus('Connection test failed: '+(err&&err.message?err.message:'Unknown error')+'. Check service URL, deployment health and CORS allowlist.','warn')}
  finally{btn.disabled=false;btn.textContent='Test worker connection'}
 });
+$('testBrainConnection').addEventListener('click',async()=>{
+ const base=apiBase(),btn=$('testBrainConnection'),key=workerKey.value;
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ if(!key){showBuildStatus('Enter the worker API key for this authenticated Brain check.','warn');return}
+ btn.disabled=true;btn.textContent='Checking Brain…';showBuildStatus('Checking shared Brain connection…');
+ try{
+  const response=await fetch(base+'/brain/status',{headers:{'X-API-Key':key,'Accept':'application/json'}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.detail||('HTTP '+response.status));
+  showBuildStatus(data.configured?'Brain connected at worker configuration level. Agent: '+data.agent_id+'. Memory will be recalled for builds and build summaries saved back when the Brain accepts writes.':'Worker reachable, but shared Brain credentials are not configured server-side. Add SHARED_BRAIN_AGENT_KEY to the worker environment.',''+(data.configured?'ok':'warn'));
+ }catch(err){showBuildStatus('Brain check failed: '+(err&&err.message?err.message:'Unknown error')+'. Check worker deployment and SHARED_BRAIN_AGENT_KEY.','warn')}
+ finally{btn.disabled=false;btn.textContent='Check Brain connection'}
+});
 $('clearWorkerKey').addEventListener('click',()=>{workerKey.value='';showBuildStatus('API key cleared from this page.');});
 projectForm.addEventListener('submit',async e=>{
  e.preventDefault(); if(!projectForm.reportValidity())return;
@@ -133,7 +146,7 @@ projectForm.addEventListener('submit',async e=>{
   if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'Worker request failed with HTTP '+response.status);
   if(data.status!=='completed'||!Number.isInteger(data.project_id))throw new Error('Worker response did not contain a completed project ID.');
   builtProject={base,key,id:data.project_id,data};
-  $('projectBuildSummary').textContent=(data.summary||'Project files generated.')+' Model: '+(data.model||'reported by worker')+'. Tests executed: '+(data.tests_executed===true?'yes':'no — source only; not run by the worker')+'.';
+  $('projectBuildSummary').textContent=(data.summary||'Project files generated.')+' Model: '+(data.model||'reported by worker')+'. Brain: '+(data.brain?(data.brain.status+'; recalled '+data.brain.memories_recalled+' memories; saved '+(data.brain.build_saved?'yes':'no')):'status not returned')+'. Tests executed: '+(data.tests_executed===true?'yes':'no — source only; not run by the worker')+'.';
   $('projectBuildFiles').innerHTML=(data.files||[]).map(file=>'<li>'+String(file.path).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+' · '+Number(file.bytes||0)+' bytes</li>').join('');
   buildResult.hidden=false;showBuildStatus('Project generated and packaged. Review the report; the source has not been executed.','ok');
  }catch(err){showBuildStatus('Build failed: '+(err&&err.message?err.message:'Unknown error')+'. Check worker URL, CORS, API key, provider configuration and server logs.','warn')}
