@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - "harvey-worker/**"
-      - "tests/**"
+      - "harvey-worker/tests/**"
       - ".github/workflows/harvey-tests.yml"
   pull_request:
     paths:
       - "harvey-worker/**"
-      - "tests/**"
+      - "harvey-worker/tests/**"
       - ".github/workflows/harvey-tests.yml"
   workflow_dispatch:
 
@@ -34,4 +34,4 @@ jobs:
       - name: Validate MCP config JSON
         run: python -c "import json; json.load(open('.mcp.json', encoding='utf-8')); print('MCP config JSON OK')"
       - name: Run Harvey regression tests
-        run: python -m unittest discover -s tests -p 'test_harvey_worker.py' -v
+        run: python -m unittest discover -s harvey-worker/tests -p 'test_harvey_worker.py' -v
