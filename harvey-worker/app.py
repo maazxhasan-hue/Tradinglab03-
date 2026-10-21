@@ -145,8 +145,8 @@ def metrics(x_api_key: Optional[str] = Header(default=None)):
 async def discover(req: DiscoverRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     # Validate and normalize user input before interpolating it into the Overpass query.
-    city = re.sub(r"[^\\w\\s,.'-]", "", req.city, flags=re.UNICODE)
-    city = re.sub(r"\\s+", " ", city).strip()
+    city = re.sub(r"[^\w\s,.'-]", "", req.city, flags=re.UNICODE)
+    city = re.sub(r"\s+", " ", city).strip()
     if not city:
         raise HTTPException(400, "Enter a valid city name.")
     category = re.sub(r"[^a-z]", "", req.category.lower())
