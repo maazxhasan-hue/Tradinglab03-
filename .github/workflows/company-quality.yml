@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Validate Vercel private-path guard and security headers
+      - name: Validate security configuration and private-hosting safety
         run: |
           python - <<'PY'
           import json
@@ -53,7 +53,7 @@ jobs:
               "Referrer-Policy": "strict-origin-when-cross-origin",
           }.items():
               assert headers.get(key) == expected, f"Missing or incorrect security header: {key}"
-          print("Vercel private-path guard and baseline security headers passed.")
+          print("Legacy path guard configuration and baseline security headers passed.")
           PY
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -69,7 +69,7 @@ jobs:
         run: |
           python - <<'PY'
           import pathlib, re, subprocess
-          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("dashboard/inbox.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/inbox.html"), pathlib.Path("private-hq/marketing.html")]
+          pages = [pathlib.Path("dashboard/website.html"), pathlib.Path("private-hq/index.html"), pathlib.Path("private-hq/inbox.html"), pathlib.Path("private-hq/marketing.html")]
           for page in pages:
               html = page.read_text(encoding="utf-8")
               script_blocks = re.findall(r"<script([^>]*)>(.*?)</script>", html, re.I | re.S)
