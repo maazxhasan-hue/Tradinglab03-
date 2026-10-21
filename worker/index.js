@@ -179,6 +179,52 @@ async function getMyReferrals(request, env, cors) {
     note:"Referral rewards are not guaranteed. Commission is payable only after Nexora verifies actual payment received and approves the commission."
   }, 200, {...cors,"cache-control":"no-store"});
 }
+async function listAdminReferrals(request, env, cors) {
+  if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
+    return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  const limit=Math.min(100,Math.max(1,Number.parseInt(new URL(request.url).searchParams.get("limit")||"50",10)||50));
+  const rows=await env.DB.prepare(
+    "SELECT r.id,r.referral_code,r.status,r.created_at,r.qualified_at,r.converted_at,owner.email AS referrer_email,customer.email AS referred_email FROM referrals r JOIN client_accounts owner ON owner.id=r.referrer_account_id JOIN client_accounts customer ON customer.id=r.referred_account_id ORDER BY r.created_at DESC LIMIT ?"
+  ).bind(limit).all();
+  return response({referrals:rows.results||[]},200,{...cors,"cache-control":"no-store"});
+}
+async function updateAdminReferral(request, env, id, cors) {
+  if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
+    return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({error:"Invalid referral ID."},400,cors);
+  let body;
+  try { body=JSON.parse(await readLimitedBody(request,1500)); } catch { return response({error:"Invalid JSON."},400,cors); }
+  const status=clean(body && body.status,20);
+  if (!new Set(["qualified","converted","rejected"]).has(status))
+    return response({error:"Status must be qualified, converted, or rejected."},422,cors);
+  const now=new Date().toISOString();
+  const row=await env.DB.prepare("SELECT id FROM referrals WHERE id = ?").bind(id).first();
+  if(!row) return response({error:"Referral not found."},404,cors);
+  await env.DB.prepare("UPDATE referrals SET status=?,qualified_at=CASE WHEN ? IN ('qualified','converted') AND qualified_at IS NULL THEN ? ELSE qualified_at END,converted_at=CASE WHEN ?='converted' THEN ? ELSE converted_at END WHERE id=?")
+    .bind(status,status,now,status,now,id).run();
+  await env.DB.prepare("INSERT INTO referral_audit_log (id,actor_type,actor_id,event_type,referral_id,details_json,created_at) VALUES (?,'owner','admin-api','referral_status_changed',?,?,?)")
+    .bind(crypto.randomUUID(),id,JSON.stringify({status}),now).run();
+  return response({ok:true,referral_id:id,status},200,{...cors,"cache-control":"no-store"});
+}
+async function updateReferralCommissionStatus(request, env, id, cors) {
+  if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
+    return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({error:"Invalid commission ID."},400,cors);
+  let body;
+  try { body=JSON.parse(await readLimitedBody(request,1000)); } catch { return response({error:"Invalid JSON."},400,cors); }
+  const status=clean(body && body.status,20);
+  if (!new Set(["paid","reversed"]).has(status)) return response({error:"Status must be paid or reversed."},422,cors);
+  const now=new Date().toISOString();
+  const existing=await env.DB.prepare("SELECT id,status FROM referral_commissions WHERE id=?").bind(id).first();
+  if(!existing) return response({error:"Commission not found."},404,cors);
+  if(existing.status!=="approved" && !(status==="reversed" && existing.status==="paid"))
+    return response({error:"Only approved commissions can be marked paid; paid commissions may be reversed with an audit record."},409,cors);
+  await env.DB.prepare("UPDATE referral_commissions SET status=?,paid_at=CASE WHEN ?='paid' THEN ? ELSE paid_at END,updated_at=? WHERE id=?")
+    .bind(status,status,now,now,id).run();
+  await env.DB.prepare("INSERT INTO referral_audit_log (id,actor_type,actor_id,event_type,commission_id,details_json,created_at) VALUES (?,'owner','admin-api',?,?,?,?)")
+    .bind(crypto.randomUUID(),"commission_"+status,id,JSON.stringify({previous_status:existing.status,status}),now).run();
+  return response({ok:true,commission_id:id,status},200,{...cors,"cache-control":"no-store"});
+}
 async function createReferralCommission(request, env, cors) {
   if ((request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY || !env.ADMIN_API_KEY)
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
@@ -430,6 +476,20 @@ export default {
     if (url.pathname === "/api/referrals/me" && request.method === "GET") {
       try { return await getMyReferrals(request, env, cors); }
       catch (error) { console.error("Referral dashboard failed:", error && error.message ? error.message : "unknown error"); return response({error:"Referral dashboard temporarily unavailable."},503,cors); }
+    }
+    if (url.pathname === "/api/admin/referrals" && request.method === "GET") {
+      try { return await listAdminReferrals(request, env, cors); }
+      catch (error) { console.error("Referral listing failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not load referrals."},503,cors); }
+    }
+    const adminReferralMatch=url.pathname.match(/^\\/api\\/admin\\/referrals\\/([^/]+)$/);
+    if (adminReferralMatch && request.method === "PATCH") {
+      try { return await updateAdminReferral(request, env, adminReferralMatch[1], cors); }
+      catch (error) { console.error("Referral status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update referral."},503,cors); }
+    }
+    const adminCommissionMatch=url.pathname.match(/^\\/api\\/admin\\/referral-commissions\\/([^/]+)$/);
+    if (adminCommissionMatch && request.method === "PATCH") {
+      try { return await updateReferralCommissionStatus(request, env, adminCommissionMatch[1], cors); }
+      catch (error) { console.error("Commission status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update commission."},503,cors); }
     }
     if (url.pathname === "/api/admin/referral-commissions" && request.method === "POST") {
       try { return await createReferralCommission(request, env, cors); }
