@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-LIVE_HOST = "https://nexora-ai-sooty-two.vercel.app"
+LIVE_HOST = "https://nexora-ai-public.onrender.com"
 
 class NexoraPublicSiteTests(unittest.TestCase):
     def test_homepage_describes_the_real_business_services(self):
@@ -13,7 +13,7 @@ class NexoraPublicSiteTests(unittest.TestCase):
         self.assertIn('href="/dashboard/referrals.html"', html)
         self.assertIn("trading profits are never guaranteed", html)
 
-    def test_public_metadata_uses_current_vercel_host_and_same_origin_consent_script(self):
+    def test_public_metadata_uses_current_render_host_and_same_origin_consent_script(self):
         for path in ("index.html", "dashboard/website.html"):
             html = (ROOT / path).read_text(encoding="utf-8")
             self.assertIn(LIVE_HOST, html)
