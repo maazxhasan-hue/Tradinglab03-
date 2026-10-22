@@ -6,8 +6,12 @@ request headers, or generated client data. Requires GEMINI_API_KEY.
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 from pathlib import Path
+
+# Direct execution sets sys.path[0] to tests/, so add the repository root.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from company.tool_agent import run_tool_agent
 
