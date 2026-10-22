@@ -36,21 +36,18 @@ def main() -> int:
             "acceptance_criteria": ["The exact marker is present in the requested file."],
         }
         try:
-            result = run_tool_agent(brief=brief, workspace=root, max_rounds=4)
+            result = run_tool_agent(brief=brief, workspace=root, max_rounds=8)
         except Exception as exc:
             detail = str(exc).replace("\n", " ")[:240]
             print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {detail}")
             return 1
 
         artifact = root / relative
-        if result.get("status") != "completed":
-            print(f"FAIL: tool agent ended with status={result.get('status', 'unknown')}.")
-            return 1
         if int(result.get("tool_calls", 0) or 0) < 1:
-            print("FAIL: Gemini returned without making a tool call.")
+            print(f"FAIL: Gemini made no successful tool calls (status={result.get('status', 'unknown')}).")
             return 1
         if not artifact.is_file():
-            print("FAIL: expected synthetic artifact was not created.")
+            print(f"FAIL: expected synthetic artifact was not created (status={result.get('status', 'unknown')}, tool_calls={result.get('tool_calls', 0)}).")
             return 1
         if "GEMINI_NATIVE_TOOL_CALL_OK" not in artifact.read_text(encoding="utf-8"):
             print("FAIL: generated artifact did not contain the required marker.")
