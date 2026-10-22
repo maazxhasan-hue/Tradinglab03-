@@ -84,7 +84,7 @@ jobs:
             exit 0
           fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
-          python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 2
+          python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 3
       - name: Enforce truthful agent completion status
         if: always()
         run: |
