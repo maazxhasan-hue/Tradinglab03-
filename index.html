@@ -373,7 +373,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
 <script>
 (function(){
   const $=(s,root=document)=>root.querySelector(s);
-  const $=(s,root=document)=>Array.from(root.querySelectorAll(s));
+  const $$=(s,root=document)=>Array.from(root.querySelectorAll(s));
   // Give the main page a real skip target and accessible mobile navigation toggle.
   const nav=$('.nav'), main=$('main');
   if(main){main.id=main.id||'main-content';}
@@ -383,7 +383,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
       const b=document.createElement('button');b.id='mobile-menu-toggle';b.type='button';b.className='btn secondary';b.textContent='Menu';b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','site-navigation');
       links.id='site-navigation';nav.insertBefore(b,links);
       b.addEventListener('click',()=>{const open=links.classList.toggle('ux-menu-open');b.setAttribute('aria-expanded',String(open));b.textContent=open?'Close menu':'Menu';});
-      $('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
+      $$('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
     }
   }
   // Theme preference: switch both classes so dark mode has a real palette and light mode restores the base palette.
@@ -451,14 +451,14 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
     if(trigger){e.preventDefault();openSiteSearch();}
   });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
-  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{
     if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}
   }));
   [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{
     if(e.target===el){el.hidden=true;el.style.removeProperty('display')}
   }));
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape')$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')});
+    if(e.key==='Escape')$$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')});
   });
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
   window.nexoraConfirm=(message,action)=>{const copy=$('#confirm-copy');if(copy)copy.textContent=String(message||'Please confirm this action.');confirmAction=typeof action==='function'?action:null;if(confirmDialog)confirmDialog.hidden=false;$('#confirm-yes')?.focus()};
