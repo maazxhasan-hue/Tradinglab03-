@@ -37,6 +37,8 @@ jobs:
           assert "sessions: gaNumber(row, 0, true) || 0," in worker, "GA4 sessions must map to metric index 0"
           assert "total_users: gaNumber(row, 1, true)," in worker, "GA4 totalUsers must map to metric index 1"
           assert "conversion_sessions: gaNumber(row, 6, true)" in worker, "GA4 sessionsWithKeyEvents must map to metric index 6"
+          assert 'const DEFAULT_GA4_MEASUREMENT_ID = "G-3M5F3QYFHJ";' in worker, "Confirmed public GA4 Measurement ID fallback is missing"
+          assert "configuredGa4MeasurementId(env)" in worker, "Public GA4 config must use the configured/fallback Measurement ID"
 
           db = sqlite3.connect(":memory:")
           files = sorted(pathlib.Path("worker/migrations").glob("*.sql"))
