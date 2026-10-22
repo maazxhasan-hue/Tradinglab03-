@@ -12,8 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import httpx
 import json
+import logging
 import urllib.request
 import urllib.error
+
+logger = logging.getLogger("nexora.harvey")
 
 SHARED_BRAIN_URL = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain").rstrip("/")
 SHARED_BRAIN_AGENT_KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
@@ -803,12 +806,14 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
         return {"job_id":job_id,"cycle_id":row["cycle_id"],"role":row["role"],"status":"completed","model":model,"output":output,
                 "shared_brain":{"recall_count":len(memories),"remembered":memory_saved}}
     except httpx.HTTPStatusError as e:
+        logger.exception("company_job_provider_http_error job_id=%s role=%s provider_status=%s", job_id, row["role"], e.response.status_code)
         with db() as c:
             c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Model provider returned HTTP "+str(e.response.status_code),now(),job_id))
         raise HTTPException(502,"Specialist model call failed. Check server-side provider configuration and account limits.")
-    except Exception:
+    except Exception as e:
+        logger.exception("company_job_execution_error job_id=%s role=%s error_type=%s", job_id, row["role"], type(e).__name__)
         with db() as c:
-            c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Specialist execution failed; inspect server logs.",now(),job_id))
+            c.execute("UPDATE company_jobs SET status='failed',error=?,updated_at=? WHERE id=?", ("Specialist execution failed ("+type(e).__name__+"); inspect server logs.",now(),job_id))
         raise HTTPException(502,"Specialist execution failed; the job is recorded for diagnosis.")
 
 @app.post("/company/jobs/retry-failed")
@@ -830,6 +835,26 @@ async def run_next_company_job(cycle_id: str, x_api_key: Optional[str] = Header(
             return {"cycle_id":cycle_id,"status":"blocked" if rows else "finished","queued":len(rows),"message":"No dependency-ready job exists. Resolve failed prerequisite jobs or inspect the cycle."}
         job_id=ready[0]["id"]
     return await run_company_job(job_id,x_api_key)
+
+@app.post("/company/jobs/run-batch")
+async def run_company_job_batch(cycle_id: str, max_jobs: int = 3, x_api_key: Optional[str] = Header(default=None)):
+    """Run a small bounded number of dependency-ready jobs; stop on first failure/block."""
+    require_key(x_api_key)
+    if max_jobs < 1 or max_jobs > 5:
+        raise HTTPException(422, "max_jobs must be between 1 and 5")
+    results=[]
+    for _ in range(max_jobs):
+        try:
+            result=await run_next_company_job(cycle_id, x_api_key)
+        except HTTPException as e:
+            results.append({"status":"failed_or_blocked","http_status":e.status_code,"detail":e.detail})
+            break
+        results.append(result)
+        if result.get("status") != "completed":
+            break
+    with db() as c:
+        counts={r["status"]:r["n"] for r in c.execute("SELECT status,COUNT(*) AS n FROM company_jobs WHERE cycle_id=? GROUP BY status",(cycle_id,)).fetchall()}
+    return {"cycle_id":cycle_id,"processed":sum(1 for r in results if r.get("status")=="completed"),"results":results,"counts":counts,"batch_limit":max_jobs}
 
 # Project builder: generate a multi-file source artifact with a downloadable ZIP.
 # Generated code is never executed by this API. Users must inspect and run it in their own sandbox.
