@@ -298,6 +298,7 @@ form.addEventListener("submit",async e=>{
    latestBrief.status="submitted";latestBrief.submission_id=result.reference_id||"received";
    statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Our team has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please use the contact link on our website for follow-up.":"The enquiry is saved. Email notification is not confirmed, so use the contact link on our website if you need a prompt reply.");
    statusBox.classList.add("ok");
+   window.location.assign("/thank-you/");
   }catch(err){
    latestBrief.status="submission_unconfirmed";downloadBrief();
    statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please use the Instagram contact button and send the brief manually.";statusBox.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -514,29 +515,5 @@ button[disabled]{opacity:.65;cursor:wait}
   <a class="nexora-contact-link nexora-contact-email" href="mailto:rayanahmed10077@gmail.com" aria-label="Email Nexora AI">Email us</a>
 </div>
 
-<!-- Google Analytics 4: only load after the visitor opts into analytics. -->
-<script>
-(function(){
-  const measurementId = 'G-3M5F3QYFHJ';
-  let loaded = false;
-  function loadAnalytics(){
-    if(loaded)return;
-    loaded = true;
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){window.dataLayer.push(arguments);}
-    window.gtag = gtag;
-    gtag('js', new Date());
-    gtag('config', measurementId, { anonymize_ip: true });
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
-    document.head.appendChild(script);
-  }
-  try {
-    if (localStorage.getItem('nexora_cookie_choice') === 'analytics') loadAnalytics();
-  } catch {}
-  document.getElementById('cookie-accept')?.addEventListener('click', loadAnalytics);
-})();
-</script>
 <script src="/dashboard/analytics-consent.js" defer></script>
 </body></html>
