@@ -1,29 +1,119 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#070b12">
-  <title>Nexora AI · Neural Command HQ</title>
-  <style>
-    :root{color-scheme:dark;--bg:#070b12;--panel:#101722;--line:#263244;--text:#edf4ff;--muted:#a3b1c5;--cyan:#70e7e1}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#142638,transparent 60%),var(--bg);color:var(--text);font:16px/1.6 Inter,system-ui,sans-serif}
-    main{width:min(100%,680px);border:1px solid var(--line);border-radius:24px;background:var(--panel);padding:clamp(24px,5vw,48px);box-shadow:0 24px 80px #0005}
-    .brand{font-size:12px;letter-spacing:.18em;font-weight:800;color:var(--cyan)}.status{display:inline-flex;margin:26px 0 12px;padding:5px 10px;border:1px solid #8a6a3b;border-radius:999px;color:#f5c987;font-size:11px;letter-spacing:.1em;font-weight:700}
-    h1{font-size:clamp(30px,6vw,44px);line-height:1.12;letter-spacing:-.04em;margin:8px 0 16px}p{color:var(--muted);margin:0 0 14px}.note{border-top:1px solid var(--line);margin-top:28px;padding-top:18px;font-size:12px;letter-spacing:.12em;color:#8b9ab0}
-    a{color:var(--cyan);text-underline-offset:4px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#080c14">
+<title>Nexora AI · Neural Command HQ</title>
+<style>
+:root{color-scheme:dark;--bg:#080c14;--panel:#101725;--panel2:#141e2e;--line:#26364b;--text:#edf4ff;--muted:#93a4bb;--cyan:#70e7e1;--pink:#ff79b8;--green:#78e0ae;--amber:#f5c987;--red:#ff9292}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#18354b 0,transparent 55%),var(--bg);color:var(--text);font:14px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}a{color:var(--cyan)}button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#111b29;color:var(--text);padding:9px 13px}button:hover{border-color:var(--cyan)}.shell{width:min(1400px,calc(100% - 36px));margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px 0;border-bottom:1px solid var(--line)}.brand{font-weight:900;letter-spacing:.14em;font-size:12px;color:var(--cyan)}.sub{color:var(--muted);font-size:12px}.topright{display:flex;align-items:center;gap:12px}.live{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:6px 10px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.dot.ok{background:var(--green);box-shadow:0 0 12px #78e0ae66}.dot.bad{background:var(--red)}header.hero{padding:42px 0 26px}h1{font-size:clamp(32px,5vw,56px);letter-spacing:-.055em;line-height:1.03;margin:8px 0 14px}.hero p{color:var(--muted);max-width:740px;margin:0}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.panel{border:1px solid var(--line);border-radius:16px;background:linear-gradient(150deg,#121c2a,#0d1420);padding:18px;min-width:0}.metric-label{color:var(--muted);font-size:12px}.metric{font-size:clamp(25px,3vw,38px);font-weight:850;letter-spacing:-.05em;margin:7px 0 2px;overflow-wrap:anywhere}.hint{color:var(--muted);font-size:12px}.layout{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin:14px 0}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.sectionhead h2{font-size:15px;margin:0}.pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:11px;color:var(--muted);white-space:nowrap}.pill.ok{color:var(--green);border-color:#285942}.pill.warn{color:var(--amber);border-color:#705a36}.pill.bad{color:var(--red);border-color:#704343}.statusline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #202c3d}.statusline:last-child{border-bottom:0}.label{color:var(--muted)}.value{font-weight:700;text-align:right;overflow-wrap:anywhere}.empty{color:var(--muted);padding:16px 0}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #202c3d;vertical-align:top}th{color:var(--muted);font-weight:600}td{overflow-wrap:anywhere}.deptgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.dept{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0c1420}.dept strong{display:block;font-size:12px}.dept span{font-size:11px;color:var(--muted)}.foot{padding:26px 0 40px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.warnbox{padding:12px;border:1px solid #705a36;background:#251e13;border-radius:10px;color:var(--amber);margin-top:10px}.hidden{display:none!important}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.deptgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.shell{width:calc(100% - 22px)}.top{align-items:flex-start}.topright{align-items:flex-end;flex-direction:column}.grid{gap:9px}.panel{padding:14px}.metric{font-size:27px}.deptgrid{grid-template-columns:1fr 1fr}header.hero{padding-top:30px}}
+</style>
 </head>
 <body>
-  <main>
-    <div class="brand">NEXORA AI · NEURAL COMMAND</div>
-    <div class="status">PRIVATE ACCESS REQUIRED</div>
-    <h1>Company HQ is being reconnected</h1>
-    <p>The live operations dashboard is not served from this public page. Use the private, access-controlled HQ environment when it is available.</p>
-    <p>For safety, this page does not display internal agent telemetry, operational records, or private control routes.</p>
-    <div class="note">PRIVATE HQ HOSTING NOT CONFIGURED</div>
-    <p style="margin-top:18px"><a href="/public-status">Check public service status</a> · <a href="website.html">Visit the public Nexora AI website</a></p>
-  </main>
+<div class="shell">
+  <nav class="top" aria-label="HQ navigation">
+    <div><div class="brand">NEXORA AI / NEURAL COMMAND</div><div class="sub">Company HQ · Shared Brain · Agent operations</div></div>
+    <div class="topright"><span class="live"><span id="healthDot" class="dot"></span><span id="healthLabel">Checking services…</span></span><button id="refresh" type="button">Refresh data ↻</button></div>
+  </nav>
+  <header class="hero">
+    <div class="eyebrow">Operations overview</div>
+    <h1>Build. Deliver. Evolve.</h1>
+    <p>One view of the Nexora worker, shared Brain connection, agent role catalogue, and recorded operations. Metrics below are loaded from the live Render API—not invented animation counters.</p>
+  </header>
+  <section class="grid" aria-label="Operational metrics">
+    <article class="panel"><div class="metric-label">Defined agent roles</div><div class="metric" id="roles">—</div><div class="hint">Role catalogue, not active agents</div></article>
+    <article class="panel"><div class="metric-label">Recorded tasks</div><div class="metric" id="tasks">—</div><div class="hint">Persistent worker task records</div></article>
+    <article class="panel"><div class="metric-label">Pending approvals</div><div class="metric" id="approvals">—</div><div class="hint">Requires human review</div></article>
+    <article class="panel"><div class="metric-label">Shared Brain</div><div class="metric" id="brain">Checking…</div><div class="hint" id="brainHint">Connectivity verified by worker</div></article>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <div class="sectionhead"><h2>System health</h2><span class="pill" id="checkedAt">Waiting for check</span></div>
+      <div class="statusline"><span class="label">Harvey API</span><span class="value" id="apiStatus">Checking…</span></div>
+      <div class="statusline"><span class="label">Database</span><span class="value" id="dbStatus">—</span></div>
+      <div class="statusline"><span class="label">Shared Brain connection</span><span class="value" id="brainStatus">—</span></div>
+      <div class="statusline"><span class="label">Model credentials</span><span class="value" id="modelStatus">—</span></div>
+      <div class="statusline"><span class="label">API authentication configured</span><span class="value" id="authStatus">—</span></div>
+      <div class="statusline"><span class="label">Email sending</span><span class="value" id="emailStatus">—</span></div>
+      <div id="errorBox" class="warnbox hidden" role="status"></div>
+    </section>
+    <section class="panel">
+      <div class="sectionhead"><h2>Agent departments</h2><span class="pill" id="departmentCount">Loading</span></div>
+      <div id="departments" class="deptgrid"><div class="empty">Loading role information…</div></div>
+      <p class="hint" style="margin-bottom:0;margin-top:12px">These are configured roles. The worker currently reports on-demand execution; a role is not evidence that an agent is running.</p>
+    </section>
+  </div>
+  <section class="panel" style="margin:14px 0">
+    <div class="sectionhead"><h2>Recent worker activity</h2><span class="pill">Sanitized telemetry</span></div>
+    <div class="tablewrap"><table><thead><tr><th>Operation</th><th>Status</th><th>Updated</th></tr></thead><tbody id="activity"><tr><td colspan="3" class="empty">Waiting for worker data…</td></tr></tbody></table></div>
+  </section>
+  <section class="panel" style="margin:14px 0">
+    <div class="sectionhead"><h2>Company job queue</h2><span class="pill" id="jobCount">No data yet</span></div>
+    <div class="tablewrap"><table><thead><tr><th>Role</th><th>Status</th><th>Created</th></tr></thead><tbody id="jobs"><tr><td colspan="3" class="empty">Waiting for worker data…</td></tr></tbody></table></div>
+  </section>
+  <footer class="foot"><span>Nexora AI · Internal operations interface</span><span>Auto-refresh every 60 seconds · Last update: <span id="lastUpdated">—</span></span></footer>
+</div>
+<script>
+(()=> {
+ const API='https://tradinglab03.onrender.com';
+ const $=id=>document.getElementById(id);
+ const esc=s=>String(s??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pretty=s=>String(s||'unknown').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+ const date=s=>{if(!s)return '—';const d=new Date(s);return Number.isNaN(d.getTime())?esc(s):d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});};
+ const pill=s=>{const v=String(s||'unknown').toLowerCase();const cls=['ready','connected','completed','approved','healthy','success'].some(x=>v.includes(x))?'ok':['failed','error','unavailable'].some(x=>v.includes(x))?'bad':'warn';return '<span class="pill '+cls+'">'+esc(pretty(s))+'</span>';};
+ async function get(path){const r=await fetch(API+path,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw new Error(path+' returned HTTP '+r.status);return r.json();}
+ async function refresh(){
+  $('refresh').disabled=true;$('healthLabel').textContent='Refreshing…';$('errorBox').classList.add('hidden');
+  const results=await Promise.allSettled([get('/health'),get('/public-status')]);
+  const health=results[0].status==='fulfilled'?results[0].value:null;
+  const data=results[1].status==='fulfilled'?results[1].value:null;
+  const errors=[];
+  if(!health)errors.push('Health endpoint could not be reached.');
+  if(!data)errors.push('Live operations telemetry could not be loaded.');
+  const ok=!!health&&health.status==='ready';
+  $('healthDot').className='dot '+(ok?'ok':'bad');
+  $('healthLabel').textContent=ok?'API reachable':'API unavailable';
+  $('apiStatus').innerHTML=ok?pill('ready'):pill('unavailable');
+  if(health){
+   $('dbStatus').textContent=pretty(health.database);
+   $('modelStatus').innerHTML=health.model_configured?pill('configured'):pill('not configured');
+   $('authStatus').innerHTML=health.api_auth_configured?pill('configured'):pill('not configured');
+   $('emailStatus').innerHTML=health.email_sending==='enabled'?pill('enabled'):pill('disabled');
+   $('tasks').textContent=Number(health.tasks_recorded||0).toLocaleString();
+   $('approvals').textContent=Number(health.pending_approvals||0).toLocaleString();
+  }
+  if(data){
+   const a=data.agents||{};$('roles').textContent=Number(a.roles_defined||0).toLocaleString();
+   const bc=data.shared_brain_connection||data.shared_brain||'unknown';
+   $('brain').textContent=pretty(bc);$('brainStatus').innerHTML=pill(bc);$('brainHint').textContent=bc==='connected'?'Live recall probe succeeded':bc==='failed'?'Configured, but live probe failed':'Connection not configured';
+   const roles=Array.isArray(a.roles)?a.roles:[];
+   const grouped={};roles.forEach(r=>{const d=r.department||'Other';grouped[d]=(grouped[d]||0)+1;});
+   const depts=Object.entries(grouped);
+   $('departmentCount').textContent=depts.length+' departments';
+   $('departments').innerHTML=depts.length?depts.map(([name,n])=>'<div class="dept"><strong>'+esc(name)+'</strong><span>'+n+' defined roles</span></div>').join(''):'<div class="empty">No department data returned.</div>';
+   const tasks=data.tasks&&Array.isArray(data.tasks.recent)?data.tasks.recent:[];
+   $('activity').innerHTML=tasks.length?tasks.map(t=>'<tr><td>'+esc(pretty(t.kind))+'</td><td>'+pill(t.status)+'</td><td>'+date(t.updated_at||t.created_at)+'</td></tr>').join(''):'<tr><td colspan="3" class="empty">No task activity has been recorded yet.</td></tr>';
+   const jobs=data.company_jobs&&Array.isArray(data.company_jobs.recent)?data.company_jobs.recent:[];
+   const counts=data.company_jobs&&data.company_jobs.by_status||{};$('jobCount').textContent=Object.values(counts).reduce((n,v)=>n+Number(v||0),0)+' recorded jobs';
+   $('jobs').innerHTML=jobs.length?jobs.map(j=>'<tr><td>'+esc(j.role)+'</td><td>'+pill(j.status)+'</td><td>'+date(j.created_at)+'</td></tr>').join(''):'<tr><td colspan="3" class="empty">No company jobs have been recorded yet.</td></tr>';
+  }else{
+   $('brain').textContent='Unavailable';$('brainStatus').innerHTML=pill('unavailable');
+   $('departments').innerHTML='<div class="empty">Department data is unavailable until the operations endpoint responds.</div>';
+   $('activity').innerHTML='<tr><td colspan="3" class="empty">Live activity unavailable.</td></tr>';
+   $('jobs').innerHTML='<tr><td colspan="3" class="empty">Live job data unavailable.</td></tr>';
+  }
+  if(errors.length){$('errorBox').textContent=errors.join(' ');$('errorBox').classList.remove('hidden');}
+  const stamp=new Date().toLocaleString();$('checkedAt').textContent='Checked '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});$('lastUpdated').textContent=stamp;
+  $('refresh').disabled=false;
+ }
+ $('refresh').addEventListener('click',refresh);
+ refresh();setInterval(refresh,60000);
+})();
+</script>
 </body>
 </html>
