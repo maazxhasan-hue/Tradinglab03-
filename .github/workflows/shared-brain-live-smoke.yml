@@ -34,11 +34,13 @@ jobs:
           GEMINI_BASE_URL: ${{ vars.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta' }}
         run: python tests/gemini_tool_agent_live_smoke.py
       - name: Verify live shared brain
+        if: always()
         env:
           SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
           SHARED_BRAIN_AGENT_ID: shared-brain-smoke-test
         run: python tests/shared_brain_live_smoke.py
       - name: Verify every specialist identity can read and write shared memory
+        if: always()
         env:
           SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
         run: python tests/shared_brain_role_matrix.py
