@@ -5,20 +5,20 @@
 <meta name="description" content="Nexora AI offers trading education, business websites, landing pages, custom AI tools, chatbots, content systems, and practical automation for growing businesses.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="author" content="Nexora AI">
-<link rel="canonical" href="https://nexora-ai-public.onrender.com/">
+<link rel="canonical" href="https://nexora-ai-public.pages.dev/">
 <meta name="keywords" content="Nexora AI, trading courses, trading education, business website design, landing page development, custom AI tools, chatbots, workflow automation">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nexora AI">
 <meta property="og:title" content="Nexora AI — Thoughtful digital work, delivered clearly">
 <meta property="og:description" content="Trading education, business websites, landing pages, custom AI tools, and workflow automation for growing businesses.">
-<meta property="og:url" content="https://nexora-ai-public.onrender.com/">
-<meta property="og:image" content="https://nexora-ai-public.onrender.com/og-image.svg">
+<meta property="og:url" content="https://nexora-ai-public.pages.dev/">
+<meta property="og:image" content="https://nexora-ai-public.pages.dev/og-image.svg">
 <meta property="og:image:type" content="image/svg+xml">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://nexora-ai-public.onrender.com/og-image.svg">
+<meta name="twitter:image" content="https://nexora-ai-public.pages.dev/og-image.svg">
 <meta name="twitter:title" content="Nexora AI — Thoughtful digital work, delivered clearly">
 <meta name="twitter:description" content="Trading education, business websites, landing pages, custom AI tools, and workflow automation for growing businesses.">
 <script type="application/ld+json">
@@ -27,27 +27,27 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://nexora-ai-public.onrender.com/#organization",
+      "@id": "https://nexora-ai-public.pages.dev/#organization",
       "name": "Nexora AI",
-      "url": "https://nexora-ai-public.onrender.com/",
+      "url": "https://nexora-ai-public.pages.dev/",
       "description": "Nexora AI offers trading education, business websites, landing pages, custom AI tools, chatbots, content systems, and practical automation for growing businesses.",
       "knowsAbout": ["Trading education", "Trading course production", "Business website design", "Landing pages", "Custom AI tools", "Chatbots", "Content systems", "Website quality checks", "Workflow automation"]
     },
     {
       "@type": "WebSite",
-      "@id": "https://nexora-ai-public.onrender.com/#website",
-      "url": "https://nexora-ai-public.onrender.com/",
+      "@id": "https://nexora-ai-public.pages.dev/#website",
+      "url": "https://nexora-ai-public.pages.dev/",
       "name": "Nexora AI",
-      "publisher": {"@id": "https://nexora-ai-public.onrender.com/#organization"},
+      "publisher": {"@id": "https://nexora-ai-public.pages.dev/#organization"},
       "inLanguage": "en-IN"
     },
     {
       "@type": "WebPage",
-      "@id": "https://nexora-ai-public.onrender.com/#webpage",
-      "url": "https://nexora-ai-public.onrender.com/",
+      "@id": "https://nexora-ai-public.pages.dev/#webpage",
+      "url": "https://nexora-ai-public.pages.dev/",
       "name": "Nexora AI — Thoughtful digital work, delivered clearly",
-      "isPartOf": {"@id": "https://nexora-ai-public.onrender.com/#website"},
-      "about": {"@id": "https://nexora-ai-public.onrender.com/#organization"},
+      "isPartOf": {"@id": "https://nexora-ai-public.pages.dev/#website"},
+      "about": {"@id": "https://nexora-ai-public.pages.dev/#organization"},
       "description": "Thoughtful websites, landing pages, content kits, and practical workflow automation for growing businesses."
     }
   ]
@@ -491,26 +491,34 @@ button[disabled]{opacity:.65;cursor:wait}
 .ux-spinner{width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ux-spin .7s linear infinite}
 @keyframes ux-spin{to{transform:rotate(360deg)}}
 .faq-section{max-width:var(--max,1160px);width:calc(100% - 36px);margin:36px auto;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
-.faq-section h2{margin-top:0}.faq-section details{padding:14px 0;border-top:1px solid var(--line)}.faq-section summary{cursor:pointer;font-weight:750}.faq-section details p{color:var(--muted)}
+.faq-section h2,.reviews-section h2{margin-top:0}.faq-section details{padding:14px 0;border-top:1px solid var(--line)}.faq-section summary{cursor:pointer;font-weight:750}.faq-section details p{color:var(--muted)}.faq-note{padding:12px 14px;border:1px dashed #9aa8b8;border-radius:12px;color:var(--muted);font-size:.9rem}.review-placeholder{border:1px dashed #9aa8b8;border-radius:16px;padding:20px;background:transparent}.review-placeholder strong{display:block;margin-bottom:8px}.review-placeholder p{color:var(--muted);margin:0}.review-placeholder .placeholder-label{display:inline-block;margin-bottom:10px;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 </style>
 <script>
 (function(){
- const footer=document.querySelector('.ux-footer');
- if(footer&&!document.querySelector('.faq-section')){
-   const section=document.createElement('section');section.className='faq-section';section.setAttribute('aria-labelledby','faq-heading');
+ const footer=document.querySelector('footer.footer');
+ if(!footer)return;
+ if(!document.querySelector('.reviews-section')){
+   const reviews=document.createElement('section');
+   reviews.className='wrap section reviews-section';
+   reviews.setAttribute('aria-labelledby','reviews-heading');
+   reviews.innerHTML='<div class="eyebrow">Customer feedback</div><h2 id="reviews-heading">Reviews &amp; testimonials</h2><p class="intro">We will publish genuine customer feedback here only after receiving it and getting permission to share it.</p><div class="review-placeholder"><span class="placeholder-label">Placeholder only — not a customer review</span><strong>Real customer testimonial to be added</strong><p>Replace this placeholder with an exact, permission-approved review. Add the customer\'s name, rating, or photo only if the customer explicitly permits it. No review has been fabricated or published here.</p></div>';
+   footer.parentNode.insertBefore(reviews,footer);
+ }
+ if(!document.querySelector('.faq-section')){
+   const section=document.createElement('section');
+   section.className='wrap section faq-section';
+   section.setAttribute('aria-labelledby','faq-heading');
    const h=document.createElement('h2');h.id='faq-heading';h.textContent='Frequently asked questions';section.append(h);
    const faqs=[
-    ['What does Nexora AI build?','We help businesses with websites, landing pages, content systems, website quality checks, SEO foundations, and practical workflow automation.'],
-    ['How does a project begin?','Share your goals through the project enquiry form. We review the brief and clarify scope, timing, and deliverables before work begins.'],
-    ['Is my project form submitted automatically?','When the online intake service is available and you are signed in, the form sends your brief to the service. If submission cannot be confirmed, the page explains the fallback and does not claim the enquiry was received.'],
-    ['How can I contact Nexora AI?','Use the Contact button on this page to open the Nexora AI Instagram profile. You control and send any message yourself.']
+    ['What does Nexora AI build?','Nexora AI offers trading courses and learning materials, business websites, landing pages, custom AI tools, chatbots, content systems, website quality checks, and practical workflow automation.'],
+    ['How does a project begin?','Start by sharing your goals and requirements in the project enquiry form. Nexora AI uses the brief to clarify the scope, timing, and deliverables before work begins.'],
+    ['Is my project form submitted automatically?','The form is designed to send your brief to the configured Nexora AI intake service when you select “Send project enquiry.” The page should show a reference when receipt is confirmed. If receipt cannot be confirmed or the service is unavailable, follow the on-page fallback instructions; do not assume the enquiry was received.'],
+    ['How can I contact Nexora AI?','You can contact Nexora AI using the WhatsApp or email links on this page, or visit the @tradinglab03 Instagram profile. You choose and send the message yourself.']
    ];
-   faqs.forEach(([q,a])=>{const d=document.createElement('details');const s=document.createElement('summary');s.textContent=q;const p=document.createElement('p');p.textContent=a;d.append(s,p);section.append(d)});
+   faqs.forEach(([q,a])=>{const d=document.createElement('details');const summary=document.createElement('summary');summary.textContent=q;const p=document.createElement('p');p.textContent=a;d.append(summary,p);section.append(d)});
+   const note=document.createElement('p');note.className='faq-note';note.textContent='Please confirm before launch: the project intake endpoint is currently active and reliably confirms receipt. The answer above describes the intended form flow, not a guarantee that every submission succeeds.';section.append(note);
    footer.parentNode.insertBefore(section,footer);
  }
- // Loading feedback for the project submit button; preserve the form's existing validation and request handler.
- const form=document.querySelector('#projectForm'),submit=form&&form.querySelector('button[type="submit"]');
- if(form&&submit){form.addEventListener('submit',()=>{if(!form.reportValidity())return;const label=submit.textContent;submit.dataset.originalLabel=label;submit.innerHTML='<span class="ux-loading"><span class="ux-spinner" aria-hidden="true"></span>Processing…</span>';setTimeout(()=>{if(submit.isConnected&&submit.dataset.originalLabel){submit.textContent=submit.dataset.originalLabel;delete submit.dataset.originalLabel}},18000)})}
 })();
 </script>
 
