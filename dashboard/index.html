@@ -173,9 +173,9 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
 
   <section class="instrument-wall" aria-label="Compact neural telemetry">
     <div class="instrument"><h3>Run log</h3><div class="micro" id="miniLog">[boot] loading telemetry<br>[brain] checking connection<br>[agents] reading role catalogue<br>[ops] awaiting live status</div></div>
-    <div class="instrument"><h3>Agent loads</h3><div class="mini-bars"><i style="width:84%"></i><i style="width:61%"></i><i style="width:72%"></i><i style="width:48%"></i><i style="width:91%"></i></div><div class="micro">orchestration · memory<br>inbox · calendar · outreach</div></div>
-    <div class="instrument"><h3>Brain activity</h3><div class="mini-grid" id="brainGrid"></div><div class="micro">shared recall / signals</div></div>
-    <div class="instrument"><h3>Action heat</h3><div class="mini-grid" id="actionGrid"></div><div class="micro">task activity samples</div></div>
+    <div class="instrument"><h3>Role capacity · illustrative</h3><div class="mini-bars"><i style="width:84%"></i><i style="width:61%"></i><i style="width:72%"></i><i style="width:48%"></i><i style="width:91%"></i></div><div class="micro">orchestration · memory<br>inbox · calendar · outreach</div></div>
+    <div class="instrument"><h3>Brain signals · visual</h3><div class="mini-grid" id="brainGrid"></div><div class="micro">visual motif · not event telemetry</div></div>
+    <div class="instrument"><h3>Action heat · visual</h3><div class="mini-grid" id="actionGrid"></div><div class="micro">decorative sample · not live heat</div></div>
     <div class="instrument"><h3>Throughput</h3><svg viewBox="0 0 120 38" width="100%" height="38" aria-label="Decorative throughput sparkline"><polyline points="0,27 10,16 20,22 30,9 40,17 50,12 60,28 70,20 80,23 90,8 100,17 110,12 120,19" fill="none" stroke="#aab7c8" stroke-width="1.3"/></svg><div class="micro"><b id="miniTasks">—</b> recorded tasks</div></div>
     <div class="instrument"><h3>Agent status</h3><div class="micro" id="miniStatus">API · checking<br>Brain · checking<br>Queue · checking<br>Model · checking</div></div>
   </section>
@@ -304,7 +304,7 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
   if(data){const log=document.getElementById('miniLog');if(log){const recent=(data.tasks&&Array.isArray(data.tasks.recent)?data.tasks.recent:[]).slice(0,4);log.innerHTML=recent.length?recent.map(t=>'['+esc(pretty(t.status))+'] '+esc(pretty(t.kind))).join('<br>'):'[ops] no recent tasks recorded';}
    const a=data.agents||{};$('roles').textContent=Number(a.roles_defined||0).toLocaleString();
    const bc=data.shared_brain_connection||data.shared_brain||'unknown';
-   $('brain').textContent=pretty(bc);$('brainStatus').innerHTML=pill(bc);$('brainHint').textContent=bc==='connected'?'Live recall probe succeeded':bc==='failed'?'Configured, but live probe failed':'Connection not configured';
+   $('brain').textContent=pretty(bc);$('brainStatus').innerHTML=pill(bc);$('brainHint').textContent=String(bc).toLowerCase()==='connected'?'Live connection confirmed':String(bc).toLowerCase()==='failed'?'Live connection probe failed':String(bc).toLowerCase().includes('configur')?'Credentials configured; live recall not independently verified':'Connection status not confirmed';
    const roles=Array.isArray(a.roles)?a.roles:[];
    $('departmentCount').textContent=roles.length+' roles · '+pretty(a.execution_mode||'unknown');
    $('departments').innerHTML=roles.length?roles.map(r=>'<div class="dept"><strong>'+esc(r.name||'Unnamed role')+'</strong><span>'+esc(r.mandate||'No mandate description provided')+'</span></div>').join(''):'<div class="empty">No role definitions returned by the worker.</div>';
