@@ -156,7 +156,27 @@ body{overflow-x:clip}
 @media(max-width:560px){.concept-board{border-radius:21px;padding:14px}.agent-grid{gap:9px;padding:15px 0}.agent-card{padding:13px;border-radius:15px}.agent-card h3{font-size:.94rem;margin-top:12px}.agent-card p{font-size:.8rem}.agent-state{font-size:.49rem;letter-spacing:.04em}.orchestrator{align-items:flex-start;padding:14px}.supervisor-tag{display:none}.journey{gap:8px}.journey-step{min-width:91px}}
 @media(hover:none){.card:hover,.agent-card:hover,.btn:hover,.tags .tag:hover{transform:none;box-shadow:none}}\n@media(max-width:560px){.panel,.card{box-shadow:0 4px 18px rgba(29,29,31,.035)}.concept-board{box-shadow:0 8px 28px rgba(25,45,70,.04)}.journey{overscroll-behavior-x:contain}}\n@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.navlinks a,.tag,.card,.agent-card{transition:none!important}.agent-card:hover,.card:hover,.btn:hover{transform:none}}
 
-.skip-link{position:absolute;left:12px;top:-60px;background:var(--teal);color:#06131a;padding:10px 14px;border-radius:8px;z-index:1000;font-weight:800}.skip-link:focus{top:12px}\n</style></head>
+.skip-link{position:absolute;left:12px;top:-60px;background:var(--teal);color:#06131a;padding:10px 14px;border-radius:8px;z-index:1000;font-weight:800}.skip-link:focus{top:12px}\n</style><style id="nexora-dark-theme">
+/* Explicit dark palette: overrides the light design layer when dark mode is selected. */
+body.ux-dark{color-scheme:dark;--bg:#090d14;--panel:#111923;--panel2:#151f2b;--line:#2b3746;--text:#edf3fb;--muted:#a7b2c2;--teal:#72e6d2;--blue:#8bbcff;background:#090d14!important;color:#edf3fb!important}
+body.ux-dark .nav{background:rgba(9,13,20,.92)!important;border-color:#263241!important}
+body.ux-dark .brand,body.ux-dark .navlinks a,body.ux-dark .hero h1{color:#edf3fb!important}
+body.ux-dark .hero p,body.ux-dark .intro,body.ux-dark .muted,body.ux-dark .card p,body.ux-dark .list,body.ux-dark .fine,body.ux-dark .footer{color:#a7b2c2!important}
+body.ux-dark .panel,body.ux-dark .card,body.ux-dark .concept-board,body.ux-dark .agent-card,body.ux-dark .faq-section{background:#111923!important;color:#edf3fb!important;border-color:#2b3746!important;box-shadow:0 8px 30px #0005!important}
+body.ux-dark .callout,body.ux-dark .orchestrator{background:#142334!important;color:#edf3fb!important;border-color:#2b465f!important}
+body.ux-dark .callout p,body.ux-dark .orchestrator p,body.ux-dark .agent-card p{color:#a7b2c2!important}
+body.ux-dark .tag,body.ux-dark .board-chip,body.ux-dark .agent-state,body.ux-dark .supervisor-tag{background:#172333!important;color:#d7e5f7!important;border-color:#33465b!important}
+body.ux-dark .field label{color:#c3cedc!important}
+body.ux-dark .field input,body.ux-dark .field select,body.ux-dark .field textarea,body.ux-dark .ux-dialog input{background:#0b121b!important;color:#edf3fb!important;border-color:#354354!important}
+body.ux-dark .statusbox{background:#121c28!important;color:#c3cedc!important;border-color:#334354!important}
+body.ux-dark .ux-dialog,body.ux-dark .cookie-banner{background:#111923!important;color:#edf3fb!important;border-color:#2b3746!important}
+body.ux-dark .ux-icon-btn,body.ux-dark #back-to-top{background:#111923!important;color:#edf3fb!important;border-color:#354354!important}
+body.ux-dark .n,body.ux-dark .eyebrow,body.ux-dark .textlink,body.ux-dark a.textlink{color:#72baff}
+body.ux-dark .journey-step small,body.ux-dark .board-muted{color:#a7b2c2!important}
+body.ux-dark .rule,body.ux-dark .journey-connector{background:#2b3746!important}
+body.ux-dark .nexora-contact-email{background:#18212d!important;color:#edf3fb!important;border-color:#354354!important}
+</style>
+</head>
 <body data-contact-email="" data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev"><a class="skip-link" href="#top">Skip to content</a>
 <header class="wrap nav"><a class="brand" href="#top" aria-label="Nexora AI home">NEXORA<span> AI</span></a>
 <nav class="navlinks" aria-label="Main navigation"><a href="#services">Services</a><a href="/pricing/">Pricing</a><a href="/blog/seo-guide/">SEO guide</a><a href="/about/">About</a><a href="#process">Process</a><a href="#quality">Quality</a><a href="/dashboard/referrals.html">Refer &amp; Earn</a><a href="/dashboard/login.html">Log in</a><a class="btn navcta" href="#project">Start a project ↗</a></nav></header>
@@ -366,10 +386,21 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
       $('a',links).forEach(a=>a.addEventListener('click',()=>{links.classList.remove('ux-menu-open');b.setAttribute('aria-expanded','false');b.textContent='Menu';}));
     }
   }
-  // Theme preference is local-only; no tracking needed.
+  // Theme preference: switch both classes so dark mode has a real palette and light mode restores the base palette.
   const theme=$('#theme-toggle');
-  function setTheme(light){document.body.classList.toggle('ux-light',light);if(theme){theme.textContent=light?'☾':'☼';theme.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');}try{localStorage.setItem('nexora_theme',light?'light':'dark')}catch{}}
-  let light=false;try{light=localStorage.getItem('nexora_theme')==='light'}catch{}setTheme(light);
+  function setTheme(light){
+    document.body.classList.toggle('ux-light',light);
+    document.body.classList.toggle('ux-dark',!light);
+    if(theme){
+      theme.textContent=light?'☾':'☀';
+      theme.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');
+      theme.setAttribute('title',light?'Switch to dark mode':'Switch to light mode');
+    }
+    try{localStorage.setItem('nexora_theme',light?'light':'dark')}catch{}
+  }
+  let light=false;
+  try{light=localStorage.getItem('nexora_theme')==='light'}catch{}
+  setTheme(light);
   theme?.addEventListener('click',()=>setTheme(!document.body.classList.contains('ux-light')));
   // Cookie banner: optional UTM analytics only after explicit consent.
   const cookie=$('#cookie-banner');let choice='';try{choice=localStorage.getItem('nexora_cookie_choice')||''}catch{}
@@ -382,17 +413,53 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
     try{const u=new URL(location.href),keys=['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];const data={};keys.forEach(k=>{const v=u.searchParams.get(k);if(v)data[k]=v.slice(0,200)});if(Object.keys(data).length)localStorage.setItem('nexora_utm',JSON.stringify({captured_at:new Date().toISOString(),...data}))}catch{}
   }
   try{if(choice==='analytics')trackUtm(true)}catch{}
-  // Search across visible page headings and section copy, linking to the matching section.
+  // Search: delegated activation, rebuilt index, and robust overlay close behavior.
   const searchOverlay=$('#site-search'), searchInput=$('#site-search-input'), searchResults=$('#site-search-results');
-  const index=()=>$('main h1,main h2,main h3,main section,main .card').map((el,i)=>({el,title:(el.innerText||'').trim().split('\n')[0].slice(0,120),text:(el.innerText||'').trim().slice(0,600),id:el.id||(el.id='search-result-'+i)})).filter(x=>x.title&&x.text);
   let items=[];
-  function renderSearch(q){if(!searchResults)return;searchResults.replaceChildren();const term=q.trim().toLowerCase();if(!term){searchResults.textContent='Type a keyword to search this page.';return}const found=items.filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,12);if(!found.length){searchResults.textContent='No matching sections found.';return}found.forEach(x=>{const a=document.createElement('a');a.href='#'+encodeURIComponent(x.id);a.textContent=x.title;a.addEventListener('click',()=>{searchOverlay.hidden=true});searchResults.append(a)})}
-  $('#search-open')?.addEventListener('click',()=>{items=index();searchOverlay.hidden=false;searchInput?.focus();renderSearch('')});
+  function buildSearchIndex(){
+    return Array.from(document.querySelectorAll('main h1,main h2,main h3,main section,main .card'))
+      .map((el,i)=>{
+        const text=(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim();
+        const title=((el.querySelector('h1,h2,h3')?.innerText)||text).replace(/\\s+/g,' ').trim().slice(0,120);
+        if(!el.id)el.id='search-result-'+i;
+        return {el,title,text:text.slice(0,1000),id:el.id};
+      }).filter(x=>x.title&&x.text);
+  }
+  function renderSearch(q){
+    if(!searchResults)return;
+    searchResults.replaceChildren();
+    const term=String(q||'').trim().toLowerCase();
+    if(!term){searchResults.textContent='Type a keyword to search this page.';return}
+    const found=items.filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,12);
+    if(!found.length){searchResults.textContent='No matching sections found.';return}
+    found.forEach(x=>{
+      const a=document.createElement('a');a.href='#'+x.id;a.textContent=x.title;
+      a.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}});
+      searchResults.appendChild(a);
+    });
+  }
+  function openSiteSearch(){
+    if(!searchOverlay||!searchInput||!searchResults)return;
+    items=buildSearchIndex();
+    searchOverlay.hidden=false;
+    searchOverlay.style.removeProperty('display');
+    renderSearch('');
+    requestAnimationFrame(()=>searchInput.focus());
+  }
+  document.addEventListener('click',e=>{
+    const trigger=e.target.closest('#search-open');
+    if(trigger){e.preventDefault();openSiteSearch();}
+  });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
-  // Accessible overlay close and confirmation dialog.
-  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{searchOverlay.hidden=true}));
-  [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.hidden=true}));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>x.hidden=true)});
+  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{
+    if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}
+  }));
+  [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{
+    if(e.target===el){el.hidden=true;el.style.removeProperty('display')}
+  }));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')});
+  });
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
   window.nexoraConfirm=(message,action)=>{const copy=$('#confirm-copy');if(copy)copy.textContent=String(message||'Please confirm this action.');confirmAction=typeof action==='function'?action:null;if(confirmDialog)confirmDialog.hidden=false;$('#confirm-yes')?.focus()};
   const contact=$('.floating-contact');contact?.addEventListener('click',e=>{e.preventDefault();window.nexoraConfirm('This opens Nexora AI on Instagram in a new tab. Continue?',()=>window.open(contact.href,'_blank','noopener,noreferrer'))});
