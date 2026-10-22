@@ -178,6 +178,12 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
                 elif role == "assistant" and prior.get("tool_calls"):
                     parts = []
                     for tc in prior["tool_calls"]:
+                        # Gemini 3 may require thoughtSignature to be replayed verbatim
+                        # with the functionCall part. Preserve the original provider part.
+                        native_part = tc.get("gemini_part")
+                        if isinstance(native_part, dict) and isinstance(native_part.get("functionCall"), dict):
+                            parts.append(native_part)
+                            continue
                         fn = tc.get("function", {})
                         try: args = json.loads(fn.get("arguments") or "{}")
                         except json.JSONDecodeError: args = {}
@@ -219,11 +225,17 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
                 raise RuntimeError("Gemini returned no candidates")
             parts = candidates[0].get("content", {}).get("parts", [])
             text_parts = [part.get("text", "") for part in parts if isinstance(part.get("text"), str)]
-            native_calls = [part["functionCall"] for part in parts if isinstance(part.get("functionCall"), dict)]
+            native_calls = [part for part in parts if isinstance(part.get("functionCall"), dict)]
             message = {"role": "assistant", "content": "\\n".join(text_parts)}
             if native_calls:
-                message["tool_calls"] = [{"id": f"gemini-call-{round_index}-{i}", "type": "function",
-                    "function": {"name": call.get("name", ""), "arguments": json.dumps(call.get("args") or {}, ensure_ascii=False)}} for i, call in enumerate(native_calls)]
+                message["tool_calls"] = [{
+                    "id": f"gemini-call-{round_index}-{i}", "type": "function",
+                    "function": {
+                        "name": part["functionCall"].get("name", ""),
+                        "arguments": json.dumps(part["functionCall"].get("args") or {}, ensure_ascii=False),
+                    },
+                    "gemini_part": part,
+                } for i, part in enumerate(native_calls)]
         else:
             choices = result.get("choices", [])
             if not choices:
