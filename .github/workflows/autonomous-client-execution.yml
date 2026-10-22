@@ -85,6 +85,47 @@ jobs:
           fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
           python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 2
+      - name: Enforce truthful agent completion status
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("data/client_executions") / Path("data/autonomous_output_name.txt").read_text().strip()
+          problems = []
+          required = {
+              "agent_run_report.json": {"completed"},
+              "specialist_execution_report.json": {"completed_with_limitations"},
+          }
+          for filename, accepted in required.items():
+              path = root / filename
+              if not path.is_file():
+                  problems.append(f"{filename}: missing")
+                  continue
+              try:
+                  report = json.loads(path.read_text(encoding="utf-8"))
+              except (OSError, json.JSONDecodeError) as exc:
+                  problems.append(f"{filename}: invalid report ({type(exc).__name__})")
+                  continue
+              status = report.get("status")
+              print(f"{filename}: status={status!r}")
+              if status not in accepted:
+                  problems.append(f"{filename}: status={status!r}, expected one of {sorted(accepted)}")
+              if filename == "specialist_execution_report.json":
+                  requested = report.get("roles_requested", [])
+                  completed = report.get("roles_with_artifact", 0)
+                  attempted = report.get("roles_attempted", 0)
+                  print(f"specialists: requested={len(requested)}, attempted={attempted}, with_artifacts={completed}")
+                  if completed != len(requested):
+                      problems.append(f"specialists incomplete: {completed}/{len(requested)} role artifacts")
+          if problems:
+              print("AGENT EXECUTION NOT COMPLETE:")
+              for problem in problems:
+                  print(f"- {problem}")
+              raise SystemExit(1)
+          print("Agent and all required specialist passes report completion.")
+          PY
       - name: Sync execution agent run to shared brain
         if: always()
         env:
@@ -103,5 +144,5 @@ jobs:
         with:
           name: tradinglab03-autonomous-client-review-${{ github.run_id }}
           path: data/client_executions/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
