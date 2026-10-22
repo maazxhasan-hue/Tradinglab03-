@@ -392,9 +392,21 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   }
   // Theme preference is local-only; no tracking needed.
   const theme=$('#theme-toggle');
-  function setTheme(light){document.body.classList.toggle('ux-light',light);document.body.classList.toggle('ux-dark',!light);if(theme){theme.textContent=light?'☾':'☀';theme.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');theme.setAttribute('title',light?'Switch to dark mode':'Switch to light mode');}try{localStorage.setItem('nexora_theme',light?'light':'dark')}catch{}}
-  let light=false;try{light=localStorage.getItem('nexora_theme')==='light'}catch{}setTheme(light);
-  theme?.addEventListener('click',()=>setTheme(!document.body.classList.contains('ux-light')));
+  function setTheme(dark){
+    document.body.classList.toggle('ux-dark',dark);
+    document.body.classList.toggle('ux-light',!dark);
+    if(theme){
+      theme.textContent=dark?'☼':'☾';
+      theme.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');
+      theme.setAttribute('title',dark?'Switch to light mode':'Switch to dark mode');
+      theme.setAttribute('aria-pressed',String(dark));
+    }
+    try{localStorage.setItem('nexora_theme',dark?'dark':'light')}catch{}
+  }
+  let dark=false;
+  try{dark=localStorage.getItem('nexora_theme')==='dark'}catch{}
+  setTheme(dark);
+  theme?.addEventListener('click',()=>setTheme(!document.body.classList.contains('ux-dark')));
   // Cookie banner: optional UTM analytics only after explicit consent.
   const cookie=$('#cookie-banner');let choice='';try{choice=localStorage.getItem('nexora_cookie_choice')||''}catch{}
   if(cookie&&!choice)cookie.hidden=false;
@@ -444,7 +456,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
   // Accessible overlay close and confirmation dialog.
-  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display')}}));
+  $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display');theme?.focus()}}));
   [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el){el.hidden=true;el.style.removeProperty('display')}}));
   document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')})});
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
