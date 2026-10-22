@@ -220,6 +220,7 @@ form.addEventListener("submit",async e=>{
    if(window.nexoraAnalytics)window.nexoraAnalytics.trackKeyEvent("generate_lead");
    statusBox.textContent="Your enquiry was received and saved. Reference: "+latestBrief.submission_id+". "+(result.notification==="owner_notified"?"Nexora AI has also been notified by email.":result.notification==="saved_notification_failed"?"The enquiry is saved, but the email alert failed. Please try again later for follow-up.":"The enquiry is saved. Email notification is not confirmed, so try again later if you need a prompt reply.");
    statusBox.classList.add("ok");
+   window.location.assign("/thank-you/");
   }catch(err){
    latestBrief.status="submission_unconfirmed";downloadBrief();
    statusBox.textContent="We could not confirm receipt ("+String(err.message||"network error").slice(0,180)+"). A local copy was downloaded, but your enquiry may not have reached us. Please keep the downloaded brief and retry the enquiry later.";statusBox.scrollIntoView({behavior:"smooth",block:"nearest"});
