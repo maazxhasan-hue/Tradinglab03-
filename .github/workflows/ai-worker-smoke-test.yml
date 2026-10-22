@@ -161,6 +161,23 @@ jobs:
             exit 1
           fi
           echo "Provider API HTTP status: $code"
+          if [ "$code" = "429" ]; then
+            provider_status=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              data = json.loads(Path("response.json").read_text())
+              err = data.get("error", {})
+              print(err.get("status", err.get("code", "")))
+          except Exception:
+              print("")
+          PY
+            )
+            if [ "$provider_status" = "RESOURCE_EXHAUSTED" ]; then
+              echo "::warning::Optional provider smoke test skipped: the configured provider quota is exhausted. Live worker health, configuration, and regression checks still run independently."
+              exit 0
+            fi
+          fi
           if [ "$code" != "200" ]; then
             python - <<'PY'
           import json
