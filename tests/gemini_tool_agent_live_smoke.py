@@ -56,7 +56,7 @@ def main() -> int:
                     message = str(exc)
                     transient = "HTTP 503" in message or "HTTP 429" in message or "high demand" in message.lower()
                     if not transient:
-                        safe_detail = str(exc).replace("\\n", " ")[:220]
+                        safe_detail = str(exc).replace("\r", " ").replace("\n", " ")[:220]
                         # run_tool_agent sanitizes provider errors; redact the key defensively.
                         safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
                         print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {safe_detail}")
@@ -66,7 +66,7 @@ def main() -> int:
             if last_error is None:
                 break
         if last_error is not None:
-            safe_detail = str(last_error).replace("\\n", " ")[:220]
+            safe_detail = str(last_error).replace("\r", " ").replace("\n", " ")[:220]
             if os.getenv("GEMINI_API_KEY"):
                 safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
             print(f"FAIL: Gemini native tool calling unavailable after transient retries and fallback model: {safe_detail}")
