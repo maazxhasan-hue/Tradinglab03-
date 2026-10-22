@@ -66,7 +66,10 @@ def main() -> int:
             if last_error is None:
                 break
         if last_error is not None:
-            print("FAIL: Gemini native tool calling unavailable after transient retries and fallback model.")
+            safe_detail = str(last_error).replace("\\n", " ")[:220]
+            if os.getenv("GEMINI_API_KEY"):
+                safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
+            print(f"FAIL: Gemini native tool calling unavailable after transient retries and fallback model: {safe_detail}")
             return 1
         artifact = root / relative
         if int(result.get("tool_calls", 0) or 0) < 1:
