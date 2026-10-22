@@ -112,10 +112,12 @@ class ToolAgentTests(unittest.TestCase):
         response.read.return_value = json.dumps({
             "candidates": [{"content": {"parts": [{"text": "Recovered after retry."}]}}]
         }).encode("utf-8")
-        with tempfile.TemporaryDirectory() as tmp, \\
-             patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True), \\
-             patch("company.tool_agent.time.sleep") as sleep, \\
-             patch("company.tool_agent.urllib.request.urlopen", side_effect=[error, response]) as urlopen:
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True),
+            patch("company.tool_agent.time.sleep") as sleep,
+            patch("company.tool_agent.urllib.request.urlopen", side_effect=[error, response]) as urlopen,
+        ):
             result = run_tool_agent(brief={"business_name": "Synthetic"}, workspace=tmp, max_rounds=1)
         self.assertEqual(result["status"], "completed")
         self.assertEqual(result["final_message"], "Recovered after retry.")
