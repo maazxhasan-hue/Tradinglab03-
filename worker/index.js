@@ -464,7 +464,13 @@ const ANALYTICS_SITE_ID = "nexora-ai-public";
 const GA4_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GA4_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GA4_API_BASE = "https://analyticsdata.googleapis.com/v1beta/properties/";
-const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents", "sessionsWithKeyEvents"];
+const GA4_SOURCE_METRICS = ["sessions", "totalUsers", "screenPageViews", "engagedSessions", "engagementRate", "keyEvents", "sessionsWithKeyEvents"];// Public GA4 web-stream ID previously confirmed for Nexora AI; this is not a secret.
+const DEFAULT_GA4_MEASUREMENT_ID = "G-3M5F3QYFHJ";
+function configuredGa4MeasurementId(env) {
+  const configured = String(env.GA4_MEASUREMENT_ID || "").trim();
+  return /^G-[A-Z0-9]+$/.test(configured) ? configured : DEFAULT_GA4_MEASUREMENT_ID;
+}
+
 function aiSourceRegexForDomains(knownDomains) {
   const patterns = Array.from(knownDomains)
     .map(domain => String(domain || "").trim().toLowerCase())
@@ -482,7 +488,7 @@ function analyticsApiConfigured(env) {
     String(env.GA4_PRIVATE_KEY || "").includes("PRIVATE KEY");
 }
 function analyticsWebsiteTagConfigured(env) {
-  return /^G-[A-Z0-9]+$/.test(String(env.GA4_MEASUREMENT_ID || "").trim());
+  return Boolean(configuredGa4MeasurementId(env));
 }
 function base64UrlBytes(input) {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -886,7 +892,7 @@ async function adminAnalyticsSync(request, env, cors) {
 async function handleAnalyticsConfig(request, env, cors) {
   if (request.method !== "GET") return response({error:"Method not allowed."},405,cors);
   if (!originAllowed(request,env)) return response({error:"This origin is not allowed."},403);
-  const measurementId = analyticsWebsiteTagConfigured(env) ? String(env.GA4_MEASUREMENT_ID).trim() : "";
+  const measurementId = analyticsWebsiteTagConfigured(env) ? configuredGa4MeasurementId(env) : "";
   return response({ok:true,configured:Boolean(measurementId),measurement_id:measurementId || null},200,{...cors,"cache-control":"no-store"});
 }
 
