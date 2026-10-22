@@ -70,14 +70,14 @@ class RenderPublicSiteTests(unittest.TestCase):
         titles = []
         for file_path in html_files:
             source = file_path.read_text(encoding="utf-8")
-            title_match = re.search(r"<title\\b[^>]*>(.*?)</title>", source, re.I | re.S)
+            title_match = re.search(r"<title\b[^>]*>(.*?)</title>", source, re.I | re.S)
             description_match = re.search(
-                r'<meta\\b(?=[^>]*\\bname=["\\']description["\\'])[^>]*\\bcontent=["\\']([^"\\']*)["\\']',
+                r"""<meta\b(?=[^>]*\bname=["']description["'])[^>]*\bcontent=["']([^"']*)["']""",
                 source, re.I,
             )
             self.assertIsNotNone(title_match, f"Missing title: {file_path.relative_to(PUBLIC)}")
             self.assertIsNotNone(description_match, f"Missing description: {file_path.relative_to(PUBLIC)}")
-            title = re.sub(r"\\s+", " ", title_match.group(1)).strip()
+            title = re.sub(r"\s+", " ", title_match.group(1)).strip()
             description = description_match.group(1).strip()
             self.assertTrue(title.endswith("| Nexora AI"), f"Title must end with '| Nexora AI': {file_path.relative_to(PUBLIC)}")
             self.assertTrue(description, f"Empty description: {file_path.relative_to(PUBLIC)}")
@@ -124,7 +124,7 @@ class RenderPublicSiteTests(unittest.TestCase):
         robots_text = robots.read_text(encoding="utf-8")
         self.assertIn(LIVE_HOST + "/sitemap.xml", robots_text)
         self.assertIn("Allow: /", robots_text)
-        self.assertNotRegex(robots_text, r"(?m)^Disallow:\\s*/\\s*$")
+        self.assertNotRegex(robots_text, r"(?m)^Disallow:\s*/\s*$")
 
     def test_upi_checkout_stays_disabled_until_verified(self):
         for relative in ("pay.html", "public-site/pay.html"):
