@@ -3,4 +3,4 @@ Disallow: /dashboard/
 Disallow: /owner-console/
 Disallow: /admin.html
 
-Sitemap: https://nexora-ai-public.onrender.com/sitemap.xml
+Sitemap: https://nexora-ai-public.pages.dev/sitemap.xml
