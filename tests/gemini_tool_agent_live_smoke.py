@@ -38,7 +38,7 @@ def main() -> int:
         try:
             result = run_tool_agent(brief=brief, workspace=root, max_rounds=4)
         except Exception as exc:
-            print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}).")
+            detail = str(exc).replace("\\n", " ")[:240]\n            print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {detail}")
             return 1
 
         artifact = root / relative
