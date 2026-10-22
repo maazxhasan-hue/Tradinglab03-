@@ -5,7 +5,7 @@ the repository's static website quality check. It cannot run arbitrary shell
 commands, access the network, send messages, spend money, or deploy production.
 """
 from __future__ import annotations
-import argparse, json, os, urllib.error, urllib.request
+import argparse, json, os, time, urllib.error, urllib.request
 from pathlib import Path
 from typing import Any
 from .website_pipeline import quality_check
@@ -202,23 +202,34 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
             endpoint = base + "/chat/completions"
             headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json"}
         request = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-        try:
-            with urllib.request.urlopen(request, timeout=60) as response:
-                result = json.loads(response.read(2_000_000).decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            # Provider error messages help diagnose invalid schemas/model access.
-            # Never log request headers, keys, or raw response bodies.
-            detail = ""
+        label = "Gemini" if provider == "gemini" else "Model provider"
+        retryable_statuses = {429, 500, 502, 503, 504}
+        for attempt in range(3):
             try:
-                error_payload = json.loads(exc.read(4096).decode("utf-8", errors="replace"))
-                provider_error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
-                if isinstance(provider_error, dict):
-                    detail = str(provider_error.get("message", "")).replace("\\n", " ").strip()[:240]
-            except (json.JSONDecodeError, UnicodeError, AttributeError):
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    result = json.loads(response.read(2_000_000).decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                # Provider error messages help diagnose invalid schemas/model access.
+                # Never log request headers, keys, or raw response bodies.
                 detail = ""
-            label = "Gemini" if provider == "gemini" else "Model provider"
-            suffix = f": {detail}" if detail else "; check provider quota, billing, and model access"
-            raise RuntimeError(f"{label} returned HTTP {exc.code}{suffix}.") from None
+                try:
+                    error_payload = json.loads(exc.read(4096).decode("utf-8", errors="replace"))
+                    provider_error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+                    if isinstance(provider_error, dict):
+                        detail = str(provider_error.get("message", "")).replace("\\n", " ").strip()[:240]
+                except (json.JSONDecodeError, UnicodeError, AttributeError):
+                    detail = ""
+                if exc.code in retryable_statuses and attempt < 2:
+                    time.sleep(1 * (2 ** attempt))
+                    continue
+                suffix = f": {detail}" if detail else "; check provider quota, billing, and model access"
+                raise RuntimeError(f"{label} returned HTTP {exc.code}{suffix}.") from None
+            except (urllib.error.URLError, TimeoutError) as exc:
+                if attempt < 2:
+                    time.sleep(1 * (2 ** attempt))
+                    continue
+                raise RuntimeError(f"{label} request failed after retries ({type(exc).__name__}).") from None
         if provider == "gemini":
             candidates = result.get("candidates") or []
             if not candidates:
