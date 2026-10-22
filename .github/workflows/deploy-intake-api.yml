@@ -109,7 +109,7 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.onrender.com'
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
           GA4_PROPERTY_ID: ${{ vars.NEXORA_GA4_PROPERTY_ID }}
@@ -120,7 +120,7 @@ jobs:
           template = pathlib.Path("worker/wrangler.template.toml").read_text(encoding="utf-8")
           values = {
               "__D1_DATABASE_ID__": os.environ["D1_DATABASE_ID"],
-              "__SITE_ORIGINS__": ",".join(dict.fromkeys([origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()] + ["https://nexora-ai-public.netlify.app"]),),
+              "__SITE_ORIGINS__": ",".join(dict.fromkeys([origin.strip().rstrip("/") for origin in os.environ["SITE_ORIGINS"].split(",") if origin.strip()] + ["https://nexora-ai-public.onrender.com"]),),
               "__NOTIFY_EMAIL__": os.environ.get("NOTIFY_EMAIL", ""),
               "__FROM_EMAIL__": os.environ.get("FROM_EMAIL", ""),
               "__GA4_PROPERTY_ID__": os.environ.get("GA4_PROPERTY_ID", "").strip(),
@@ -267,7 +267,7 @@ jobs:
       - name: Verify visitor analytics endpoints and access control
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
-          SITE_ORIGIN: 'https://nexora-ai-public.netlify.app'
+          SITE_ORIGIN: 'https://nexora-ai-public.onrender.com'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error
@@ -296,7 +296,7 @@ jobs:
       - name: Verify live website AI chat
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.onrender.com'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error
@@ -323,7 +323,7 @@ jobs:
         env:
           INTAKE_ENDPOINT: ${{ steps.worker.outputs.endpoint }}
           TRADINGLAB03_ADMIN_API_KEY: ${{ secrets.TRADINGLAB03_ADMIN_API_KEY }}
-          SITE_ORIGINS: 'https://nexora-ai-public.netlify.app,https://nexora-private-hq.netlify.app'
+          SITE_ORIGINS: 'https://nexora-ai-public.onrender.com'
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, uuid
