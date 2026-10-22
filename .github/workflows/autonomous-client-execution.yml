@@ -3,13 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       brief_json:
-        description: Complete client brief as a JSON object
-        required: true
+        description: Synthetic Nexora QA brief (edit only when testing a different project)
+        required: false
         type: string
+        default: '{"business_name":"Nexora Synthetic Test Studio","tagline":"Synthetic QA project","service":"business_website","services":["Business website","Responsive design","Contact page"],"observed_need":"Validate automated client delivery, artifact generation, specialist passes, and QA reporting using a fictional business.","target_audience":"Synthetic test users","pages_screens_deliverables":["Home page","Services page","Contact page"],"version_1_must_have_features":["Responsive layout","Accessible navigation","Clear calls to action","Contact form design"],"acceptance_criteria":["Delivery bundle generated","Regression tests pass","QA report produced","Execution report records completed and blocked steps","Review artifact uploaded"],"constraints_dependencies_exclusions":["Synthetic test only","No customer contact","No emails","No production deployment","No trading infrastructure"]}'
       output_name:
         description: Short label for the review bundle (letters, digits, hyphens only)
         required: true
-        default: client-review
+        default: nexora-synthetic-qa
         type: string
 permissions:
   contents: read
