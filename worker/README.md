@@ -30,7 +30,7 @@ If the Cloudflare credentials or owner key are missing, deployment intentionally
 
 ## Owner inbox and private retrieval
 
-After deployment, open the owner inbox at `https://nexora-internal-hq.onrender.com/inbox.html` (or your configured owner-only inbox path) on a trusted device and enter the owner key. The inbox page keeps the key in the current page only, lists private enquiries, offers a manual email-reply link, and confirms before deleting a record. The key is never embedded in the public HTML.
+The owner inbox UI is not currently available at the public Render HQ URL: that site serves a transition notice, not a private inbox. Until a server-enforced access boundary is deployed, retrieve submissions only through the owner-key-protected API from a trusted environment. Do not treat `noindex` or an unlinked static page as authentication. The owner key must never be embedded in public HTML.
 
 For command-line retrieval, use the deployed worker URL and owner key privately:
 
