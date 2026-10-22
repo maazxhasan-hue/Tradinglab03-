@@ -15,6 +15,15 @@ PROTECTED_NAMES = {"agent_execution_report.json", "agent_run_report.json", "deli
 MAX_FILE_CHARS = 100_000
 MAX_TOOL_ROUNDS = 8
 
+
+def _gemini_schema(value: Any) -> Any:
+    """Remove JSON Schema keywords unsupported by Gemini function declarations."""
+    if isinstance(value, dict):
+        return {key: _gemini_schema(item) for key, item in value.items() if key != "additionalProperties"}
+    if isinstance(value, list):
+        return [_gemini_schema(item) for item in value]
+    return value
+
 TOOLS = [
     {"type": "function", "function": {
         "name": "list_artifacts",
@@ -147,7 +156,7 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
     calls = 0
     for round_index in range(max_rounds):
         if provider == "gemini":
-            declarations = [{"name": item["function"]["name"], "description": item["function"]["description"], "parameters": item["function"]["parameters"]} for item in TOOLS]
+            declarations = [{"name": item["function"]["name"], "description": item["function"]["description"], "parameters": _gemini_schema(item["function"]["parameters"])} for item in TOOLS]
             contents = []
             for prior in messages:
                 role = prior.get("role")
