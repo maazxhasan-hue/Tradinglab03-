@@ -67,7 +67,26 @@ jobs:
             exit 0
           fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
-          python -m company.tool_agent --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME"
+          WORKSPACE="data/client_executions/$OUTPUT_NAME"
+          python -m company.tool_agent --brief data/autonomous_client_brief.json --workspace "$WORKSPACE"
+          # Retry with OpenAI if Gemini fails and the OpenAI secret is available.
+          if [ "${AI_PROVIDER}" = "gemini" ] && [ -n "$OPENAI_API_KEY" ]; then
+            if python - "$WORKSPACE/agent_run_report.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          try:
+              r=json.loads(Path(sys.argv[1]).read_text())
+              raise SystemExit(0 if r.get("status")=="completed" and int(r.get("tool_calls",0) or 0)>0 else 1)
+          except Exception:
+              raise SystemExit(1)
+          PY
+            then
+              echo "Gemini main-agent pass completed; no fallback needed."
+            else
+              echo "Gemini main-agent pass did not complete; retrying with OpenAI."
+              AI_PROVIDER=openai python -m company.tool_agent --brief data/autonomous_client_brief.json --workspace "$WORKSPACE"
+            fi
+          fi
       - name: Run role-specific specialist passes
         if: always()
         env:
@@ -84,7 +103,27 @@ jobs:
             exit 0
           fi
           OUTPUT_NAME="$(cat data/autonomous_output_name.txt)"
-          python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "data/client_executions/$OUTPUT_NAME" --rounds-per-role 3
+          WORKSPACE="data/client_executions/$OUTPUT_NAME"
+          python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "$WORKSPACE" --rounds-per-role 3
+          # Retry the specialist team with OpenAI if Gemini is unavailable.
+          if [ "${AI_PROVIDER}" = "gemini" ] && [ -n "$OPENAI_API_KEY" ]; then
+            if python - "$WORKSPACE/specialist_execution_report.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          try:
+              r=json.loads(Path(sys.argv[1]).read_text())
+              requested=r.get("roles_requested", [])
+              raise SystemExit(0 if r.get("status")=="completed_with_limitations" and len(requested)>0 and r.get("roles_with_artifact")==len(requested) else 1)
+          except Exception:
+              raise SystemExit(1)
+          PY
+            then
+              echo "Gemini specialist pass completed; no fallback needed."
+            else
+              echo "Gemini specialist pass did not complete; retrying with OpenAI."
+              AI_PROVIDER=openai python -m company.specialist_orchestrator --brief data/autonomous_client_brief.json --workspace "$WORKSPACE" --rounds-per-role 3
+            fi
+          fi
       - name: Enforce truthful agent completion status
         if: always()
         run: |
