@@ -456,7 +456,7 @@ body.ux-light .btn{color:#fff}body.ux-light .ux-icon-btn,body.ux-light #back-to-
   });
   searchInput?.addEventListener('input',()=>renderSearch(searchInput.value));
   // Accessible overlay close and confirmation dialog.
-  $('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display');theme?.focus()}}));
+  $$('[data-close-overlay]').forEach(b=>b.addEventListener('click',()=>{if(searchOverlay){searchOverlay.hidden=true;searchOverlay.style.removeProperty('display');theme?.focus()}}));
   [searchOverlay,$('#confirm-dialog')].filter(Boolean).forEach(el=>el.addEventListener('click',e=>{if(e.target===el){el.hidden=true;el.style.removeProperty('display')}}));
   document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.ux-overlay').forEach(x=>{x.hidden=true;x.style.removeProperty('display')})});
   let confirmAction=null;const confirmDialog=$('#confirm-dialog');
