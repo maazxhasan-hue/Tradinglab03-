@@ -191,7 +191,19 @@ def run_tool_agent(*, brief: dict, workspace: str | Path, api_key: str | None = 
             with urllib.request.urlopen(request, timeout=60) as response:
                 result = json.loads(response.read(2_000_000).decode("utf-8"))
         except urllib.error.HTTPError as exc:
-            raise RuntimeError(f"Model provider returned HTTP {exc.code}; check provider quota, billing, and model access.") from exc
+            # Provider error messages help diagnose invalid schemas/model access.
+            # Never log request headers, keys, or raw response bodies.
+            detail = ""
+            try:
+                error_payload = json.loads(exc.read(4096).decode("utf-8", errors="replace"))
+                provider_error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+                if isinstance(provider_error, dict):
+                    detail = str(provider_error.get("message", "")).replace("\\n", " ").strip()[:240]
+            except (json.JSONDecodeError, UnicodeError, AttributeError):
+                detail = ""
+            label = "Gemini" if provider == "gemini" else "Model provider"
+            suffix = f": {detail}" if detail else "; check provider quota, billing, and model access"
+            raise RuntimeError(f"{label} returned HTTP {exc.code}{suffix}.") from None
         if provider == "gemini":
             candidates = result.get("candidates") or []
             if not candidates:
