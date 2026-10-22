@@ -4,12 +4,12 @@ Updated: 17 October 2026
 This repository contains the public services website, client login/intake flow, Cloudflare Worker API, owner inbox UI, internal workflow pages, marketing drafts, automation workflows, tests, and operational documentation.
 
 ## Live entry points
-- Public website: https://nexora-ai-sooty-two.vercel.app
-- Client project intake: https://nexora-ai-sooty-two.vercel.app/dashboard/website.html
-- Client login: https://nexora-ai-sooty-two.vercel.app/dashboard/login.html
-- Company HQ: https://nexora-ai-sooty-two.vercel.app/dashboard/
-- Marketing Studio: https://nexora-ai-sooty-two.vercel.app/dashboard/marketing.html
-- Owner inbox: https://nexora-ai-sooty-two.vercel.app/dashboard/inbox.html
+- Public website: https://nexora-ai-public.onrender.com
+- Client project intake: https://nexora-ai-public.onrender.com/dashboard/website.html
+- Client login: https://nexora-ai-public.onrender.com/dashboard/login.html
+- Company HQ: https://nexora-internal-hq.onrender.com/
+- Marketing Studio: https://nexora-internal-hq.onrender.com/marketing.html
+- Owner inbox: https://nexora-internal-hq.onrender.com/inbox.html
 - Source repository: https://github.com/maazxhasan-hue/Tradinglab03-
 - CI workflows: https://github.com/maazxhasan-hue/Tradinglab03-/actions
 
@@ -23,7 +23,7 @@ This repository contains the public services website, client login/intake flow, 
 ## Important security status
 **The static Company HQ, Marketing Studio, and inbox HTML are currently hosted alongside the public site.** `noindex,nofollow` does not protect them. Do not treat their pages as private. The inbox API separately enforces an owner key; never place that key in HTML, JavaScript, a URL, Git, logs, or browser local storage.
 
-An attempt to create a separate Vercel owner-console project failed with a Vercel API `403 Forbidden` scope/authorization error. Do not enable project-wide protection on the public Vercel project: it could block customers from the public website. The proper fix is to deploy owner pages in a separate project with Vercel SSO/deployment protection, or put them behind a server-enforced access layer such as Cloudflare Access on a controlled domain. Verify access from a fresh unauthenticated browser before marking this complete.
+The Render HQ service is a public static site. The public HQ dashboard and marketing pages are now transition notices; noindex headers are not authentication. Do not put owner secrets or internal telemetry in static HTML. The owner inbox must be served only behind server-enforced access or remain available solely through the owner-key-protected Worker API. Verify access from a fresh unauthenticated browser before marking privacy complete.
 
 ## Local checks
 Use Python 3.11 and Node.js 22 or later.
