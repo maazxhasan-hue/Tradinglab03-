@@ -1,6 +1,8 @@
+import io
 import json
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest.mock import patch
 
@@ -91,6 +93,20 @@ class ToolAgentTests(unittest.TestCase):
         function_response = body["contents"][-1]["parts"][0]["functionResponse"]
         self.assertEqual(function_response["name"], "list_artifacts")
         self.assertEqual(function_response["response"]["result"]["files"], [])
+
+    def test_gemini_http_error_includes_sanitized_provider_message(self):
+        error = urllib.error.HTTPError(
+            "https://generativelanguage.googleapis.com/v1beta/models/test:generateContent",
+            400, "Bad Request", {}, io.BytesIO(json.dumps({
+                "error": {"message": "Invalid JSON payload: unsupported function schema"}
+            }).encode("utf-8")),
+        )
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "do-not-print"}, clear=True), \
+             patch("company.tool_agent.urllib.request.urlopen", side_effect=error):
+            with self.assertRaisesRegex(RuntimeError, "HTTP 400: Invalid JSON payload") as raised:
+                run_tool_agent(brief={"business_name": "Synthetic"}, workspace=tmp)
+        self.assertNotIn("do-not-print", str(raised.exception))
 
     def test_gemini_native_provider_skips_without_key(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict("os.environ", {"AI_PROVIDER": "gemini"}, clear=True):
