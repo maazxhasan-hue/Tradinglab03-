@@ -8,8 +8,8 @@ This repository contains the public services website, client login/intake flow, 
 - Client project intake: https://nexora-ai-public.onrender.com/dashboard/website.html
 - Client login: https://nexora-ai-public.onrender.com/dashboard/login.html
 - Company HQ: https://nexora-internal-hq.onrender.com/
-- Marketing Studio: https://nexora-internal-hq.onrender.com/marketing.html
-- Owner inbox: https://nexora-internal-hq.onrender.com/inbox.html
+- Marketing Studio: public transition notice at https://nexora-internal-hq.onrender.com/marketing.html; full private studio is not currently deployed.
+- Owner inbox UI: not yet privately hosted; use the owner-key-protected API from a trusted environment until server-enforced access is deployed.
 - Source repository: https://github.com/maazxhasan-hue/Tradinglab03-
 - CI workflows: https://github.com/maazxhasan-hue/Tradinglab03-/actions
 
