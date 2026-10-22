@@ -40,7 +40,7 @@ def main() -> int:
         models = [preferred_model]
         # Provider capacity errors are transient. Try the configured model twice,
         # then a known function-calling-capable fallback without changing production config.
-        fallback_model = os.getenv("GEMINI_SMOKE_FALLBACK_MODEL", "gemini-2.5-flash")
+        fallback_model = os.getenv("GEMINI_SMOKE_FALLBACK_MODEL", "gemini-3.6-flash")
         if fallback_model and fallback_model != preferred_model:
             models.append(fallback_model)
         result = None
