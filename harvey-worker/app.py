@@ -463,6 +463,50 @@ def agents_status(x_api_key: Optional[str] = Header(default=None)):
         "note": "Roles are definitions, not separate always-running agents. Each run invokes the configured model on demand."
     }
 
+@app.post("/llm/test")
+async def llm_test(x_api_key: Optional[str] = Header(default=None)):
+    """Authenticated, bounded provider smoke test; never returns credentials or raw provider errors."""
+    require_key(x_api_key)
+    api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    if not api_key or not model:
+        raise HTTPException(503, "Model runtime is not configured.")
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                base_url + "/chat/completions",
+                headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+                json={"model": model, "messages": [
+                    {"role": "system", "content": "Reply briefly to the connectivity test."},
+                    {"role": "user", "content": "Reply with exactly: NEXORA_MODEL_OK"}
+                ], "max_tokens": 20, "temperature": 0}
+            )
+        if response.status_code >= 400:
+            status = response.status_code
+            if status in (401, 403):
+                raise HTTPException(502, "Provider rejected authentication or access. Check the API key and account access.")
+            if status == 429:
+                raise HTTPException(502, "Provider rate limit or quota reached.")
+            if status == 404:
+                raise HTTPException(502, "Provider endpoint or model was not found. Check LLM_BASE_URL and LLM_MODEL.")
+            raise HTTPException(502, f"Provider returned HTTP {status}; raw response withheld.")
+        data = response.json()
+        choices = data.get("choices") or []
+        message = choices[0].get("message", {}) if choices else {}
+        output = message.get("content", "")
+        if not isinstance(output, str) or not output.strip():
+            raise HTTPException(502, "Provider responded but returned no text content.")
+        return {"status": "ok", "provider_endpoint": base_url, "configured_model": model,
+                "response_received": True, "test_output": output[:120]}
+    except HTTPException:
+        raise
+    except httpx.TimeoutException:
+        raise HTTPException(504, "Provider smoke test timed out.") from None
+    except Exception:
+        raise HTTPException(502, "Provider smoke test failed; details withheld to protect secrets.") from None
+
+
 @app.post("/agents/run")
 async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
