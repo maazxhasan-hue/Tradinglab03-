@@ -99,6 +99,29 @@ class ToolAgentTests(unittest.TestCase):
         self.assertEqual(function_response["name"], "list_artifacts")
         self.assertEqual(function_response["response"]["result"]["files"], [])
 
+    def test_gemini_retries_transient_provider_503(self):
+        error = urllib.error.HTTPError(
+            "https://generativelanguage.googleapis.com/v1beta/models/test:generateContent",
+            503, "Service Unavailable", {}, io.BytesIO(json.dumps({
+                "error": {"message": "temporary capacity limit"}
+            }).encode("utf-8")),
+        )
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.return_value = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": "Recovered after retry."}]}}]
+        }).encode("utf-8")
+        with tempfile.TemporaryDirectory() as tmp, \\
+             patch.dict("os.environ", {"AI_PROVIDER": "gemini", "GEMINI_API_KEY": "test-secret"}, clear=True), \\
+             patch("company.tool_agent.time.sleep") as sleep, \\
+             patch("company.tool_agent.urllib.request.urlopen", side_effect=[error, response]) as urlopen:
+            result = run_tool_agent(brief={"business_name": "Synthetic"}, workspace=tmp, max_rounds=1)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["final_message"], "Recovered after retry.")
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(1)
+
     def test_gemini_http_error_includes_sanitized_provider_message(self):
         error = urllib.error.HTTPError(
             "https://generativelanguage.googleapis.com/v1beta/models/test:generateContent",
