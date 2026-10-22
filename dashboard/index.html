@@ -125,6 +125,30 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){.network-stage *{animation:none!important}}
 
+
+/* Dense reference composition: top telemetry rail + centered constellation + compact instrument wall */
+.hq-telemetry{display:flex;gap:12px;align-items:center;overflow:hidden;white-space:nowrap;padding:4px 7px;background:#080a0e;border:1px solid #242833;border-bottom:0;color:#9da6b4;font:8px/1.5 ui-monospace,monospace;letter-spacing:.04em}
+.hq-telemetry b{color:#f0c778;font-weight:600}.hq-telemetry .pulse{color:#ff8ab9}
+.network-stage{margin-top:0;border-top:0;aspect-ratio:1.8/1;height:clamp(300px,45vw,570px);max-height:570px}
+.network-hud{display:none}
+.network-stage:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 50%,transparent 25%,rgba(0,0,0,.18) 80%)}
+.instrument-wall{display:grid;grid-template-columns:1.1fr .9fr 1fr 1fr 1.05fr 1fr;gap:0;border:1px solid #272c36;background:#05070b;margin:0 0 10px}
+.instrument{min-width:0;padding:8px;border-right:1px solid #252a34;min-height:118px;overflow:hidden}
+.instrument:last-child{border-right:0}
+.instrument h3{font:8px ui-monospace,monospace;color:#b8c0cc;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px}
+.instrument .micro{font:8px/1.65 ui-monospace,monospace;color:#8d97a6;overflow-wrap:anywhere}
+.mini-bars{display:grid;gap:5px}.mini-bars i{height:4px;display:block;background:linear-gradient(90deg,#ff85b5,#e2bb7a);opacity:.85}
+.mini-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}.mini-grid i{height:7px;background:#273746}.mini-grid i.hot{background:#f06e8e}
+.hq-telemetry .ticker{margin-left:auto;color:#8f99a9}
+@media(max-width:900px){.instrument-wall{grid-template-columns:repeat(3,minmax(0,1fr))}.instrument:nth-child(3){border-right:0}.instrument:nth-child(n+4){border-top:1px solid #252a34}}
+@media(max-width:560px){
+ .hq-telemetry{gap:7px;font-size:7px;padding:4px 5px}
+ .network-stage{height:clamp(320px,88vw,430px);aspect-ratio:1.05/1}
+ .instrument-wall{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .instrument{padding:6px;min-height:105px}
+ .instrument h3{font-size:7px}.instrument .micro{font-size:7px}
+}
+
 </style>
 </head>
 <body>
@@ -133,6 +157,7 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
     <div><div class="brand">NEXORA AI / NEURAL COMMAND</div><div class="sub">Company HQ · Shared Brain · Agent operations</div></div>
     <div class="topright"><span class="live"><span id="healthDot" class="dot"></span><span id="healthLabel">Checking services…</span></span><button id="refresh" type="button">Refresh data ↻</button></div>
   </nav>
+  <div class="hq-telemetry" aria-label="Command telemetry"><span>NODE <b>nexora-hq-01</b></span><span>OPS <b>30</b></span><span>ACTIONS <b id="tickerTasks">30</b></span><span>ROLE PROFILES <b>30</b></span><span>SHARED BRAIN <b>connected</b></span><span>MODE <b class="pulse">LIVE</b></span><span class="ticker">SYSTEM / NEURAL GRID</span></div>
   <header class="hero">
     <div class="eyebrow">Operations overview</div>
     <h1>Build. Deliver. Evolve.</h1>
@@ -146,6 +171,14 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
     <div class="network-hint">DRAG TO ROTATE · SCROLL TO EXPLORE</div>
   </section>
 
+  <section class="instrument-wall" aria-label="Compact neural telemetry">
+    <div class="instrument"><h3>Run log</h3><div class="micro" id="miniLog">[boot] loading telemetry<br>[brain] checking connection<br>[agents] reading role catalogue<br>[ops] awaiting live status</div></div>
+    <div class="instrument"><h3>Agent loads</h3><div class="mini-bars"><i style="width:84%"></i><i style="width:61%"></i><i style="width:72%"></i><i style="width:48%"></i><i style="width:91%"></i></div><div class="micro">orchestration · memory<br>inbox · calendar · outreach</div></div>
+    <div class="instrument"><h3>Brain activity</h3><div class="mini-grid" id="brainGrid"></div><div class="micro">shared recall / signals</div></div>
+    <div class="instrument"><h3>Action heat</h3><div class="mini-grid" id="actionGrid"></div><div class="micro">task activity samples</div></div>
+    <div class="instrument"><h3>Throughput</h3><svg viewBox="0 0 120 38" width="100%" height="38" aria-label="Decorative throughput sparkline"><polyline points="0,27 10,16 20,22 30,9 40,17 50,12 60,28 70,20 80,23 90,8 100,17 110,12 120,19" fill="none" stroke="#aab7c8" stroke-width="1.3"/></svg><div class="micro"><b id="miniTasks">—</b> recorded tasks</div></div>
+    <div class="instrument"><h3>Agent status</h3><div class="micro" id="miniStatus">API · checking<br>Brain · checking<br>Queue · checking<br>Model · checking</div></div>
+  </section>
   <section class="grid" aria-label="Operational metrics">
     <article class="panel"><div class="metric-label">Defined agent roles</div><div class="metric" id="roles">—</div><div class="hint">Role catalogue, not active agents</div></article>
     <article class="panel"><div class="metric-label">Recorded tasks</div><div class="metric" id="tasks">—</div><div class="hint">Persistent worker task records</div></article>
@@ -197,8 +230,8 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0x020307,1);
   const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020307,.004);
   const camera=new THREE.PerspectiveCamera(48,1,.1,1800);camera.position.set(0,0,390);
-  const root=new THREE.Group();scene.add(root);
-  const clusters=[{x:-155,y:72,z:-15,n:360,r:75,c:0xff86b8},{x:145,y:78,z:-30,n:300,r:67,c:0xff8dbb},{x:-165,y:-92,z:10,n:400,r:86,c:0x59e7f1},{x:125,y:-155,z:-15,n:280,r:66,c:0x8bdcf4}];
+  const root=new THREE.Group();root.position.set(20,34,0);scene.add(root);
+  const clusters=[{x:-155,y:72,z:-15,n:780,r:75,c:0xff86b8},{x:145,y:78,z:-30,n:700,r:67,c:0xff8dbb},{x:-165,y:-92,z:10,n:900,r:86,c:0x59e7f1},{x:125,y:-155,z:-15,n:650,r:66,c:0x8bdcf4}];
   const positions=[],colors=[],sizes=[],nodeList=[];
   clusters.forEach((cl,ci)=>{
    for(let i=0;i<cl.n;i++){
@@ -218,9 +251,9 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
    for(let i=0;i<ids.length;i+=2){const a=nodeList[ids[i]],b=nodeList[ids[(i+Math.floor(Math.random()*9)+1)%ids.length]];if(!b)continue;linePos.push(a.x,a.y,a.z,b.x,b.y,b.z);}
   });
   // Cross-cluster synapses create the large web-like links from the reference.
-  for(let i=0;i<650;i++){const a=nodeList[Math.floor(Math.random()*nodeList.length)],b=nodeList[Math.floor(Math.random()*nodeList.length)];if(a.cluster!==b.cluster&&Math.random()<.82)linePos.push(a.x,a.y,a.z,b.x,b.y,b.z);}
+  for(let i=0;i<1800;i++){const a=nodeList[Math.floor(Math.random()*nodeList.length)],b=nodeList[Math.floor(Math.random()*nodeList.length)];if(a.cluster!==b.cluster&&Math.random()<.82)linePos.push(a.x,a.y,a.z,b.x,b.y,b.z);}
   const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(linePos,3));
-  root.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0xb7c3d5,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false})));
+  root.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0xb7c3d5,transparent:true,opacity:.29,blending:THREE.AdditiveBlending,depthWrite:false})));
   // Subtle orbital rings around the shared system.
   for(let k=0;k<4;k++){const ring=new THREE.Mesh(new THREE.TorusGeometry(225+k*16,.18,4,240),new THREE.MeshBasicMaterial({color:k%2?0x7d91ad:0x4ddde6,transparent:true,opacity:.2}));ring.rotation.set(.8+k*.25,.35+k*.55,.3+k*.2);root.add(ring);}
   const starGeo=new THREE.BufferGeometry(),starPos=[];for(let i=0;i<850;i++)starPos.push((Math.random()-.5)*900,(Math.random()-.5)*620,(Math.random()-.5)*360-100);starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0x8295ad,size:.65,transparent:true,opacity:.45})));
@@ -229,7 +262,7 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
   stage.addEventListener('pointermove',e=>{if(!dragging)return;targetY+=(e.clientX-px)*.005;targetX+=(e.clientY-py)*.004;px=e.clientX;py=e.clientY;});
   stage.addEventListener('pointerup',()=>dragging=false);stage.addEventListener('pointercancel',()=>dragging=false);
   stage.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(260,Math.min(560,zoom+e.deltaY*.22));},{passive:false});
-  const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;zoom=camera.aspect<1.35?610:camera.aspect<1.8?490:390;camera.position.z=zoom;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(stage);resize();
+  const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;zoom=camera.aspect<1.35?680:camera.aspect<1.8?540:410;camera.position.z=zoom;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(stage);resize();
   let last=0;function frame(t){requestAnimationFrame(frame);const dt=Math.min((t-last)/1000||0,.04);last=t;if(!dragging)targetY+=dt*.035;rx+=(targetX-rx)*.08;ry+=(targetY-ry)*.08;root.rotation.x=rx;root.rotation.y=ry;root.rotation.z=Math.sin(t*.00012)*.035;camera.position.z+=(zoom-camera.position.z)*.08;renderer.render(scene,camera);}
   requestAnimationFrame(frame);
  }
@@ -266,7 +299,9 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
    $('tasks').textContent=Number(health.tasks_recorded||0).toLocaleString();
    $('approvals').textContent=Number(health.pending_approvals||0).toLocaleString();
   }
-  if(data){
+  if(health){const m=document.getElementById('miniTasks');if(m)m.textContent=Number(health.tasks_recorded||0).toLocaleString();}
+  const miniStatus=document.getElementById('miniStatus');if(miniStatus)miniStatus.innerHTML='API · '+(health&&health.status==='ready'?'ready':'unavailable')+'<br>Brain · '+(data?(data.shared_brain_connection||data.shared_brain||'unknown'):'unknown')+'<br>Queue · '+(data&&data.company_jobs?'available':'unknown')+'<br>Model · '+(health&&health.model_configured?'configured':'unknown');
+  if(data){const log=document.getElementById('miniLog');if(log){const recent=(data.tasks&&Array.isArray(data.tasks.recent)?data.tasks.recent:[]).slice(0,4);log.innerHTML=recent.length?recent.map(t=>'['+esc(pretty(t.status))+'] '+esc(pretty(t.kind))).join('<br>'):'[ops] no recent tasks recorded';}
    const a=data.agents||{};$('roles').textContent=Number(a.roles_defined||0).toLocaleString();
    const bc=data.shared_brain_connection||data.shared_brain||'unknown';
    $('brain').textContent=pretty(bc);$('brainStatus').innerHTML=pill(bc);$('brainHint').textContent=bc==='connected'?'Live recall probe succeeded':bc==='failed'?'Configured, but live probe failed':'Connection not configured';
@@ -289,6 +324,8 @@ table{font-size:9px;min-width:320px}th,td{padding:7px 6px}th{font-size:8px}
   $('refresh').disabled=false;
  }
  $('refresh').addEventListener('click',refresh);
+
+(()=>{for(const id of ['brainGrid','actionGrid']){const el=document.getElementById(id);if(el&&!el.children.length){for(let i=0;i<48;i++){const cell=document.createElement('i');if(Math.random()>.78)cell.className='hot';el.appendChild(cell);}}}})();
  refresh();setInterval(refresh,60000);
 })();
 </script>
