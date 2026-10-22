@@ -200,7 +200,7 @@ def health():
             "prospects": prospects, "pending_approvals": pending,
             "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled"),
             "shared_brain": "configured" if SHARED_BRAIN_AGENT_KEY else "not_configured",
-            "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
+            "model_configured": bool((os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini"))),
             "api_auth_configured": bool(API_KEY)}
 
 @app.get("/public-status")
@@ -234,7 +234,7 @@ def public_status():
                 brain_connection = "connected"
             except Exception:
                 brain_connection = "failed"
-        model_configured = bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")))
+        model_configured = bool((os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")))
         return {
             "service": APP_NAME,
             "status": "ready",
@@ -456,9 +456,9 @@ def agents_status(x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     return {
         "roles_defined": len(AGENT_ROLES),
-        "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))),
+        "model_configured": bool((os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini"))),
         "provider_configured": bool(os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")),
-        "model": (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")) if (os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) else None,
+        "model": (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")) if (os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) else None,
         "roles": sorted(AGENT_ROLES),
         "note": "Roles are definitions, not separate always-running agents. Each run invokes the configured model on demand."
     }
@@ -467,9 +467,9 @@ def agents_status(x_api_key: Optional[str] = Header(default=None)):
 async def llm_test(x_api_key: Optional[str] = Header(default=None)):
     """Authenticated, bounded provider smoke test; never returns credentials or raw provider errors."""
     require_key(x_api_key)
-    api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
-    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured.")
     try:
@@ -510,9 +510,9 @@ async def llm_test(x_api_key: Optional[str] = Header(default=None)):
 @app.post("/agents/run")
 async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
-    api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
-    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY in the server environment; LLM_MODEL or OPENAI_MODEL is optional.")
     if req.role not in AGENT_ROLES:
@@ -671,7 +671,7 @@ def agent_roster(x_api_key: Optional[str] = Header(default=None)):
                        "execution_mode": "on-demand model invocation",
                        "independently_running": False}
                       for role in sorted(AGENT_MANDATES)],
-            "model_configured": bool((os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")))}
+            "model_configured": bool((os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")))}
 
 @app.post("/company/dispatch")
 def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
@@ -731,9 +731,9 @@ def list_company_jobs(cycle_id: Optional[str] = None, x_api_key: Optional[str] =
 async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     import json
-    api_key=os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
-    model=os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key=os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model=os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")
+    base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY server-side; LLM_MODEL or OPENAI_MODEL is optional.")
     if not SHARED_BRAIN_AGENT_KEY:
@@ -854,9 +854,9 @@ def _safe_project_path(path: str) -> str:
 @app.post("/projects/build")
 async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
-    api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
-    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
     if not SHARED_BRAIN_AGENT_KEY:
@@ -1038,9 +1038,9 @@ class OmniReverseRequest(BaseModel):
 @app.post("/omnireverse/analyze")
 async def omnireverse_analyze(req: OmniReverseRequest, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
-    api_key = os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
-    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    model = os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")
+    base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
     mode_guidance = {
