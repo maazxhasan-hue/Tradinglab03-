@@ -45,7 +45,7 @@
     <section class="panel">
       <div class="sectionhead"><h2>Configured agent roles</h2><span class="pill" id="departmentCount">Loading</span></div>
       <div id="departments" class="deptgrid"><div class="empty">Loading role information…</div></div>
-      <p class="hint" style="margin-bottom:0;margin-top:12px">These are the 30 configured role definitions returned by the worker. Roles run on demand; a role definition is not proof of an active agent.</p>
+      <p class="hint" style="margin-bottom:0;margin-top:12px">These are the configured role definitions returned by the worker. Roles run on demand; a role definition is not proof of an active agent.</p>
     </section>
   </div>
   <section class="panel" style="margin:14px 0">
@@ -54,6 +54,11 @@
   </section>
   <section class="panel" style="margin:14px 0">
     <div class="sectionhead"><h2>Company job queue</h2><span class="pill" id="jobCount">No data yet</span></div>
+    <div class="statusline"><span class="label">Queued</span><span class="value" id="queuedCount">—</span></div>
+    <div class="statusline"><span class="label">Running</span><span class="value" id="runningCount">—</span></div>
+    <div class="statusline"><span class="label">Completed</span><span class="value" id="completedCount">—</span></div>
+    <div class="statusline"><span class="label">Failed</span><span class="value" id="failedCount">—</span></div>
+    <p class="hint">Queued jobs do not run automatically. Specialist execution is on-demand and requires the authenticated worker endpoint.</p>
     <div class="tablewrap"><table><thead><tr><th>Role</th><th>Status</th><th>Created</th></tr></thead><tbody id="jobs"><tr><td colspan="3" class="empty">Waiting for worker data…</td></tr></tbody></table></div>
   </section>
   <footer class="foot"><span>Nexora AI · Internal operations interface</span><span>Auto-refresh every 60 seconds · Last update: <span id="lastUpdated">—</span></span></footer>
@@ -97,13 +102,13 @@
    const tasks=data.tasks&&Array.isArray(data.tasks.recent)?data.tasks.recent:[];
    $('activity').innerHTML=tasks.length?tasks.map(t=>'<tr><td>'+esc(pretty(t.kind))+'</td><td>'+pill(t.status)+'</td><td>'+date(t.updated_at||t.created_at)+'</td></tr>').join(''):'<tr><td colspan="3" class="empty">No task activity has been recorded yet.</td></tr>';
    const jobs=data.company_jobs&&Array.isArray(data.company_jobs.recent)?data.company_jobs.recent:[];
-   const counts=data.company_jobs&&data.company_jobs.by_status||{};$('jobCount').textContent=Object.values(counts).reduce((n,v)=>n+Number(v||0),0)+' recorded jobs';
+   const counts=data.company_jobs&&data.company_jobs.by_status||{};const totalJobs=Object.values(counts).reduce((n,v)=>n+Number(v||0),0);$('jobCount').textContent=totalJobs+' recorded jobs';$('queuedCount').textContent=Number(counts.queued||0).toLocaleString();$('runningCount').textContent=Number(counts.running||0).toLocaleString();$('completedCount').textContent=Number(counts.completed||0).toLocaleString();$('failedCount').textContent=Number(counts.failed||0).toLocaleString();
    $('jobs').innerHTML=jobs.length?jobs.map(j=>'<tr><td>'+esc(j.role)+'</td><td>'+pill(j.status)+'</td><td>'+date(j.created_at)+'</td></tr>').join(''):'<tr><td colspan="3" class="empty">No company jobs have been recorded yet.</td></tr>';
   }else{
    $('brain').textContent='Unavailable';$('brainStatus').innerHTML=pill('unavailable');
    $('departments').innerHTML='<div class="empty">Department data is unavailable until the operations endpoint responds.</div>';
    $('activity').innerHTML='<tr><td colspan="3" class="empty">Live activity unavailable.</td></tr>';
-   $('jobs').innerHTML='<tr><td colspan="3" class="empty">Live job data unavailable.</td></tr>';
+   $('jobs').innerHTML='<tr><td colspan="3" class="empty">Live job data unavailable.</td></tr>';['queuedCount','runningCount','completedCount','failedCount'].forEach(id=>$(id).textContent='—');$('jobCount').textContent='Unavailable';
   }
   if(errors.length){$('errorBox').textContent=errors.join(' ');$('errorBox').classList.remove('hidden');}
   const stamp=new Date().toLocaleString();$('checkedAt').textContent='Checked '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});$('lastUpdated').textContent=stamp;
