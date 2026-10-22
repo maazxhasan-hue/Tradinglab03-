@@ -72,8 +72,9 @@ class ToolAgentTests(unittest.TestCase):
             response.read.return_value = json.dumps(payload).encode("utf-8")
             return response
 
+        thought_signature = "opaque-test-thought-signature"
         first = fake_response({"candidates": [{"content": {"role": "model", "parts": [
-            {"functionCall": {"name": "list_artifacts", "args": {}}}
+            {"functionCall": {"name": "list_artifacts", "args": {}}, "thoughtSignature": thought_signature}
         ]}}]})
         second = fake_response({"candidates": [{"content": {"role": "model", "parts": [
             {"text": "Inspected the workspace; no existing artifacts were found."}
@@ -91,6 +92,9 @@ class ToolAgentTests(unittest.TestCase):
         second_request = urlopen.call_args_list[1].args[0]
         body = json.loads(second_request.data.decode("utf-8"))
         self.assertNotIn("additionalProperties", json.dumps(body["tools"]))
+        replayed_call = body["contents"][-2]["parts"][0]
+        self.assertEqual(replayed_call["functionCall"]["name"], "list_artifacts")
+        self.assertEqual(replayed_call["thoughtSignature"], thought_signature)
         function_response = body["contents"][-1]["parts"][0]["functionResponse"]
         self.assertEqual(function_response["name"], "list_artifacts")
         self.assertEqual(function_response["response"]["result"]["files"], [])
