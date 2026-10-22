@@ -112,6 +112,11 @@ jobs:
               print(f"{filename}: status={status!r}")
               if status not in accepted:
                   problems.append(f"{filename}: status={status!r}, expected one of {sorted(accepted)}")
+              if filename == "agent_run_report.json":
+                  tool_calls = report.get("tool_calls", 0)
+                  print(f"main agent tool calls: {tool_calls}")
+                  if not isinstance(tool_calls, int) or tool_calls < 1:
+                      problems.append("main agent reported no successful tool calls")
               if filename == "specialist_execution_report.json":
                   requested = report.get("roles_requested", [])
                   completed = report.get("roles_with_artifact", 0)
