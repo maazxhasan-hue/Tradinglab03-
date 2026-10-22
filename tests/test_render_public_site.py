@@ -62,6 +62,37 @@ class RenderPublicSiteTests(unittest.TestCase):
                 self.assertNotIn("nexoraai.vercel.app", body, str(file_path))
                 self.assertNotIn("nexora-ai-sooty-two.vercel.app", body, str(file_path))
 
+    def test_every_html_page_has_a_unique_title_and_description(self):
+        import re
+
+        html_files = sorted(PUBLIC.rglob("*.html"))
+        self.assertTrue(html_files)
+        titles = []
+        for file_path in html_files:
+            source = file_path.read_text(encoding="utf-8")
+            title_match = re.search(r"<title\\b[^>]*>(.*?)</title>", source, re.I | re.S)
+            description_match = re.search(
+                r'<meta\\b(?=[^>]*\\bname=["\\']description["\\'])[^>]*\\bcontent=["\\']([^"\\']*)["\\']',
+                source, re.I,
+            )
+            self.assertIsNotNone(title_match, f"Missing title: {file_path.relative_to(PUBLIC)}")
+            self.assertIsNotNone(description_match, f"Missing description: {file_path.relative_to(PUBLIC)}")
+            title = re.sub(r"\\s+", " ", title_match.group(1)).strip()
+            description = description_match.group(1).strip()
+            self.assertTrue(title.endswith("| Nexora AI"), f"Title must end with '| Nexora AI': {file_path.relative_to(PUBLIC)}")
+            self.assertTrue(description, f"Empty description: {file_path.relative_to(PUBLIC)}")
+            self.assertLessEqual(len(description), 220, f"Description is too long: {file_path.relative_to(PUBLIC)}")
+            titles.append(title)
+        self.assertEqual(len(titles), len(set(titles)), "Every HTML page must have a unique title")
+
+    def test_custom_404_page_is_published_and_has_helpful_navigation(self):
+        page = PUBLIC / "404.html"
+        self.assertTrue(page.is_file(), "Render static publish root needs its own 404.html")
+        html = page.read_text(encoding="utf-8")
+        for marker in ('<title>Page Not Found | Nexora AI</title>', 'href="/"', 'href="/pricing/"', 'href="/about/"', 'href="/blog/seo-guide/"'):
+            self.assertIn(marker, html)
+        self.assertIn('name="robots" content="noindex,nofollow"', html)
+
     def test_sitemap_and_robots_point_to_render(self):
         sitemap = PUBLIC / "sitemap.xml"
         robots = PUBLIC / "robots.txt"
@@ -74,8 +105,26 @@ class RenderPublicSiteTests(unittest.TestCase):
             if node.tag.endswith("loc")
         ]
         self.assertTrue(locations)
+        self.assertEqual(len(locations), len(set(locations)), "Sitemap URLs must be unique")
         self.assertTrue(all(url.startswith(LIVE_HOST + "/") for url in locations))
-        self.assertIn(LIVE_HOST + "/sitemap.xml", robots.read_text(encoding="utf-8"))
+        expected = {
+            LIVE_HOST + "/", LIVE_HOST + "/about/",
+            LIVE_HOST + "/blog/business-workflow-automation/",
+            LIVE_HOST + "/blog/landing-page-conversion/",
+            LIVE_HOST + "/blog/seo-guide/",
+            LIVE_HOST + "/blog/small-business-website-checklist/",
+            LIVE_HOST + "/dashboard/mythos.html",
+            LIVE_HOST + "/dashboard/website.html",
+            LIVE_HOST + "/pricing/", LIVE_HOST + "/privacy.html",
+            LIVE_HOST + "/video-studio.html",
+        }
+        self.assertEqual(set(locations), expected)
+        for excluded in ("/404.html", "/dashboard/login.html", "/dashboard/referrals.html", "/pay.html", "/studio-agent.html"):
+            self.assertFalse(any(url.endswith(excluded) for url in locations), excluded)
+        robots_text = robots.read_text(encoding="utf-8")
+        self.assertIn(LIVE_HOST + "/sitemap.xml", robots_text)
+        self.assertIn("Allow: /", robots_text)
+        self.assertNotRegex(robots_text, r"(?m)^Disallow:\\s*/\\s*$")
 
     def test_upi_checkout_stays_disabled_until_verified(self):
         for relative in ("pay.html", "public-site/pay.html"):
