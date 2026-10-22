@@ -90,6 +90,7 @@ class ToolAgentTests(unittest.TestCase):
         self.assertIn("Inspected the workspace", result["final_message"])
         second_request = urlopen.call_args_list[1].args[0]
         body = json.loads(second_request.data.decode("utf-8"))
+        self.assertNotIn("additionalProperties", json.dumps(body["tools"]))
         function_response = body["contents"][-1]["parts"][0]["functionResponse"]
         self.assertEqual(function_response["name"], "list_artifacts")
         self.assertEqual(function_response["response"]["result"]["files"], [])
