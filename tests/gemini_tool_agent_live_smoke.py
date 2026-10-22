@@ -56,7 +56,10 @@ def main() -> int:
                     message = str(exc)
                     transient = "HTTP 503" in message or "HTTP 429" in message or "high demand" in message.lower()
                     if not transient:
-                        print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}); check the provider response.")
+                        safe_detail = str(exc).replace("\\n", " ")[:220]
+                        # run_tool_agent sanitizes provider errors; redact the key defensively.
+                        safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
+                        print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {safe_detail}")
                         return 1
                     if attempt == 0:
                         time.sleep(2)
