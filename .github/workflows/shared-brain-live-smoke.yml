@@ -44,3 +44,5 @@ jobs:
         env:
           SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
         run: python tests/shared_brain_role_matrix.py
+
+# Re-run trigger: verify the live shared brain and specialist identity matrix after deployment.
