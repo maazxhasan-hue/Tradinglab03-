@@ -1,0 +1,53 @@
+name: Refresh public SEO sitemap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public-site/**/*.html"
+      - "public-site/**/index.html"
+      - "tools/generate_public_sitemap.py"
+      - ".github/workflows/refresh-public-sitemap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-public-sitemap
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate and validate sitemap
+        run: |
+          python tools/generate_public_sitemap.py
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          tree = ET.parse("public-site/sitemap.xml")
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          urls = [n.text for n in tree.findall(".//sm:loc", ns)]
+          assert urls, "Sitemap must contain public URLs"
+          assert len(urls) == len(set(urls)), "Sitemap contains duplicate URLs"
+          assert all(u.startswith("https://nexora-ai-public.onrender.com/") for u in urls)
+          print(f"Validated {len(urls)} unique Render URLs.")
+          PY
+      - name: Commit sitemap only when changed
+        run: |
+          if git diff --quiet -- public-site/sitemap.xml; then
+            echo "Sitemap already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public-site/sitemap.xml
+          git commit -m "Refresh generated public sitemap"
+          git push

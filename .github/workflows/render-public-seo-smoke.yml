@@ -1,0 +1,70 @@
+name: Render public SEO live smoke
+
+on:
+  workflow_run:
+    workflows: ["Refresh public SEO sitemap"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-seo-check:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for the Render public site to publish the SEO release
+        env:
+          BASE_URL: https://nexora-ai-public.onrender.com
+        run: |
+          set -euo pipefail
+          found=false
+          for attempt in $(seq 1 30); do
+            code=$(curl --silent --show-error --location --max-time 20 --output /tmp/home.html --write-out '%{http_code}' "$BASE_URL/")
+            if [ "$code" = "200" ] && grep -q "Digital Services | Nexora AI" /tmp/home.html; then
+              found=true
+              echo "Homepage is serving the SEO release (HTTP $code)."
+              break
+            fi
+            echo "Waiting for Render deployment; attempt $attempt returned HTTP $code."
+            sleep 10
+          done
+          test "$found" = "true" || { echo "::error::Render did not serve the expected homepage release in time."; exit 1; }
+      - name: Verify real 404 status and custom page
+        env:
+          BASE_URL: https://nexora-ai-public.onrender.com
+        run: |
+          set -euo pipefail
+          url="$BASE_URL/seo-check-this-missing-page-8472"
+          code=$(curl --silent --show-error --location --max-time 20 --output /tmp/missing.html --write-out '%{http_code}' "$url")
+          echo "Missing URL: $url"
+          echo "HTTP status: $code"
+          test "$code" = "404" || { echo "::error::Missing URL returned HTTP $code, expected 404."; exit 1; }
+          grep -q "We couldn’t find that page" /tmp/missing.html
+          echo "Custom 404 content verified with HTTP 404."
+      - name: Verify robots and sitemap are reachable
+        env:
+          BASE_URL: https://nexora-ai-public.onrender.com
+        run: |
+          set -euo pipefail
+          robots_code=$(curl --silent --show-error --location --max-time 20 --output /tmp/robots.txt --write-out '%{http_code}' "$BASE_URL/robots.txt")
+          sitemap_code=$(curl --silent --show-error --location --max-time 20 --output /tmp/sitemap.xml --write-out '%{http_code}' "$BASE_URL/sitemap.xml")
+          echo "robots.txt HTTP $robots_code; sitemap.xml HTTP $sitemap_code"
+          test "$robots_code" = "200"
+          test "$sitemap_code" = "200"
+          grep -q "Allow: /" /tmp/robots.txt
+          grep -q "$BASE_URL/sitemap.xml" /tmp/robots.txt
+          ! grep -Eq '^Disallow:[[:space:]]*/[[:space:]]*$' /tmp/robots.txt
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("/tmp/sitemap.xml").getroot()
+          urls = [e.text for e in root.iter() if e.tag.endswith("loc")]
+          assert urls and len(urls) == len(set(urls)), "Empty or duplicate sitemap URLs"
+          assert all(u.startswith("https://nexora-ai-public.onrender.com/") for u in urls)
+          for excluded in ("/404.html", "/dashboard/login.html", "/dashboard/referrals.html", "/pay.html", "/studio-agent.html"):
+              assert not any(u.endswith(excluded) for u in urls), f"Excluded URL found: {excluded}"
+          print(f"Live sitemap validated: {len(urls)} unique Render URLs.")
+          PY
