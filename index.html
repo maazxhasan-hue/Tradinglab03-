@@ -510,13 +510,13 @@ button[disabled]{opacity:.65;cursor:wait}
    section.setAttribute('aria-labelledby','faq-heading');
    const h=document.createElement('h2');h.id='faq-heading';h.textContent='Frequently asked questions';section.append(h);
    const faqs=[
-    ['What does Nexora AI build?','Nexora AI offers trading courses and learning materials, business websites, landing pages, custom AI tools, chatbots, content systems, website quality checks, and practical workflow automation.'],
-    ['How does a project begin?','Start by sharing your goals and requirements in the project enquiry form. Nexora AI uses the brief to clarify the scope, timing, and deliverables before work begins.'],
-    ['Is my project form submitted automatically?','The form is designed to send your brief to the configured Nexora AI intake service when you select “Send project enquiry.” The page should show a reference when receipt is confirmed. If receipt cannot be confirmed or the service is unavailable, follow the on-page fallback instructions; do not assume the enquiry was received.'],
-    ['How can I contact Nexora AI?','You can contact Nexora AI using the WhatsApp or email links on this page, or visit the @tradinglab03 Instagram profile. You choose and send the message yourself.']
+    ['What does Nexora AI build?','Nexora AI offers trading-course and learning materials, business websites, landing pages, custom AI tools and assistants, content systems, website quality checks, and workflow automation. The exact deliverables are agreed for each project.'],
+    ['How does a project begin?','Start by completing the project enquiry form with your goals, requested service, and key requirements. Nexora AI can then clarify the scope, deliverables, timing, and price with you before work begins.'],
+    ['Is my project form submitted automatically?','Not always. If you are not signed in, the form saves a draft in this browser and takes you to sign-in; it does not submit the enquiry at that point. When signed in, the form attempts to send your brief to the configured intake service. If receipt cannot be confirmed, the page explains that and offers a local-copy or manual-contact fallback. A failed or unconfirmed attempt should not be treated as a successful submission.'],
+    ['How can I contact Nexora AI?','Use the Contact us button or the Contact @tradinglab03 link to open Nexora AI on Instagram. You review and send your message yourself; opening Instagram does not send a message automatically.']
    ];
    faqs.forEach(([q,a])=>{const d=document.createElement('details');const summary=document.createElement('summary');summary.textContent=q;const p=document.createElement('p');p.textContent=a;d.append(summary,p);section.append(d)});
-   const note=document.createElement('p');note.className='faq-note';note.textContent='Please confirm before launch: the project intake endpoint is currently active and reliably confirms receipt. The answer above describes the intended form flow, not a guarantee that every submission succeeds.';section.append(note);
+   const note=document.createElement('p');note.className='faq-note';note.textContent='Submission depends on sign-in and a successful response from the intake service. Check the on-page status message and reference before assuming an enquiry was received.';section.append(note);
    footer.parentNode.insertBefore(section,footer);
  }
 })();
