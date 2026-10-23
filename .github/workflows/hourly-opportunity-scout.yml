@@ -59,7 +59,7 @@ jobs:
             echo "A lead is a research signal, not a verified client or revenue. No outreach is performed by this workflow."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload opportunity report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-opportunities-${{ github.run_id }}
           path: data/opportunities/
