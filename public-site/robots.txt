@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /owner-console/
+Disallow: /private-hq/
+Disallow: /admin.html
 
 Sitemap: https://nexora-ai-public.pages.dev/sitemap.xml
