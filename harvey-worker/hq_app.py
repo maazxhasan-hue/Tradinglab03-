@@ -18,7 +18,8 @@ from urllib.parse import parse_qs
 from fastapi import BackgroundTasks, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from app import (app, db, AGENT_ROLES, now, SHARED_BRAIN_AGENT_KEY, API_KEY, AGENTS, COMPANY_AGENTS, AGENT_MANDATES, CompanyDispatchRequest, dispatch_company_mission, _run_company_cycle, _company_runtime_ready)
+from app import (app, db, AGENT_ROLES, now, SHARED_BRAIN_AGENT_KEY, API_KEY, AGENT_MANDATES, CompanyDispatchRequest, dispatch_company_mission, _run_company_cycle, _company_runtime_ready)
+from company.nexora_growth_runtime import AGENTS, COMPANY_AGENTS
 
 COOKIE_NAME = "nexora_hq_session"
 SESSION_TTL_SECONDS = 8 * 60 * 60
