@@ -23,7 +23,7 @@ from company.nexora_agent_executor import execute_agent_draft, DraftExecutionErr
 from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
-PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
+PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "") or os.environ.get("HQ_ADMIN_PASSWORD", "")
 SESSION_SECRET = os.environ.get("HQ_SESSION_SECRET", "")
 PORT = int(os.environ.get("PORT", "10000"))
 SESSION_TTL = 8 * 60 * 60
