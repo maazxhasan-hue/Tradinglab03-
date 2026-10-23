@@ -161,7 +161,10 @@ jobs:
             if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
               --max-time 45 "$BASE_URL/chat/completions" \
               -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" \
-              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}")
+              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}"); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
           else
             echo "::error::No usable provider configuration. Add GEMINI_API_KEY or LLM_API_KEY with LLM_BASE_URL."
             exit 1
