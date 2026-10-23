@@ -142,13 +142,68 @@ async function accountFromRequest(request, env) {
     "SELECT a.id, a.email, a.referral_code FROM client_sessions s JOIN client_accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ? AND a.disabled = 0"
   ).bind(tokenHash, new Date().toISOString()).first();
 }
-async function authRateAllowed(request, env, action) {
+function rateLimitInt(env, name, fallback, min = 1, max = 100000) {
+  const parsed = Number.parseInt(env[name], 10);
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
+}
+function rateLimitWindow(env, name, fallback) {
+  return rateLimitInt(env, name, fallback, 1, 86400);
+}
+async function rateBucketHash(env, value) {
+  return sha256Hex(String(env.IP_HASH_SALT || env.ADMIN_API_KEY || "nexora-rate-limit") + ":" + value);
+}
+async function rateLimitCheck(request, env, routeType, identity, limit, windowSeconds, options = {}) {
+  const now = new Date();
+  const since = new Date(now.getTime() - windowSeconds * 1000).toISOString();
+  const bucketHash = await rateBucketHash(env, identity);
+  const row = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND created_at >= ?")
+    .bind(bucketHash, routeType, since).first();
+  const total = Number(row && row.total || 0);
+  if (options.backoff) {
+    const failuresRow = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND outcome = 'failure' AND created_at >= ?")
+      .bind(bucketHash, routeType, since).first();
+    const failures = Number(failuresRow && failuresRow.total || 0);
+    const backoffBase = rateLimitInt(env, "AUTH_BACKOFF_BASE_SECONDS", 2, 1, 3600);
+    const backoffMax = rateLimitInt(env, "AUTH_BACKOFF_MAX_SECONDS", 300, 1, 86400);
+    const backoffSeconds = Math.min(backoffMax, backoffBase * (2 ** Math.min(Math.max(0, failures - 1), 16)));
+    if (failures > 0) {
+      const latest = await env.DB.prepare("SELECT created_at FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND outcome = 'failure' ORDER BY created_at DESC LIMIT 1")
+        .bind(bucketHash, routeType).first();
+      if (latest && latest.created_at) {
+        const retryAt = new Date(new Date(latest.created_at).getTime() + backoffSeconds * 1000);
+        if (retryAt > now) return { allowed: false, retryAfter: Math.max(1, Math.ceil((retryAt - now) / 1000)), bucketHash };
+      }
+    }
+  }
+  if (total >= limit) {
+    const oldest = await env.DB.prepare("SELECT created_at FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND created_at >= ? ORDER BY created_at ASC LIMIT 1")
+      .bind(bucketHash, routeType, since).first();
+    const retryAfter = oldest && oldest.created_at ? Math.max(1, Math.ceil((new Date(oldest.created_at).getTime() + windowSeconds * 1000 - now.getTime()) / 1000)) : windowSeconds;
+    return { allowed: false, retryAfter, bucketHash };
+  }
+  await env.DB.prepare("INSERT INTO client_rate_limit_events (id,bucket_hash,route_type,outcome,created_at) VALUES (?,?,?,'attempt',?)")
+    .bind(crypto.randomUUID(), bucketHash, routeType, now.toISOString()).run();
+  return { allowed: true, retryAfter: 0, bucketHash };
+}
+async function markRateLimitFailure(env, bucketHash, routeType) {
+  await env.DB.prepare("INSERT INTO client_rate_limit_events (id,bucket_hash,route_type,outcome,created_at) VALUES (?,?,?,'failure',?)")
+    .bind(crypto.randomUUID(), bucketHash, routeType, new Date().toISOString()).run();
+}
+async function authRateAllowed(request, env, action, email) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const ipHash = await sha256Hex(String(env.IP_HASH_SALT || env.ADMIN_API_KEY || "nexora-auth") + ":" + ip + ":" + action);
-  const row = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_auth_attempts WHERE ip_hash = ? AND created_at >= datetime('now','-1 hour')").bind(ipHash).first();
-  if (Number(row && row.total || 0) >= 10) return false;
-  await env.DB.prepare("INSERT INTO client_auth_attempts (id, ip_hash, created_at) VALUES (?, ?, ?)").bind(crypto.randomUUID(), ipHash, new Date().toISOString()).run();
-  return true;
+  const ipLimit = rateLimitInt(env, "AUTH_IP_LIMIT_PER_WINDOW", 20, 1, 10000);
+  const windowSeconds = rateLimitWindow(env, "AUTH_RATE_WINDOW_SECONDS", 3600);
+  const ipCheck = await rateLimitCheck(request, env, "auth:" + action + ":ip", "ip:" + ip + ":" + action, ipLimit, windowSeconds, { backoff: true });
+  if (!ipCheck.allowed) return ipCheck;
+  const accountLimit = rateLimitInt(env, "AUTH_ACCOUNT_LIMIT_PER_WINDOW", 8, 1, 10000);
+  const accountCheck = await rateLimitCheck(request, env, "auth:" + action + ":account", "account:" + email + ":" + action, accountLimit, windowSeconds, { backoff: true });
+  if (!accountCheck.allowed) return accountCheck;
+  return { allowed: true, ipBucketHash: ipCheck.bucketHash, accountBucketHash: accountCheck.bucketHash };
+}
+async function applyEndpointRateLimit(request, env, routeType, identity, limitName, fallbackLimit, windowName, fallbackWindow) {
+  const limit = rateLimitInt(env, limitName, fallbackLimit, 1, 100000);
+  const windowSeconds = rateLimitWindow(env, windowName, fallbackWindow);
+  return rateLimitCheck(request, env, routeType, identity, limit, windowSeconds);
 }
 function newReferralCode() {
   return "NX" + randomHex(5).toUpperCase();
@@ -275,7 +330,8 @@ async function handleAuth(request, env, cors, action) {
   if (!validEmail(email) || password.length < 12 || password.length > 256) {
     return response({error:"Use a valid email and a password between 12 and 256 characters."}, 422, cors);
   }
-  if (!await authRateAllowed(request, env, action)) return response({error:"Too many attempts. Try again in an hour."}, 429, {...cors,"retry-after":"3600"});
+  const rate = await authRateAllowed(request, env, action, email);
+  if (!rate.allowed) return response({error:"Too many attempts. Please wait briefly and try again."}, 429, {...cors,"retry-after":String(rate.retryAfter || 60)});
   let account;
   if (action === "register") {
     const salt = randomHex(16);
@@ -287,6 +343,7 @@ async function handleAuth(request, env, cors, action) {
       await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled,referral_code) VALUES (?,?,?,?,?,0,?)")
         .bind(id,email,salt,hash,new Date().toISOString(),ownReferralCode).run();
     } catch {
+      await markRateLimitFailure(env, rate.accountBucketHash, "auth:register:account");
       return response({error:"An account may already exist for this email. Try signing in instead."}, 409, cors);
     }
     account = {id,email,referral_code:ownReferralCode};
@@ -306,7 +363,11 @@ async function handleAuth(request, env, cors, action) {
   } else if (action === "login") {
     account = await env.DB.prepare("SELECT id,email,password_salt,password_hash FROM client_accounts WHERE email = ? AND disabled = 0").bind(email).first();
     const candidate = await passwordHash(password, account ? account.password_salt : "00000000000000000000000000000000");
-    if (!account || candidate !== account.password_hash) return response({error:"Email or password is incorrect."}, 401, cors);
+    if (!account || candidate !== account.password_hash) {
+      await markRateLimitFailure(env, rate.ipBucketHash, "auth:login:ip");
+      await markRateLimitFailure(env, rate.accountBucketHash, "auth:login:account");
+      return response({error:"Email or password is incorrect."}, 401, cors);
+    }
   } else {
     return response({error:"Unknown authentication action."}, 404, cors);
   }
@@ -953,6 +1014,8 @@ export default {
     }
     if (url.pathname === "/api/chat" && request.method === "POST") {
       if (!originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
+      const chatRate = await applyEndpointRateLimit(request, env, "public:chat", "ip:" + (request.headers.get("CF-Connecting-IP") || "unknown"), "PUBLIC_CHAT_LIMIT_PER_WINDOW", 30, "PUBLIC_RATE_WINDOW_SECONDS", 3600);
+      if (!chatRate.allowed) return response({error:"Too many messages. Please try again later."},429,{...cors,"retry-after":String(chatRate.retryAfter || 60)});
       if (!env.AI || typeof env.AI.run !== "function") return response({ error: "AI chat is not configured on the server yet." }, 503, cors);
       let payload;
       try {
@@ -992,6 +1055,8 @@ export default {
       }
     }
     if (url.pathname === "/api/intake" && request.method === "POST") {
+      const intakeRate = await applyEndpointRateLimit(request, env, "public:intake", "ip:" + (request.headers.get("CF-Connecting-IP") || "unknown"), "PUBLIC_INTAKE_LIMIT_PER_WINDOW", 12, "PUBLIC_RATE_WINDOW_SECONDS", 3600);
+      if (!intakeRate.allowed) return response({error:"Too many enquiries from this connection. Please try again later."},429,{...cors,"retry-after":String(intakeRate.retryAfter || 60)});
       try { return await createSubmission(request, env, cors); }
       catch { return response({ error: "The enquiry service is temporarily unavailable. Please retry later." }, 503, cors); }
     }
