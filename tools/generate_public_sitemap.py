@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the public Render sitemap from indexable HTML pages in public-site/."""
+"""Generate the public Cloudflare Pages sitemap from indexable HTML pages in public-site/."""
 from __future__ import annotations
 
 from datetime import date
@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public-site"
-BASE = "https://nexora-ai-public.onrender.com"
+BASE = "https://nexora-ai-public.pages.dev"
 NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 EXCLUDED_NAMES = {"404.html", "admin.html", "login.html", "thank-you.html", "thankyou.html"}
 EXCLUDED_PARTS = {"admin", "tests", "test", "thank-you", "thankyou", "thank_you", "fixtures"}
