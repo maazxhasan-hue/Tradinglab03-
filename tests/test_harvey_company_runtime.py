@@ -52,7 +52,7 @@ class UnifiedWorkforceRegistryTests(unittest.TestCase):
     def test_company_dispatch_has_background_execution_and_restart_recovery(self):
         self.assertTrue(callable(self.app._run_company_cycle))
         self.assertTrue(callable(self.app._company_cycle_supervisor))
-        self.assertIn("company_jobs", self.app.init_db.__code__.co_consts[0] if self.app.init_db.__code__.co_consts else "")
+        self.assertIn(self.app._start_company_cycle_supervisor, self.app.app.router.on_startup)
 
 
 if __name__ == "__main__":
