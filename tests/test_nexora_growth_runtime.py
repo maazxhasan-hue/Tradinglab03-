@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
-from company.nexora_growth_runtime import AGENTS, DEPARTMENTS, GrowthStore
+from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, DEPARTMENTS, GrowthStore
 from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status
 
 class GrowthRuntimeTests(unittest.TestCase):
@@ -18,6 +18,32 @@ class GrowthRuntimeTests(unittest.TestCase):
         self.assertEqual(sum(a["kind"] == "lead" for a in AGENTS), 8)
         self.assertEqual(sum(a["kind"] == "specialist" for a in AGENTS), 32)
         self.assertEqual(len(DEPARTMENTS), 8)
+
+    def test_requested_specialist_roles_are_registered_and_executable(self):
+        required = {
+            "Harvey Agent", "CEO / Strategy Lead", "Lead Discovery Agent",
+            "Sales Agent", "Pricing Agent", "Client Support Agent", "Brand Agent",
+            "Contact Agent", "Copywriter", "Social & Community Agent", "SEO Web Agent",
+            "Growth Analysis Agent", "Product Manager Agent", "UX/UI Designer",
+            "Frontend Developer", "Backend Developer", "Testing & QA Agent",
+            "Security & Privacy Agent", "Release & Development Agent",
+            "Documentation Specialist", "Project Operations Agent", "Finance Lead",
+            "Policy & Compliance Agent", "Knowledge & Memory Agent", "Workflow Agent",
+            "Customer Support Agent", "Experiment & Learning Agent", "Trading System Agent",
+            "Reverse Writing Agent", "Cinematic Video Production Agent",
+            "Instagram Growth Agent", "Video Editing Agent", "Website Making Agent",
+            "Landing Page Agent", "Marketing Agent",
+        }
+        registered = {agent["name"] for agent in AGENT_DIRECTORY.values()}
+        self.assertTrue(required.issubset(registered), sorted(required - registered))
+        self.assertEqual(len(AGENT_DIRECTORY), len(AGENTS) + len(COMPANY_AGENTS))
+        for agent in AGENT_DIRECTORY.values():
+            task = self.store.create_task(
+                "Capability smoke test: " + agent["name"], agent["agent_id"],
+                {"goal": "Create a role-specific internal deliverable; draft-only."},
+            )
+            self.assertEqual(task["status"], "queued")
+            self.assertEqual(task["agent_id"], agent["agent_id"])
 
     def test_task_persistence_and_evidence_required(self):
         task = self.store.create_task("Draft Nexora launch reel", "d01-a02", {"service":"AI automation"})
