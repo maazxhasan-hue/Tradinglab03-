@@ -257,6 +257,10 @@ def public_items() -> list[dict[str, Any]]:
     result = []
     for row in rows:
         item = _from_json(row["published_json"]) or {}
+        # Client-specific quotes are never part of the public catalog, even when
+        # the owner publishes their internal snapshot in HQ.
+        if item.get("category") == "client_quote":
+            continue
         data = dict(item)
         data["amount_inr"] = f"{(Decimal(int(data.pop('amount_paise'))) / Decimal(100)):.2f}"
         promo = data.pop("promo_price_paise")
