@@ -57,7 +57,7 @@ function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 180;
 }
 function validDeadline(value) {
-  return !value || /^\d{4}-\d{2}-\d{2}$/.test(value);
+  return value === "" || isValidIsoDate(value);
 }
 function safeReference(value) {
   if (!value) return "";
@@ -265,7 +265,9 @@ async function getMyReferrals(request, env, cors) {
 async function listAdminReferrals(request, env, cors) {
   if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
-  const limit=Math.min(100,Math.max(1,Number.parseInt(new URL(request.url).searchParams.get("limit")||"50",10)||50));
+  const limitRaw = new URL(request.url).searchParams.get("limit");
+  if (limitRaw !== null && !/^(?:[1-9]|[1-9][0-9]|100)$/.test(limitRaw)) return response({error:"Limit must be an integer from 1 to 100."},422,cors);
+  const limit = limitRaw === null ? 50 : Number(limitRaw);
   const rows=await env.DB.prepare(
     "SELECT r.id,r.referral_code,r.status,r.created_at,r.qualified_at,r.converted_at,owner.email AS referrer_email,customer.email AS referred_email FROM referrals r JOIN client_accounts owner ON owner.id=r.referrer_account_id JOIN client_accounts customer ON customer.id=r.referred_account_id ORDER BY r.created_at DESC LIMIT ?"
   ).bind(limit).all();
@@ -296,7 +298,8 @@ async function updateReferralCommissionStatus(request, env, id, cors) {
   if (!validUuid(id)) return response({error:"Invalid commission ID."},400,cors);
   let body;
   try { body=JSON.parse(await readLimitedBody(request,1000)); } catch { return response({error:"Invalid JSON."},400,cors); }
-  const status=clean(body && body.status,20);
+  if (!exactKeys(body, ["status"]) || !stringField(body.status, {min: 1, max: 20, allowEmpty: false})) return response({error:"Invalid status schema."},422,cors);
+  const status=body.status;
   if (!new Set(["paid","reversed"]).has(status)) return response({error:"Status must be paid or reversed."},422,cors);
   const now=new Date().toISOString();
   const existing=await env.DB.prepare("SELECT id,status FROM referral_commissions WHERE id=?").bind(id).first();
