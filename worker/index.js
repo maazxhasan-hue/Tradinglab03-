@@ -156,7 +156,7 @@ async function rateLimitCheck(request, env, routeType, identity, limit, windowSe
   const now = new Date();
   const since = new Date(now.getTime() - windowSeconds * 1000).toISOString();
   const bucketHash = await rateBucketHash(env, identity);
-  const row = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND created_at >= ?")
+  const row = await env.DB.prepare("SELECT COUNT(*) AS total FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND outcome = 'attempt' AND created_at >= ?")
     .bind(bucketHash, routeType, since).first();
   const total = Number(row && row.total || 0);
   if (options.backoff) {
@@ -176,7 +176,7 @@ async function rateLimitCheck(request, env, routeType, identity, limit, windowSe
     }
   }
   if (total >= limit) {
-    const oldest = await env.DB.prepare("SELECT created_at FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND created_at >= ? ORDER BY created_at ASC LIMIT 1")
+    const oldest = await env.DB.prepare("SELECT created_at FROM client_rate_limit_events WHERE bucket_hash = ? AND route_type = ? AND outcome = 'attempt' AND created_at >= ? ORDER BY created_at ASC LIMIT 1")
       .bind(bucketHash, routeType, since).first();
     const retryAfter = oldest && oldest.created_at ? Math.max(1, Math.ceil((new Date(oldest.created_at).getTime() + windowSeconds * 1000 - now.getTime()) / 1000)) : windowSeconds;
     return { allowed: false, retryAfter, bucketHash };
