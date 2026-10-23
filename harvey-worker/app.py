@@ -806,7 +806,27 @@ async def _run_company_cycle(cycle_id: str, max_retries_per_job: int = 1) -> dic
                 if result.get("status") != "completed":
                     break
             except HTTPException as exc:
-                # Provider/brain configuration failures are systemic; do not hammer a broken service.
+                # Retry one transient provider/gateway failure for the exact failed job.
+                # Never auto-retry auth, quota, or shared-brain configuration failures.
+                if exc.status_code == 502:
+                    with db() as c:
+                        failed = c.execute(
+                            "SELECT id FROM company_jobs WHERE cycle_id=? AND status='failed' ORDER BY id DESC LIMIT 1",
+                            (cycle_id,),
+                        ).fetchone()
+                    if failed is not None:
+                        job_id = int(failed["id"])
+                        attempts[job_id] = attempts.get(job_id, 0) + 1
+                        if attempts[job_id] <= max_retries_per_job:
+                            with db() as c:
+                                c.execute(
+                                    "UPDATE company_jobs SET status='queued',error=NULL,updated_at=? WHERE id=? AND status='failed'",
+                                    (now(), job_id),
+                                )
+                            logger.warning("company_job_transient_retry cycle_id=%s job_id=%s attempt=%s",
+                                           cycle_id, job_id, attempts[job_id])
+                            await asyncio.sleep(min(2 ** attempts[job_id], 8))
+                            continue
                 if exc.status_code in {401, 403, 429, 502, 503, 504}:
                     logger.error("company_cycle_paused cycle_id=%s http_status=%s", cycle_id, exc.status_code)
                     with db() as c:
