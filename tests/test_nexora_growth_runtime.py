@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 from company.nexora_growth_runtime import AGENTS, DEPARTMENTS, GrowthStore
-from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status
+from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status, provider_status
 
 class GrowthRuntimeTests(unittest.TestCase):
     def setUp(self):
@@ -50,6 +50,15 @@ class GrowthRuntimeTests(unittest.TestCase):
         task = self.store.create_task("Task", "growth-director")
         with self.assertRaises(ValueError):
             self.store.transition(task["task_id"], "completed", "test", outputs={}, evidence_refs=["x"])
+
+    def test_provider_status_never_exposes_secret(self):
+        self.assertEqual(provider_status({}), {"configured": False, "provider": None})
+        self.assertEqual(provider_status({"GEMINI_API_KEY": "secret-value"}),
+                         {"configured": True, "provider": "gemini"})
+        self.assertEqual(provider_status({"OPENAI_API_KEY": "another-secret"}),
+                         {"configured": True, "provider": "openai"})
+        self.assertEqual(provider_status({"GEMINI_API_KEY": "  ", "OPENAI_API_KEY": ""}),
+                         {"configured": False, "provider": None})
 
     def test_ai_agent_generates_private_draft_and_records_evidence(self):
         task = self.store.create_task("Draft a launch reel", "d01-a02",
