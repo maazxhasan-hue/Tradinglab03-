@@ -50,7 +50,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out TradingLab03 company project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
