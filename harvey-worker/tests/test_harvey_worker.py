@@ -221,6 +221,22 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertIn("published", events)
         self.assertIn("published_item_draft_updated", events)
 
+    def test_client_specific_quotes_never_appear_in_public_catalog(self):
+        self.login_hq()
+        payload = {
+            "title": "Private Client Quote", "slug": "private-client-quote",
+            "category": "client_quote", "description": "Confidential bespoke scope",
+            "amount_inr": "25000.00", "billing_period": "custom",
+            "discount_percent": "0", "promo_price_inr": None,
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        item_id = created.json()["id"]
+        self.assertEqual(self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={}).status_code, 200)
+        self.assertEqual(self.hq_client.get("/public/pricing").json()["items"], [])
+        private_list = self.hq_client.get("/hq/api/pricing")
+        self.assertIn("Private Client Quote", [item["title"] for item in private_list.json()["items"]])
+
     def test_pricing_validation_rejects_invalid_slug_and_promotion(self):
         self.login_hq()
         base = {
