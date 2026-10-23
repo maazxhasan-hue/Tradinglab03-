@@ -43,7 +43,7 @@ jobs:
             --volume "${{ github.workspace }}:/src" \
             --workdir /src \
             semgrep/semgrep:latest \
-            semgrep scan --config p/python --config p/security-audit \
+            semgrep scan --config p/python --config p/security-audit --config .semgrep.yml \
               --include '*.py' --baseline-commit "$baseline" \
               --metrics=off --error --json \
               --output data/semgrep/new-backend-findings.json \
