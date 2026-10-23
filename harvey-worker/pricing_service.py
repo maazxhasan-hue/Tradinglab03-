@@ -119,7 +119,7 @@ def _from_json(value: str | None) -> dict[str, Any] | None:
 def _display(item: dict[str, Any], status: str, published: dict[str, Any] | None,
              created_at: str, updated_at: str, published_at: str | None) -> dict[str, Any]:
     data = dict(item)
-    data["amount_inr"] = f"{Decimal(int(data.pop('amount_paise')) / 100):.2f}"
+    data["amount_inr"] = f"{(Decimal(int(data.pop('amount_paise'))) / Decimal(100)):.2f}"
     promo = data.pop("promo_price_paise")
     data["promo_price_inr"] = f"{(Decimal(int(promo)) / Decimal(100)).quantize(Decimal("0.01")):.2f}" if promo is not None else None
     data.update({
@@ -260,7 +260,7 @@ def public_items() -> list[dict[str, Any]]:
         data = dict(item)
         data["amount_inr"] = f"{Decimal(int(data.pop('amount_paise')) / 100):.2f}"
         promo = data.pop("promo_price_paise")
-        data["promo_price_inr"] = f"{Decimal(int(promo) / 100):.2f}" if promo is not None else None
+        data["promo_price_inr"] = f"{(Decimal(int(promo)) / Decimal(100)):.2f}" if promo is not None else None
         data["slug"] = row["slug"]
         data["published_at"] = row["published_at"]
         result.append(data)
