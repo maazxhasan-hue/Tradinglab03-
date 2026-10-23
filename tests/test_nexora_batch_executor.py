@@ -45,5 +45,35 @@ class BatchExecutorTests(unittest.TestCase):
         self.assertTrue(all(task["outputs"]["mode"] == "draft_only" for task in tasks))
 
 
+    def test_unexpected_agent_error_does_not_stop_remaining_roles(self):
+        calls = {"count": 0}
+
+        def execute(store, task_id):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                raise RuntimeError("simulated unexpected worker error")
+            store.transition(task_id, "running", "test-worker")
+            store.transition(
+                task_id, "completed", "test-worker",
+                outputs={"draft": "test draft", "mode": "draft_only"},
+                evidence_refs=["test:internal-draft"],
+            )
+
+        with patch("company.nexora_batch_executor.execute_agent_draft", side_effect=execute):
+            result = start_all_agents(self.store, {"OPENAI_API_KEY": "test-key"})
+            self.assertTrue(result["started"])
+            deadline = time.time() + 5
+            while batch_status()["running"] and time.time() < deadline:
+                time.sleep(0.01)
+
+        state = batch_status()
+        self.assertFalse(state["running"])
+        self.assertEqual(state["finished"], 41)
+        self.assertEqual(state["failed"], 1)
+        self.assertEqual(calls["count"], 41)
+        completed = [task for task in self.store.list_tasks() if task["status"] == "completed"]
+        self.assertEqual(len(completed), 40)
+
+
 if __name__ == "__main__":
     unittest.main()
