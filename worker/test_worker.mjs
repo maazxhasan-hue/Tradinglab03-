@@ -9,11 +9,22 @@ class DB {
   accounts = [];
   sessions = [];
   attempts = [];
+  rateEvents = [];
   prepare(sql) {
     const db = this;
     const q = { sql, args: [], bind(...args) { q.args = args; return q; } };
     q.first = async () => {
       if (sql.includes("SELECT 1")) return { ok: 1 };
+      if (sql.includes("FROM client_rate_limit_events") && sql.includes("COUNT(*)")) {
+        const [bucket, route, since] = q.args;
+        return { total: db.rateEvents.filter(x => x.bucket_hash === bucket && x.route_type === route && x.created_at >= since && (!sql.includes("outcome = 'failure'") || x.outcome === "failure")).length };
+      }
+      if (sql.includes("FROM client_rate_limit_events") && sql.includes("ORDER BY created_at DESC")) {
+        return db.rateEvents.filter(x => x.bucket_hash === q.args[0] && x.route_type === q.args[1] && x.outcome === "failure").sort((a,b)=>b.created_at.localeCompare(a.created_at))[0] || null;
+      }
+      if (sql.includes("FROM client_rate_limit_events") && sql.includes("ORDER BY created_at ASC")) {
+        return db.rateEvents.filter(x => x.bucket_hash === q.args[0] && x.route_type === q.args[1] && x.created_at >= q.args[2]).sort((a,b)=>a.created_at.localeCompare(b.created_at))[0] || null;
+      }
       if (sql.includes("FROM client_auth_attempts")) return { total: db.attempts.filter(x => x.ip_hash === q.args[0]).length };
       if (sql.includes("FROM client_sessions s JOIN client_accounts")) {
         const session=db.sessions.find(x=>x.token_hash===q.args[0] && x.expires_at>q.args[1]);
@@ -28,6 +39,7 @@ class DB {
       return null;
     };
     q.run = async () => {
+      if (sql.startsWith("INSERT INTO client_rate_limit_events")) { db.rateEvents.push({id:q.args[0],bucket_hash:q.args[1],route_type:q.args[2],outcome:q.args[3],created_at:q.args[4]}); return {meta:{changes:1}}; }
       if (sql.startsWith("INSERT INTO client_auth_attempts")) { db.attempts.push({id:q.args[0],ip_hash:q.args[1],created_at:q.args[2]}); return {meta:{changes:1}}; }
       if (sql.startsWith("INSERT INTO client_accounts")) {
         if(db.accounts.some(x=>x.email===q.args[1])) throw new Error("duplicate email");
