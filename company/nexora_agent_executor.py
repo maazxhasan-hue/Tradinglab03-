@@ -32,7 +32,7 @@ def _validated_model(value: str) -> str:
 def _post_json(host: str, path: str, headers: dict[str, str], payload: dict) -> dict:
     if host not in {"generativelanguage.googleapis.com", "api.openai.com"}:
         raise DraftExecutionError("AI provider host is not allowlisted.")
-    if not path.startswith("/") or path.startswith("//") or "\\\\" in path:
+    if not path.startswith("/") or path.startswith("//") or "\\" in path:
         raise DraftExecutionError("AI provider path is invalid.")
     # nosemgrep: python.lang.security.audit.httpsconnection-detected.httpsconnection-detected -- fixed provider host and verified default CA trust
     connection = http.client.HTTPSConnection(host, timeout=45, context=ssl.create_default_context())
