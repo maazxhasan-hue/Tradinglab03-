@@ -4,7 +4,7 @@ confirmation, server-side credentials, a configured sender, unsubscribe protecti
 suppression checks, duplicate-send protection, and a daily limit.
 """
 from __future__ import annotations
-import os, sqlite3, secrets, re, asyncio
+import os, sqlite3, secrets, re, asyncio, sys
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
@@ -703,6 +703,9 @@ def _register_extended_agent_mandates() -> None:
         logger.error("company_role_registry_load_failed error_type=%s", type(exc).__name__)
         raise RuntimeError("The company role registry could not be loaded; refusing to start with an incomplete roster.") from None
 
+    repository_root = os.path.dirname(app_dir)
+    if os.path.isdir(os.path.join(repository_root, "company")) and repository_root not in sys.path:
+        sys.path.insert(0, repository_root)
     try:
         from company.nexora_growth_runtime import AGENTS as GROWTH_AGENTS
         for agent in GROWTH_AGENTS:
