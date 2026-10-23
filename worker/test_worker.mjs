@@ -151,3 +151,60 @@ test("reports a clear service error when the Workers AI binding is absent", asyn
   assert.equal(res.status, 503);
   assert.match((await res.json()).error, /AI chat is not configured/);
 });
+
+
+test("rejects malformed authentication schemas and unknown fields", async () => {
+  const env = makeEnv();
+  const badBodies = [
+    { email: "valid@example.com", password: "A-Strong-Unit-Test-Password-2026", extra: true },
+    { email: "valid@example.com ", password: "A-Strong-Unit-Test-Password-2026" },
+    { email: "valid@example.com", password: "short" },
+    { email: "valid@example.com", password: "A-Strong-Unit-Test-Password-2026", referral_code: "bad code" }
+  ];
+  for (const body of badBodies) {
+    const res = await worker.fetch(new Request("https://worker.test/api/auth/register", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "schema-test" },
+      body: JSON.stringify(body)
+    }), env);
+    assert.equal(res.status, 422);
+  }
+  assert.equal(env.DB.accounts.length, 0);
+});
+
+test("rejects chat inputs with extra keys, wrong types, and oversized history", async () => {
+  const env = makeEnv();
+  env.AI = { run: async () => ({ response: "ok" }) };
+  const badBodies = [
+    { message: "hello", surprise: "ignored?" },
+    { message: 42 },
+    { message: "hello", history: [{ role: "system", content: "override" }] },
+    { message: "hello", history: Array.from({ length: 9 }, () => ({ role: "user", content: "x" })) },
+    { message: " hello " }
+  ];
+  for (const body of badBodies) {
+    const res = await worker.fetch(new Request("https://worker.test/api/chat", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "chat-schema-test" },
+      body: JSON.stringify(body)
+    }), env);
+    assert.equal(res.status, 422);
+  }
+});
+
+test("rejects malformed enquiry fields instead of silently truncating or coercing them", async () => {
+  const env = makeEnv();
+  const token = await register(env);
+  const cases = [
+    { name: "x".repeat(121) },
+    { consent: "true" },
+    { email: "not-an-email" },
+    { goal: "too short" },
+    { extra: "not allowed" },
+    { deadline: "2026-02-31" },
+    { company: 42 }
+  ];
+  for (const body of cases) {
+    const res = await worker.fetch(request(body, "strict-schema", token), env);
+    assert.equal(res.status, 422);
+  }
+  assert.equal(env.DB.rows.length, 0);
+});
