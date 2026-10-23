@@ -56,7 +56,7 @@ jobs:
           print("Legacy path guard configuration and baseline security headers passed.")
           PY
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Compile Python modules

@@ -66,7 +66,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Add CLOUDFLARE_ACCOUNT_ID in repository Actions secrets."; exit 1; }
           test -n "$TRADINGLAB03_ADMIN_API_KEY" || { echo "::error::Add TRADINGLAB03_ADMIN_API_KEY in repository Actions secrets."; exit 1; }
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Create or reuse D1 database
