@@ -23,6 +23,16 @@ class ProviderNotConfigured(DraftExecutionError):
     """No supported AI provider credential is configured."""
 
 
+def provider_status(environ: Mapping[str, str] | None = None) -> dict:
+    """Report provider readiness without exposing credentials or their values."""
+    env = os.environ if environ is None else environ
+    if env.get("GEMINI_API_KEY", "").strip():
+        return {"configured": True, "provider": "gemini"}
+    if env.get("OPENAI_API_KEY", "").strip():
+        return {"configured": True, "provider": "openai"}
+    return {"configured": False, "provider": None}
+
+
 def _validated_model(value: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9._-]{1,100}", value):
         raise DraftExecutionError("Configured model name is invalid.")
