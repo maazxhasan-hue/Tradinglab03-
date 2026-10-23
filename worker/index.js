@@ -265,7 +265,9 @@ async function getMyReferrals(request, env, cors) {
 async function listAdminReferrals(request, env, cors) {
   if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
-  const limitRaw = new URL(request.url).searchParams.get("limit");
+  const params = new URL(request.url).searchParams;
+  if ([...params.keys()].some(key => key !== "limit") || [...params.keys()].some(key => params.getAll(key).length !== 1)) return response({error:"Unsupported or repeated query parameter."},422,cors);
+  const limitRaw = params.get("limit");
   if (limitRaw !== null && !/^(?:[1-9]|[1-9][0-9]|100)$/.test(limitRaw)) return response({error:"Limit must be an integer from 1 to 100."},422,cors);
   const limit = limitRaw === null ? 50 : Number(limitRaw);
   const rows=await env.DB.prepare(
@@ -551,7 +553,10 @@ async function updateSubmissionStatus(request, env, id, cors) {
     return response({ error: "Send a valid JSON status update." }, 400, cors);
   }
   const allowedStatuses = new Set(["new", "reviewing", "qualified", "proposal_ready", "in_progress", "delivered", "won", "lost"]);
-  const status = clean(payload && payload.status, 30);
+  if (!exactKeys(payload, ["status"]) || !stringField(payload.status, {min: 1, max: 30, allowEmpty: false})) {
+    return response({error:"Invalid status schema."},422,cors);
+  }
+  const status = payload.status;
   if (!allowedStatuses.has(status)) return response({ error: "Unsupported status." , allowed_statuses: Array.from(allowedStatuses) }, 422, cors);
   const result = await env.DB.prepare("UPDATE submissions SET status = ? WHERE id = ?").bind(status, id).run();
   const changed = Number(result.meta && result.meta.changes || 0) > 0;
