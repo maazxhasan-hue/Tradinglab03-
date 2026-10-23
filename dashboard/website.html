@@ -182,7 +182,7 @@ submitButton.addEventListener("click",()=>{
 const configuredEndpoint=document.body.dataset.intakeEndpoint.trim();
 if(configuredEndpoint){
  submitButton.textContent="Send project enquiry ↗";
- statusBox.textContent="Online intake is connected. Submitting will save your enquiry and return a reference.";
+ statusBox.textContent="Online intake is connected. After you submit, we will show a reference only when the service confirms the enquiry was saved.";
 }else{
  submitButton.textContent="Prepare project brief ↗";
  statusBox.textContent="Online intake is not connected yet. This button only prepares a local brief; keep the downloaded brief and retry the enquiry later.";
