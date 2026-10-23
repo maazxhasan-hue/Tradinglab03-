@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, DEPARTMENTS, GrowthStore
-from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status
+from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status, role_deliverable_contract
 
 class GrowthRuntimeTests(unittest.TestCase):
     def setUp(self):
@@ -44,6 +44,20 @@ class GrowthRuntimeTests(unittest.TestCase):
             )
             self.assertEqual(task["status"], "queued")
             self.assertEqual(task["agent_id"], agent["agent_id"])
+
+    def test_role_contracts_produce_specialist_specific_acceptance_criteria(self):
+        self.assertIn("timed shot-by-shot storyboard",
+                      role_deliverable_contract("Cinematic Video Production Agent", "Creative & Presenting"))
+        self.assertIn("file-by-file code or patch",
+                      role_deliverable_contract("Website Making Agent", "Builders & Engineering"))
+        self.assertIn("paper-trading-only",
+                      role_deliverable_contract("Trading System Agent", "Quality, Audit & Testing"))
+        self.assertIn("source-backed",
+                      role_deliverable_contract("Lead Discovery Agent", "Sales & Partnerships"))
+        self.assertIn("executive brief",
+                      role_deliverable_contract("CEO / Strategy Lead", "Executive & Strategy"))
+        self.assertIn("channel-specific growth asset",
+                      role_deliverable_contract("Marketing Agent", "Marketing & Brand"))
 
     def test_task_persistence_and_evidence_required(self):
         task = self.store.create_task("Draft Nexora launch reel", "d01-a02", {"service":"AI automation"})
