@@ -17,7 +17,7 @@ class DB {
       if (sql.includes("SELECT 1")) return { ok: 1 };
       if (sql.includes("FROM client_rate_limit_events") && sql.includes("COUNT(*)")) {
         const [bucket, route, since] = q.args;
-        return { total: db.rateEvents.filter(x => x.bucket_hash === bucket && x.route_type === route && x.created_at >= since && (!sql.includes("outcome = 'failure'") || x.outcome === "failure")).length };
+        return { total: db.rateEvents.filter(x => x.bucket_hash === bucket && x.route_type === route && x.created_at >= since && (sql.includes("outcome = 'failure'") ? x.outcome === "failure" : (!sql.includes("outcome = 'attempt'") || x.outcome === "attempt"))).length };
       }
       if (sql.includes("FROM client_rate_limit_events") && sql.includes("ORDER BY created_at DESC")) {
         return db.rateEvents.filter(x => x.bucket_hash === q.args[0] && x.route_type === q.args[1] && x.outcome === "failure").sort((a,b)=>b.created_at.localeCompare(a.created_at))[0] || null;
