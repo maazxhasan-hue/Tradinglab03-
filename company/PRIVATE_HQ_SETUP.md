@@ -20,6 +20,7 @@ On the existing private Harvey backend service, configure `HQ_ADMIN_PASSWORD` as
 
 - Missing configuration fails closed with HTTP 503.
 - The session cookie is signed server-side, HTTP-only, Secure, SameSite=Strict, scoped to `/hq`, and expires after eight hours.
+- Login attempts are rate-limited after eight failures in a 15-minute window per keyed peer-address digest; the raw peer address is not stored.
 - Unauthenticated `/hq` requests redirect to login; the overview API returns HTTP 401.
 - Responses use no-store caching, nosniff, no-referrer, and frame-denial headers.
 - The dashboard is read-only. It does not start agents, send messages, publish, spend money, approve work, deploy client projects, or collect payments.
