@@ -164,29 +164,6 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
-        if parsed.path.startswith("/api/backup/"):
-            if not self.authenticated():
-                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
-            try:
-                length = int(self.headers.get("Content-Length", "0"))
-                if length <= 0 or length > 4096: raise ValueError("invalid_body_size")
-                data = json.loads(self.rfile.read(length).decode("utf-8"))
-                if parsed.path == "/api/backup/create":
-                    result = create_backup(GROWTH_DB)
-                    self.body(201, json.dumps(result), "application/json; charset=utf-8"); return
-                if parsed.path == "/api/backup/restore":
-                    result = restore_backup(str(data.get("file_id", "")), GROWTH_DB)
-                    store = GrowthStore(GROWTH_DB)
-                    with store.connect() as con:
-                        store._audit(con, "owner", "backup_restored", result["file_id"], {"name":result.get("name")})
-                    self.body(200, json.dumps(result), "application/json; charset=utf-8"); return
-                self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
-            except (ValueError, json.JSONDecodeError) as exc:
-                self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
-            except DriveBackupError as exc:
-                self.body(409, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
-            except Exception:
-                self.body(500, json.dumps({"error":"backup_service_error"}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
