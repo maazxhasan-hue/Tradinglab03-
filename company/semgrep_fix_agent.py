@@ -130,8 +130,6 @@ def ask_gemini(prompt: str, api_key: str) -> str:
     )
     # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
     # The request is restricted to the official HTTPS provider host above; no caller-controlled URL is accepted.
-    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-    # The request is restricted to the official HTTPS provider host above; no caller-controlled URL is accepted.
     with urllib.request.urlopen(request, timeout=90) as response:
         result = json.loads(response.read(2_000_000).decode())
     candidates = result.get("candidates", [])
@@ -167,6 +165,8 @@ def ask_openai(prompt: str, api_key: str) -> str:
         headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
         method="POST",
     )
+    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+    # The request is restricted to the official HTTPS provider host above; no caller-controlled URL is accepted.
     with urllib.request.urlopen(request, timeout=90) as response:
         result = json.loads(response.read(2_000_000).decode())
     choices = result.get("choices", [])
