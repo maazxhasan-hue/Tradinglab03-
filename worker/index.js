@@ -27,6 +27,32 @@ function corsHeaders(request, env) {
 function clean(value, max) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
+
+// Strict request schemas reject malformed input instead of silently coercing,
+// trimming, truncating, or ignoring unknown fields.
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) &&
+    (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+}
+function hasOnlyKeys(value, allowed) {
+  return isPlainObject(value) && Object.keys(value).every(key => allowed.includes(key));
+}
+function stringField(value, {min = 0, max, pattern, allowEmpty = min === 0} = {}) {
+  if (typeof value !== "string" || value.length > max || value.length < min) return false;
+  if (!allowEmpty && value.length === 0) return false;
+  if (value !== value.trim()) return false;
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value)) return false;
+  return !pattern || pattern.test(value);
+}
+function exactKeys(value, required, optional = []) {
+  if (!isPlainObject(value)) return false;
+  const keys = Object.keys(value);
+  return required.every(key => Object.hasOwn(value, key)) &&
+    keys.every(key => required.includes(key) || optional.includes(key));
+}
+function validUuid(value) {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 180;
 }
@@ -248,10 +274,11 @@ async function listAdminReferrals(request, env, cors) {
 async function updateAdminReferral(request, env, id, cors) {
   if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({error:"Invalid referral ID."},400,cors);
+  if (!validUuid(id)) return response({error:"Invalid referral ID."},400,cors);
   let body;
   try { body=JSON.parse(await readLimitedBody(request,1500)); } catch { return response({error:"Invalid JSON."},400,cors); }
-  const status=clean(body && body.status,20);
+  if (!exactKeys(body, ["status"]) || !stringField(body.status, {min: 1, max: 20, allowEmpty: false})) return response({error:"Invalid status schema."},422,cors);
+  const status=body.status;
   if (!new Set(["qualified","converted","rejected"]).has(status))
     return response({error:"Status must be qualified, converted, or rejected."},422,cors);
   const now=new Date().toISOString();
@@ -266,7 +293,7 @@ async function updateAdminReferral(request, env, id, cors) {
 async function updateReferralCommissionStatus(request, env, id, cors) {
   if (!env.ADMIN_API_KEY || (request.headers.get("Authorization") || "") !== "Bearer " + env.ADMIN_API_KEY)
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({error:"Invalid commission ID."},400,cors);
+  if (!validUuid(id)) return response({error:"Invalid commission ID."},400,cors);
   let body;
   try { body=JSON.parse(await readLimitedBody(request,1000)); } catch { return response({error:"Invalid JSON."},400,cors); }
   const status=clean(body && body.status,20);
@@ -287,12 +314,19 @@ async function createReferralCommission(request, env, cors) {
     return response({error:"Unauthorized."},401,{...cors,"www-authenticate":"Bearer"});
   let body;
   try { body = JSON.parse(await readLimitedBody(request, 3000)); } catch { return response({error:"Invalid JSON."},400,cors); }
-  const referralId=clean(body && body.referral_id,36);
-  const sourceType=clean(body && body.source_type,32);
-  const sourceReference=clean(body && body.source_reference,160);
-  const gross=Number(body && body.gross_amount_paise);
-  const rate=Number(body && body.commission_rate_bps);
-  const verified=body && body.payment_verified === true;
+  if (!exactKeys(body, ["referral_id","source_type","source_reference","gross_amount_paise","commission_rate_bps","payment_verified"]) ||
+      !validUuid(body.referral_id) ||
+      !stringField(body.source_type, {min: 1, max: 32, allowEmpty: false, pattern: /^[a-z_]+$/}) ||
+      !stringField(body.source_reference, {min: 1, max: 160, allowEmpty: false, pattern: /^[A-Za-z0-9._:-]+$/}) ||
+      typeof body.gross_amount_paise !== "number" || !Number.isSafeInteger(body.gross_amount_paise) || body.gross_amount_paise < 1 ||
+      typeof body.commission_rate_bps !== "number" || !Number.isInteger(body.commission_rate_bps) || body.commission_rate_bps < 0 || body.commission_rate_bps > 10000 ||
+      body.payment_verified !== true) return response({error:"Invalid commission schema."},422,cors);
+  const referralId=body.referral_id;
+  const sourceType=body.source_type;
+  const sourceReference=body.source_reference;
+  const gross=body.gross_amount_paise;
+  const rate=body.commission_rate_bps;
+  const verified=body.payment_verified;
   const types=new Set(["trading_course","website","landing_page","ai_tool","custom_project","other"]);
   if (!/^[0-9a-f-]{36}$/i.test(referralId) || !types.has(sourceType) || !sourceReference ||
       !Number.isSafeInteger(gross) || gross < 1 || !Number.isInteger(rate) || rate < 0 || rate > 10000 || !verified)
@@ -326,12 +360,16 @@ async function handleAuth(request, env, cors, action) {
   if (request.method !== "POST") return response({error:"Method not allowed."}, 405, cors);
   let body;
   try { body = JSON.parse(await readLimitedBody(request, 3000)); } catch { return response({error:"Invalid request."}, 400, cors); }
-  if (!body || typeof body !== "object" || Array.isArray(body)) return response({error:"Invalid request."}, 400, cors);
-  const email = clean(body.email, 180).toLowerCase();
-  const password = typeof body.password === "string" ? body.password : "";
-  if (!validEmail(email) || password.length < 12 || password.length > 256) {
-    return response({error:"Use a valid email and a password between 12 and 256 characters."}, 422, cors);
+  const authKeys = action === "register" ? ["email", "password", "referral_code"] : ["email", "password"];
+  if (!exactKeys(body, ["email", "password"], action === "register" ? ["referral_code"] : []) ||
+      !stringField(body.email, {min: 3, max: 180, pattern: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/i}) ||
+      !stringField(body.password, {min: 12, max: 256, allowEmpty: false}) ||
+      (action === "register" && Object.hasOwn(body, "referral_code") &&
+        !stringField(body.referral_code, {min: 4, max: 32, pattern: /^[A-Za-z0-9]+$/}))) {
+    return response({error:"Invalid request schema: provide only the documented fields with valid types, lengths, and formats."}, 422, cors);
   }
+  const email = body.email.toLowerCase();
+  const password = body.password;
   const rate = await authRateAllowed(request, env, action, email);
   if (!rate.allowed) return response({error:"Too many attempts. Please wait briefly and try again."}, 429, {...cors,"retry-after":String(rate.retryAfter || 60)});
   let account;
@@ -340,7 +378,7 @@ async function handleAuth(request, env, cors, action) {
     const hash = await passwordHash(password, salt);
     const id = crypto.randomUUID();
     const ownReferralCode = newReferralCode();
-    const referralCode = clean(body.referral_code, 32).toUpperCase();
+    const referralCode = typeof body.referral_code === "string" ? body.referral_code.toUpperCase() : "";
     try {
       await env.DB.prepare("INSERT INTO client_accounts (id,email,password_salt,password_hash,created_at,disabled,referral_code) VALUES (?,?,?,?,?,0,?)")
         .bind(id,email,salt,hash,new Date().toISOString(),ownReferralCode).run();
@@ -403,11 +441,26 @@ async function createSubmission(request, env, cors) {
   }
   let payload;
   try { payload = JSON.parse(raw); } catch { return response({ error: "Invalid JSON." }, 400, cors); }
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return response({ error: "Invalid enquiry." }, 400, cors);
+  const intakeRequired = ["name", "email", "company", "service", "budget", "deadline", "goal", "reference", "website", "consent"];
+  const intakeOptional = ["schema_version", "source", "created_at"];
+  if (!exactKeys(payload, intakeRequired, intakeOptional) ||
+      (Object.hasOwn(payload, "schema_version") && payload.schema_version !== 1) ||
+      (Object.hasOwn(payload, "source") && !stringField(payload.source, {min: 1, max: 80, allowEmpty: false})) ||
+      (Object.hasOwn(payload, "created_at") && (typeof payload.created_at !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$/.test(payload.created_at) || Number.isNaN(Date.parse(payload.created_at)))) ||
+      !stringField(payload.name, {min: 1, max: 120, allowEmpty: false}) ||
+      !stringField(payload.email, {min: 3, max: 180, pattern: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/i}) ||
+      !stringField(payload.company, {max: 160}) ||
+      !stringField(payload.service, {min: 1, max: 80, allowEmpty: false}) ||
+      !stringField(payload.budget, {max: 80}) ||
+      !stringField(payload.deadline, {max: 10, pattern: /^$|^\\d{4}-\\d{2}-\\d{2}$/}) ||
+      !stringField(payload.goal, {min: 10, max: 5000, allowEmpty: false}) ||
+      !stringField(payload.reference, {max: 500}) ||
+      !stringField(payload.website, {max: 300}) ||
+      typeof payload.consent !== "boolean") {
+    return response({error:"Invalid enquiry schema: fields must match the documented types, lengths, and formats."}, 422, cors);
   }
-  // Quietly accept honeypot submissions without storing or notifying.
-  if (clean(payload.website, 300)) return response({ ok: true, reference_id: "received" }, 201, cors);
+  // Quietly accept schema-valid honeypot submissions without storing or notifying.
+  if (payload.website.length > 0) return response({ ok: true, reference_id: "received" }, 201, cors);
 
   const item = {
     id: crypto.randomUUID(),
@@ -475,7 +528,7 @@ async function deleteSubmission(request, env, id, cors) {
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
     return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({ error: "Invalid submission ID." }, 400, cors);
+  if (!validUuid(id)) return response({ error: "Invalid submission ID." }, 400, cors);
   const result = await env.DB.prepare("DELETE FROM submissions WHERE id = ?").bind(id).run();
   return response({ deleted: Number(result.meta && result.meta.changes || 0) > 0 }, 200, { ...cors, "cache-control": "no-store" });
 }
@@ -486,7 +539,7 @@ async function updateSubmissionStatus(request, env, id, cors) {
   if (!env.ADMIN_API_KEY || auth !== "Bearer " + env.ADMIN_API_KEY) {
     return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return response({ error: "Invalid submission ID." }, 400, cors);
+  if (!validUuid(id)) return response({ error: "Invalid submission ID." }, 400, cors);
   let payload;
   try {
     const raw = await readLimitedBody(request, 1000);
@@ -1028,12 +1081,16 @@ export default {
       } catch {
         return response({ error: "Send a valid chat message." }, 400, cors);
       }
-      const message = clean(payload && payload.message, 1200);
-      if (!message) return response({ error: "Please enter a message." }, 400, cors);
-      const history = Array.isArray(payload.history) ? payload.history.slice(-8).map(item => ({
-        role: item && item.role === "assistant" ? "assistant" : "user",
-        content: clean(item && item.content, 1200)
-      })).filter(item => item.content) : [];
+      if (!exactKeys(payload, ["message"], ["history"]) ||
+          !stringField(payload.message, {min: 1, max: 1200, allowEmpty: false}) ||
+          (Object.hasOwn(payload, "history") && (!Array.isArray(payload.history) || payload.history.length > 8 ||
+            !payload.history.every(item => exactKeys(item, ["role", "content"]) &&
+              ["user", "assistant"].includes(item.role) &&
+              stringField(item.content, {min: 1, max: 1200, allowEmpty: false}))))) {
+        return response({error:"Invalid chat schema. Check field names, types, lengths, and history roles."}, 422, cors);
+      }
+      const message = payload.message;
+      const history = (payload.history || []).map(item => ({role:item.role, content:item.content}));
       const system = [
         "You are Nexora AI's website assistant. Be friendly, concise, honest, and helpful.",
         "Nexora's public website describes AI-powered chatbots, text generation and processing, image analysis/recognition, data analytics, virtual assistants, and predictive models.",
