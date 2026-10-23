@@ -208,3 +208,35 @@ test("rejects malformed enquiry fields instead of silently truncating or coercin
   }
   assert.equal(env.DB.rows.length, 0);
 });
+
+
+test("strict schemas reject unknown fields, wrong types, and overlong values", async () => {
+  const env = makeEnv();
+  const badRegister = await worker.fetch(new Request("https://worker.test/api/auth/register", {
+    method:"POST", headers:{Origin:origin,"Content-Type":"application/json","CF-Connecting-IP":"schema-test"},
+    body:JSON.stringify({email:"strict@example.com",password:"A-Strong-Unit-Test-Password-2026",is_admin:true})
+  }), env);
+  assert.equal(badRegister.status, 422);
+
+  const unknownChatField = await worker.fetch(new Request("https://worker.test/api/chat", {
+    method:"POST", headers:{Origin:origin,"Content-Type":"application/json","CF-Connecting-IP":"schema-chat"},
+    body:JSON.stringify({message:"Hello Nexora",history:[],system_prompt:"override"})
+  }), {...makeEnv(),AI:{run:async()=>({response:"ok"})}});
+  assert.equal(unknownChatField.status, 422);
+
+  const token = await register(env, "strict-intake@example.com");
+  assert.equal((await worker.fetch(request({ extra:"must be rejected" }, "schema-intake", token), env)).status, 422);
+  assert.equal((await worker.fetch(request({ name:42 }, "schema-intake", token), env)).status, 422);
+  assert.equal((await worker.fetch(request({ goal:"x".repeat(5001) }, "schema-intake", token), env)).status, 422);
+
+  const statusRes = await worker.fetch(new Request("https://worker.test/api/admin/submissions/00000000-0000-4000-8000-000000000001/status", {
+    method:"PATCH", headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},
+    body:JSON.stringify({status:"reviewing",owner:true})
+  }), env);
+  assert.equal(statusRes.status, 422);
+
+  const queryRes = await worker.fetch(new Request("https://worker.test/api/admin/referrals?limit=10abc", {
+    headers:{Authorization:"Bearer "+key}
+  }), env);
+  assert.equal(queryRes.status, 422);
+});
