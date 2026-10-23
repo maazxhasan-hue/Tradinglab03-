@@ -46,6 +46,52 @@ def _worker(store: GrowthStore, task_ids: list[str]) -> None:
         _lock.release()
 
 
+
+def start_company_workforce(store: GrowthStore, mission: str,
+                            environ: Mapping[str, str] | None = None) -> dict:
+    """Run the complete company role registry and the 41 growth roles as real AI draft tasks."""
+    if not provider_status(environ)["configured"]:
+        raise ProviderNotConfigured(
+            "Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in the private HQ runtime."
+        )
+    mission = mission.strip()
+    if not mission or len(mission) > 4000:
+        raise ValueError("Mission must be 1-4000 characters.")
+    if not _lock.acquire(blocking=False):
+        return {"started": False, "reason": "batch_already_running", **batch_status()}
+    try:
+        task_ids = []
+        for agent in AGENT_DIRECTORY.values():
+            task = store.create_task(
+                title=f"{agent['name']}: company mission - {mission[:100]}",
+                agent_id=agent["agent_id"],
+                inputs={
+                    "role": agent["name"],
+                    "department": agent["department"],
+                    "mission": mission,
+                    "goal": "Produce the assigned role-specific deliverable for this company mission.",
+                    "instructions": (
+                        f"Own the work of {agent['name']} in {agent['department']}. "
+                        "Produce concrete internal work, state evidence and assumptions, and identify handoffs. "
+                        "Do not publish, send messages, spend money, or claim actions that were not performed."
+                    ),
+                    "mode": "draft_only",
+                },
+            )
+            task_ids.append(task["task_id"])
+        import uuid
+        with _state_lock:
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "full_company",
+                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None})
+        thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
+                                  name="nexora-full-company-workforce")
+        thread.start()
+        return {"started": True, "scope": "full_company", "task_ids": task_ids,
+                "company_roles": len(COMPANY_AGENTS), "growth_roles": len(AGENTS),
+                "total": len(task_ids), **batch_status()}
+    except Exception:
+        _lock.release()
+        raise
 def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
     """Queue all 41 roles and begin sequential internal draft generation."""
     if not provider_status(environ)["configured"]:
