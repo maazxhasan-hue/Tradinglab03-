@@ -43,11 +43,11 @@ jobs:
             --volume "${{ github.workspace }}:/src" \
             --workdir /src \
             semgrep/semgrep:latest \
-            semgrep scan --config p/python --config p/security-audit --config .semgrep.yml \
+            semgrep scan --config p/python --config p/security-audit --config p/secrets --config .semgrep.yml \
               --include '*.py' --baseline-commit "$baseline" \
               --metrics=off --error --json \
               --output data/semgrep/new-backend-findings.json \
-              company harvey-worker private_hq_server.py
+              .
 
       - name: Upload scan findings
         if: always()
