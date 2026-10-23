@@ -25,12 +25,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Scan backend Python for new security findings
+      - name: Full repository security scan
         id: scan
         continue-on-error: true
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p data/semgrep
+          docker run --rm \
+            --volume "${{ github.workspace }}:/src" \
+            --workdir /src \
+            semgrep/semgrep:latest \
+            semgrep scan --config p/default --config p/security-audit --config p/secrets --config .semgrep.yml \
+              --metrics=off --json \
+              --output data/semgrep/full-repository-findings.json \
+              .
+
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             baseline="origin/$GITHUB_BASE_REF"
           elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
@@ -38,15 +48,15 @@ jobs:
           else
             baseline="origin/main"
           fi
-          echo "Using baseline: $baseline"
+          echo "Using baseline for new-finding gate: $baseline"
           docker run --rm \
             --volume "${{ github.workspace }}:/src" \
             --workdir /src \
             semgrep/semgrep:latest \
-            semgrep scan --config p/python --config p/security-audit --config p/secrets --config .semgrep.yml \
-              --include '*.py' --baseline-commit "$baseline" \
+            semgrep scan --config p/default --config p/security-audit --config p/secrets --config .semgrep.yml \
+              --baseline-commit "$baseline" \
               --metrics=off --error --json \
-              --output data/semgrep/new-backend-findings.json \
+              --output data/semgrep/new-findings.json \
               .
 
       - name: Upload scan findings
@@ -64,7 +74,7 @@ jobs:
           SCAN_OUTCOME: ${{ steps.scan.outcome }}
         run: |
           if [ "$SCAN_OUTCOME" != "success" ]; then
-            echo "::error::Semgrep reported new backend findings or the scan failed. Download the artifact and run the manual Semgrep Remediation Agent for a bounded, reviewable fix proposal."
+            echo "::error::Semgrep found new security issues or the scan failed. Download both full and new-finding reports, fix confirmed defects, and rerun the workflow."
             exit 1
           fi
           echo "No new Semgrep backend findings."
