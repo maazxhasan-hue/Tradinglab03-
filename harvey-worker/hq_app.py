@@ -11,7 +11,7 @@ import hmac
 import json
 import os
 import time
-from collections import Counter
+from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs
 
 from fastapi import HTTPException, Request
@@ -55,6 +55,22 @@ def _valid_session(token: str | None, current_time: int | None = None) -> bool:
         return claims.get("sub") == "owner" and isinstance(claims.get("exp"), int) and now_ts < claims["exp"]
     except (ValueError, TypeError, json.JSONDecodeError, UnicodeDecodeError):
         return False
+
+
+def _ensure_login_attempts_table() -> None:
+    with db() as conn:
+        conn.execute("""CREATE TABLE IF NOT EXISTS hq_login_attempts(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip_hash TEXT NOT NULL,
+            attempted_at TEXT NOT NULL
+        )""")
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_hq_login_attempts_ip_time ON hq_login_attempts(ip_hash, attempted_at)")
+
+
+def _login_bucket(request: Request) -> str:
+    # Store only a keyed digest of the peer address, not the raw IP.
+    address = request.client.host if request.client else "unknown"
+    return hmac.new(_session_secret().encode(), address.encode(), hashlib.sha256).hexdigest()
 
 
 def _configured() -> bool:
@@ -174,9 +190,28 @@ async def hq_login(request: Request):
         raise HTTPException(status_code=413, detail="Login request is too large.")
     fields = parse_qs(body.decode("utf-8", errors="replace"), keep_blank_values=True)
     password = fields.get("password", [""])[0]
+    bucket = _login_bucket(request)
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
+    _ensure_login_attempts_table()
+    with db() as conn:
+        conn.execute("DELETE FROM hq_login_attempts WHERE attempted_at < ?", (cutoff,))
+        attempts = conn.execute(
+            "SELECT COUNT(*) AS n FROM hq_login_attempts WHERE ip_hash=? AND attempted_at >= ?",
+            (bucket, cutoff),
+        ).fetchone()["n"]
+    if int(attempts) >= 8:
+        return HTMLResponse(
+            "<h1>Too many sign-in attempts</h1><p>Wait 15 minutes before trying again.</p>",
+            status_code=429, headers={**_headers(), "Retry-After": "900"},
+        )
     expected = os.getenv("HQ_ADMIN_PASSWORD", "")
     if not password or not hmac.compare_digest(password.encode(), expected.encode()):
+        with db() as conn:
+            conn.execute("INSERT INTO hq_login_attempts(ip_hash, attempted_at) VALUES(?, ?)",
+                         (bucket, datetime.now(timezone.utc).isoformat()))
         return RedirectResponse("/hq/login?error=1", status_code=303, headers=_headers())
+    with db() as conn:
+        conn.execute("DELETE FROM hq_login_attempts WHERE ip_hash=?", (bucket,))
     token = _session_token(int(time.time()) + SESSION_TTL_SECONDS)
     response = RedirectResponse("/hq", status_code=303, headers=_headers())
     response.set_cookie(
