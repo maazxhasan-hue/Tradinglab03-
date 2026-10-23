@@ -7,6 +7,7 @@ on:
       - "public-site/**/*.html"
       - "public-site/**/index.html"
       - "tools/generate_public_sitemap.py"
+      - "sitemap.xml"
       - ".github/workflows/refresh-public-sitemap.yml"
   workflow_dispatch:
 
@@ -32,22 +33,25 @@ jobs:
           python tools/generate_public_sitemap.py
           python - <<'PY'
           import xml.etree.ElementTree as ET
-          tree = ET.parse("public-site/sitemap.xml")
           ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-          urls = [n.text for n in tree.findall(".//sm:loc", ns)]
-          assert urls, "Sitemap must contain public URLs"
-          assert len(urls) == len(set(urls)), "Sitemap contains duplicate URLs"
-          assert all(u.startswith("https://nexora-ai-public.pages.dev/") for u in urls)
-          print(f"Validated {len(urls)} unique Cloudflare Pages URLs.")
+          public_tree = ET.parse("public-site/sitemap.xml")
+          root_tree = ET.parse("sitemap.xml")
+          public_urls = [n.text for n in public_tree.findall(".//sm:loc", ns)]
+          root_urls = [n.text for n in root_tree.findall(".//sm:loc", ns)]
+          assert public_urls, "Sitemap must contain public URLs"
+          assert len(public_urls) == len(set(public_urls)), "Sitemap contains duplicate URLs"
+          assert all(u.startswith("https://nexora-ai-public.pages.dev/") for u in public_urls)
+          assert public_urls == root_urls, "Root and Cloudflare public sitemaps must match"
+          print(f"Validated {len(public_urls)} unique Cloudflare Pages URLs in both sitemap files.")
           PY
       - name: Commit sitemap only when changed
         run: |
-          if git diff --quiet -- public-site/sitemap.xml; then
+          if git diff --quiet -- public-site/sitemap.xml sitemap.xml; then
             echo "Sitemap already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public-site/sitemap.xml
+          git add public-site/sitemap.xml sitemap.xml
           git commit -m "Refresh generated public sitemap"
           git push
