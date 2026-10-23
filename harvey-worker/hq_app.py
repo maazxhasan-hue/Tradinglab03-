@@ -6,6 +6,7 @@ adds a server-protected owner workspace to the existing FastAPI process.
 from __future__ import annotations
 
 import base64
+import asyncio
 import hashlib
 import hmac
 import json
@@ -14,10 +15,11 @@ import time
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs
 
-from fastapi import HTTPException, Request
+from fastapi import BackgroundTasks, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from app import app, db, AGENT_ROLES, now, SHARED_BRAIN_AGENT_KEY
+from app import (app, db, AGENT_ROLES, now, SHARED_BRAIN_AGENT_KEY, API_KEY, AGENT_MANDATES, CompanyDispatchRequest, dispatch_company_mission, _run_company_cycle, _company_runtime_ready)
+from company.nexora_growth_runtime import AGENTS, COMPANY_AGENTS
 
 COOKIE_NAME = "nexora_hq_session"
 SESSION_TTL_SECONDS = 8 * 60 * 60
@@ -138,6 +140,7 @@ footer{margin-top:18px;color:var(--muted);font-size:.8rem;line-height:1.6}.error
 <div class="panel"><div class="klabel">Company jobs</div><div class="value" id="jobs">—</div></div>
 <div class="panel"><div class="klabel">Pending approvals</div><div class="value" id="approvals">—</div></div>
 <div class="panel"><div class="klabel">Defined agent roles</div><div class="value" id="roles">—</div></div></section>
+<section class="panel wide"><h2>Unified workforce</h2><p class="muted">Start a real, role-specific AI work cycle across the company roster and 41 growth roles. Results are stored as private company jobs. External publishing, outreach, spending, trading, and deployment remain gated.</p><label for="mission" class="muted">Company mission</label><textarea id="mission" maxlength="4000" rows="3" style="display:block;width:100%;margin:8px 0 12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#07101a;color:#edf4ff;font:inherit">Complete pending Nexora AI / TradingLab03 company work. Produce role-specific deliverables, QA findings, evidence, blockers, and handoffs. Fix verified issues within available capabilities and report honestly.</textarea><button id="start-workforce" class="primary" type="button">Start full company workforce</button> <span id="workforce-status" class="muted" role="status">Checking readiness…</span></section>
 <section class="two"><div class="panel"><h2>Backend & integrations</h2><div id="integrations" class="list loading">Loading integration status…</div></div>
 <div class="panel"><h2>Task status</h2><div id="task-status" class="list loading">Loading tasks…</div></div></section>
 <section class="two"><div class="panel"><h2>Recent task activity</h2><div id="recent-tasks" class="list loading">Loading tasks…</div></div>
@@ -165,6 +168,7 @@ renderList('recent-tasks',(d.tasks.recent||[]).map(x=>({label:x.kind,value:x.sta
 renderList('recent-jobs',(d.company_jobs.recent||[]).map(x=>({label:x.role,value:x.status+' · '+(x.updated_at||x.created_at||'')})),'No company jobs recorded yet.');
 $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleString();
 }catch(e){$('error').hidden=false;$('error').textContent='HQ data could not be refreshed. Check the backend health and try again.';$('updated').textContent='Status unavailable';}}
+$('start-workforce').addEventListener('click',async()=>{const button=$('start-workforce'),status=$('workforce-status'),mission=$('mission').value.trim();if(mission.length<10){status.textContent='Enter a mission with at least 10 characters.';return}if(!confirm('Start every registered company role plus all 41 growth roles? This will make real AI-provider requests and may consume provider quota. Outputs remain private; no external actions will be performed.'))return;button.disabled=true;status.textContent='Starting company work cycle…';try{const res=await fetch('/hq/api/company-workforce/start',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({mission})});const data=await res.json();if(!res.ok)throw new Error(data.detail||data.message||'The workforce could not start.');status.textContent='Cycle '+data.cycle_id+' · '+data.roles_assigned+' roles queued · '+data.status;refresh()}catch(e){status.textContent='Not started: '+(e.message||'runtime unavailable')}finally{button.disabled=false}});
 $('refresh').addEventListener('click',refresh);
 $('logout').addEventListener('click',async()=>{try{await fetch('/hq/logout',{method:'POST',credentials:'same-origin'});}finally{location.href='/hq/login';}});
 refresh();setInterval(refresh,30000);
@@ -233,6 +237,54 @@ def hq_page(request: Request):
     if not _valid_session(request.cookies.get(COOKIE_NAME)):
         return RedirectResponse("/hq/login", status_code=303, headers=_headers())
     return HTMLResponse(HQ_HTML, headers=_headers())
+
+
+@app.get("/hq/api/company-workforce", include_in_schema=False)
+def hq_company_workforce_status(request: Request):
+    if not _valid_session(request.cookies.get(COOKIE_NAME)):
+        raise HTTPException(status_code=401, detail="Sign in to access the private HQ.")
+    with db() as conn:
+        counts = {str(row["status"]): int(row["n"]) for row in conn.execute(
+            "SELECT status, COUNT(*) AS n FROM company_jobs GROUP BY status"
+        ).fetchall()}
+    return JSONResponse({
+        "company_roles": len(COMPANY_AGENTS),
+        "growth_roles": len(AGENTS),
+        "roles_defined": len(AGENT_MANDATES),
+        "model_configured": bool(os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")),
+        "shared_brain_configured": bool(SHARED_BRAIN_AGENT_KEY),
+        "automatic_execution_ready": _company_runtime_ready(),
+        "jobs_by_status": counts,
+    }, headers=_headers())
+
+
+@app.post("/hq/api/company-workforce/start", include_in_schema=False)
+async def hq_start_company_workforce(request: Request):
+    if not _valid_session(request.cookies.get(COOKIE_NAME)):
+        raise HTTPException(status_code=401, detail="Sign in to access the private HQ.")
+    try:
+        payload = await request.json()
+        if not isinstance(payload, dict):
+            raise ValueError("Request body must be a JSON object.")
+        mission = str(payload.get("mission", "")).strip()
+        req = CompanyDispatchRequest(
+            mission=mission,
+            context="Owner-authorized internal company work cycle launched from the authenticated private HQ.",
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="Provide a valid company mission (10-4000 characters).") from None
+    if not _company_runtime_ready():
+        raise HTTPException(status_code=503, detail="Automatic execution is not ready. Configure a model provider and SHARED_BRAIN_AGENT_KEY in the private Render service.")
+    try:
+        result = dispatch_company_mission(req, BackgroundTasks(), API_KEY)
+        cycle_id = str(result["cycle_id"])
+        asyncio.create_task(_run_company_cycle(cycle_id))
+        return JSONResponse({**result, "status": "running", "automatic_execution_enabled": True},
+                            status_code=202, headers=_headers())
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Could not start company cycle (" + type(exc).__name__ + ").") from None
 
 
 @app.get("/hq/api/overview", include_in_schema=False)

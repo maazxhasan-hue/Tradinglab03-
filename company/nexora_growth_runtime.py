@@ -38,6 +38,48 @@ assert len(AGENTS) == 41
 assert sum(a["kind"] == "lead" for a in AGENTS) == 8
 assert sum(a["kind"] == "specialist" for a in AGENTS) == 32
 
+def _load_company_agents() -> list[dict[str, str]]:
+    """Load the wider company role registry without changing the canonical 41 growth roles."""
+    registry_path = ROOT / "roles.json"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Company role registry is missing or invalid.") from exc
+    if not isinstance(registry, list):
+        raise RuntimeError("Company role registry must be a list.")
+    company_agents: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for department in registry:
+        if not isinstance(department, dict):
+            continue
+        department_name = str(department.get("department", "Company Operations")).strip()[:120]
+        roles = department.get("roles", [])
+        if not isinstance(roles, list):
+            continue
+        for role in roles:
+            if not isinstance(role, str) or not role.strip():
+                continue
+            name = role.strip()[:100]
+            if name.casefold() in seen:
+                continue
+            seen.add(name.casefold())
+            slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in name).strip("-")
+            while "--" in slug:
+                slug = slug.replace("--", "-")
+            company_agents.append({
+                "agent_id": "company-" + slug[:80],
+                "name": name,
+                "department": department_name,
+                "kind": "company-specialist",
+            })
+    if not company_agents:
+        raise RuntimeError("Company role registry contains no usable roles.")
+    return company_agents
+
+
+COMPANY_AGENTS = _load_company_agents()
+AGENT_DIRECTORY = {agent["agent_id"]: agent for agent in [*AGENTS, *COMPANY_AGENTS]}
+
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -76,6 +118,11 @@ class GrowthStore:
               event_id TEXT PRIMARY KEY, actor TEXT NOT NULL, event_type TEXT NOT NULL,
               resource_id TEXT NOT NULL, details_json TEXT NOT NULL, created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS brain_memories (
+              memory_key TEXT PRIMARY KEY, summary TEXT NOT NULL, content_json TEXT NOT NULL,
+              tags_json TEXT NOT NULL DEFAULT '[]', source_agent TEXT NOT NULL, created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_brain_memories_created ON brain_memories(created_at);
             CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status, created_at);
             CREATE INDEX IF NOT EXISTS idx_approval_decision ON approvals(decision, created_at);
             """)
@@ -87,7 +134,7 @@ class GrowthStore:
 
     def create_task(self, title: str, agent_id: str, inputs: dict[str, Any] | None = None,
                     campaign_id: str | None = None) -> dict:
-        agent = next((a for a in AGENTS if a["agent_id"] == agent_id), None)
+        agent = AGENT_DIRECTORY.get(agent_id)
         if not agent:
             raise ValueError("Unknown agent_id")
         if not title.strip():
@@ -143,6 +190,57 @@ class GrowthStore:
             self._audit(con, actor, "task_transition", task_id, {"from":current,"to":status,"error":error})
         return self.get_task(task_id)
 
+    def remember_memory(self, memory_key: str, summary: str, content: dict,
+                        tags: list[str] | None = None, source_agent: str = "company-brain") -> dict:
+        if not memory_key.strip() or len(memory_key) > 160:
+            raise ValueError("memory_key must be 1-160 characters")
+        summary = summary.strip()[:2000]
+        encoded = json.dumps(content, ensure_ascii=False, sort_keys=True)
+        if len(encoded) > 20000:
+            raise ValueError("Brain memory content exceeds 20 KB")
+        with self.connect() as con:
+            con.execute(
+                """INSERT INTO brain_memories(memory_key,summary,content_json,tags_json,source_agent,created_at)
+                   VALUES(?,?,?,?,?,?)
+                   ON CONFLICT(memory_key) DO UPDATE SET summary=excluded.summary,
+                     content_json=excluded.content_json,tags_json=excluded.tags_json,
+                     source_agent=excluded.source_agent,created_at=excluded.created_at""",
+                (memory_key, summary, encoded, json.dumps((tags or [])[:20]), source_agent[:100], now()),
+            )
+            self._audit(con, source_agent[:100], "brain_memory_saved", memory_key, {"summary": summary[:200]})
+        return {"memory_key": memory_key, "summary": summary, "source_agent": source_agent[:100]}
+
+    def recall_memories(self, query: str, limit: int = 5) -> list[dict]:
+        limit = max(1, min(int(limit), 10))
+        tokens = [token.casefold() for token in query.split() if len(token) >= 4][:12]
+        with self.connect() as con:
+            rows = con.execute(
+                "SELECT memory_key,summary,content_json,tags_json,source_agent,created_at FROM brain_memories ORDER BY created_at DESC LIMIT 250"
+            ).fetchall()
+        ranked = []
+        for row in rows:
+            haystack = (str(row["summary"]) + " " + str(row["content_json"])).casefold()
+            score = sum(1 for token in tokens if token in haystack)
+            if not tokens or score:
+                ranked.append((score, row))
+        ranked.sort(key=lambda pair: (pair[0], pair[1]["created_at"]), reverse=True)
+        results = []
+        for _, row in ranked[:limit]:
+            try:
+                content = json.loads(row["content_json"])
+                tags = json.loads(row["tags_json"])
+            except (TypeError, json.JSONDecodeError):
+                content, tags = {}, []
+            results.append({"memory_key": row["memory_key"], "summary": row["summary"],
+                            "content": content, "tags": tags, "source_agent": row["source_agent"],
+                            "created_at": row["created_at"]})
+        return results
+
+    def memory_count(self) -> int:
+        with self.connect() as con:
+            row = con.execute("SELECT COUNT(*) AS n FROM brain_memories").fetchone()
+        return int(row["n"])
+
     def request_approval(self, action: str, resource_id: str, requester: str) -> dict:
         if action not in SENSITIVE_ACTIONS:
             raise ValueError("Approval requests are reserved for registered sensitive actions")
@@ -194,6 +292,9 @@ class GrowthStore:
             pending = con.execute("SELECT COUNT(*) n FROM approvals WHERE decision='pending'").fetchone()["n"]
             total_approvals = con.execute("SELECT COUNT(*) n FROM approvals").fetchone()["n"]
             audit_events = con.execute("SELECT COUNT(*) n FROM audit").fetchone()["n"]
-        return {"agent_roles_defined":len(AGENTS),"departments":len(DEPARTMENTS),"task_counts":counts,
+        department_count = len({agent["department"] for agent in AGENT_DIRECTORY.values()})
+        return {"agent_roles_defined":len(AGENT_DIRECTORY),"growth_roles_defined":len(AGENTS),
+                "company_roles_defined":len(COMPANY_AGENTS),"departments":department_count,"task_counts":counts,
                 "pending_approvals":pending,"approval_records":total_approvals,"audit_events":audit_events,
-                "runtime_status":"workflow_store_available; external agents/connectors require separate verification"}
+                "brain":{"mode":"shared_local_sqlite_with_optional_supabase_sync","memory_records":self.memory_count()},
+                "runtime_status":"SQLite_task_and_local_brain_store_available; restart durability depends on the deployment storage mount; live provider and remote brain readiness must be checked separately"}
