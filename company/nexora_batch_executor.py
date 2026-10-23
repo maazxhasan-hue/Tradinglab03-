@@ -7,14 +7,14 @@ from __future__ import annotations
 import threading
 from typing import Mapping
 
-from company.nexora_growth_runtime import AGENTS, GrowthStore
+from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
 from company.nexora_agent_executor import (
     ProviderNotConfigured, execute_agent_draft, provider_status,
 )
 
 _lock = threading.Lock()
 _state_lock = threading.Lock()
-_state: dict = {"running": False, "batch_id": None, "total": 0, "finished": 0,
+_state: dict = {"running": False, "batch_id": None, "scope": None, "total": 0, "finished": 0,
                 "failed": 0, "last_error": None}
 
 
@@ -76,7 +76,7 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
             tasks.append(task["task_id"])
         import uuid
         with _state_lock:
-            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "total": len(tasks),
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41", "total": len(tasks),
                            "finished": 0, "failed": 0, "last_error": None})
         thread = threading.Thread(target=_worker, args=(store, tasks), daemon=True,
                                   name="nexora-41-agent-draft-batch")
