@@ -1,0 +1,42 @@
+name: Dependency Security Audit
+
+on:
+  pull_request:
+    paths:
+      - "harvey-worker/requirements.txt"
+      - "Dockerfile"
+      - "harvey-worker/Dockerfile"
+      - ".github/workflows/dependency-audit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "harvey-worker/requirements.txt"
+      - "Dockerfile"
+      - "harvey-worker/Dockerfile"
+      - ".github/workflows/dependency-audit.yml"
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-dependencies:
+    name: Audit Python dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install audit tool
+        run: python -m pip install --upgrade pip pip-audit
+      - name: Audit pinned and transitive dependencies
+        run: pip-audit --strict --progress-spinner off -r harvey-worker/requirements.txt
