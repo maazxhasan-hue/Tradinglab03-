@@ -119,9 +119,16 @@ def _from_json(value: str | None) -> dict[str, Any] | None:
 def _display(item: dict[str, Any], status: str, published: dict[str, Any] | None,
              created_at: str, updated_at: str, published_at: str | None) -> dict[str, Any]:
     data = dict(item)
+    amount_paise = int(data["amount_paise"])
+    promo_value = data.get("promo_price_paise")
+    discount = Decimal(str(data.get("discount_percent", "0")))
+    effective_paise = int(promo_value) if promo_value is not None else int(
+        (Decimal(amount_paise) * (Decimal("100") - discount) / Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    )
     data["amount_inr"] = f"{(Decimal(int(data.pop('amount_paise'))) / Decimal(100)):.2f}"
     promo = data.pop("promo_price_paise")
     data["promo_price_inr"] = f"{(Decimal(int(promo)) / Decimal(100)):.2f}" if promo is not None else None
+    data["effective_price_inr"] = f"{(Decimal(effective_paise) / Decimal(100)):.2f}"
     data.update({
         "status": status,
         "published": published is not None and status != "archived",
@@ -262,9 +269,16 @@ def public_items() -> list[dict[str, Any]]:
         if item.get("category") == "client_quote":
             continue
         data = dict(item)
+        amount_paise = int(data["amount_paise"])
+        promo_value = data.get("promo_price_paise")
+        discount = Decimal(str(data.get("discount_percent", "0")))
+        effective_paise = int(promo_value) if promo_value is not None else int(
+            (Decimal(amount_paise) * (Decimal("100") - discount) / Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        )
         data["amount_inr"] = f"{(Decimal(int(data.pop('amount_paise'))) / Decimal(100)):.2f}"
         promo = data.pop("promo_price_paise")
         data["promo_price_inr"] = f"{(Decimal(int(promo)) / Decimal(100)):.2f}" if promo is not None else None
+        data["effective_price_inr"] = f"{(Decimal(effective_paise) / Decimal(100)):.2f}"
         # Use the published snapshot's slug; a draft slug edit must not leak
         # into the public catalog before the owner explicitly republishes.
         data["slug"] = item["slug"]
