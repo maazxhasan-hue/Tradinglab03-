@@ -29,7 +29,9 @@ class CompanyWorkforceRouteTests(unittest.TestCase):
 
     def test_get_cannot_launch_company_workforce(self):
         handler = self.make_handler("GET", "/api/company/agents/start-all")
-        with patch.object(private_hq_server, "start_company_workforce") as launch:
+        with patch.object(private_hq_server, "GrowthStore"), patch.object(
+            private_hq_server, "start_company_workforce"
+        ) as launch:
             handler.do_GET()
         launch.assert_not_called()
         self.assertEqual(handler.body.call_args.args[0], 404)
