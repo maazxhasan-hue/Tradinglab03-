@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Validate security configuration and private-hosting safety
         run: |
           python - <<'PY'
