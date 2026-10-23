@@ -204,6 +204,7 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(len(live), 1)
         self.assertEqual(live[0]["title"], "Starter Automation")
         self.assertEqual(live[0]["amount_inr"], "9999.00")
+        self.assertEqual(live[0]["effective_price_inr"], "8999.00")
 
         changed = dict(payload, title="Starter Automation Plus", slug="starter-automation-plus", amount_inr="12999.00")
         updated = self.hq_client.put(f"/hq/api/pricing/{item_id}", json=changed)
@@ -259,6 +260,23 @@ class HarveyWorkerTests(unittest.TestCase):
         too_precise = dict(base, slug="too-precise", promo_price_inr=None, amount_inr="1.001")
         response = self.hq_client.post("/hq/api/pricing", json=too_precise)
         self.assertEqual(response.status_code, 422, response.text)
+
+    def test_percentage_discount_calculates_effective_price(self):
+        self.login_hq()
+        payload = {
+            "title": "Monthly Pro", "slug": "monthly-pro",
+            "category": "subscription", "description": "Monthly agent access",
+            "amount_inr": "2000.00", "billing_period": "monthly",
+            "discount_percent": "12.5", "promo_price_inr": None,
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        item_id = created.json()["id"]
+        published = self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={})
+        self.assertEqual(published.status_code, 200, published.text)
+        public_item = self.hq_client.get("/public/pricing").json()["items"][0]
+        self.assertEqual(public_item["amount_inr"], "2000.00")
+        self.assertEqual(public_item["effective_price_inr"], "1750.00")
 
     def test_duplicate_pricing_slug_is_rejected_and_archive_unpublishes(self):
         self.login_hq()
