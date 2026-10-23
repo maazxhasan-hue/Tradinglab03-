@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from fastapi.testclient import TestClient
 import app as worker
 import hq_app as hq
+import pricing_service as pricing
 
 
 class HarveyWorkerTests(unittest.TestCase):
@@ -32,9 +33,19 @@ class HarveyWorkerTests(unittest.TestCase):
         worker.API_KEY = "test-only-secret"
         os.environ["HQ_ADMIN_PASSWORD"] = "test-owner-password"
         os.environ["HQ_SESSION_SECRET"] = "test-session-signing-secret-with-sufficient-entropy"
+        self.hq_client.cookies.clear()
         hq._ensure_login_attempts_table()
+        pricing.ensure_pricing_tables()
         with worker.db() as conn:
             conn.execute("DELETE FROM hq_login_attempts")
+            conn.execute("DELETE FROM pricing_audit_log")
+            conn.execute("DELETE FROM pricing_items")
+
+    def login_hq(self):
+        response = self.hq_client.post(
+            "/hq/login", data={"password": "test-owner-password"}, follow_redirects=False
+        )
+        self.assertEqual(response.status_code, 303)
 
     def test_health_is_public_and_database_is_ready(self):
         response = self.client.get("/health")
@@ -129,6 +140,9 @@ class HarveyWorkerTests(unittest.TestCase):
         page = self.hq_client.get("/hq")
         self.assertEqual(page.status_code, 200)
         self.assertIn("Company command", page.text)
+        pricing_page = self.hq_client.get("/hq/pricing")
+        self.assertEqual(pricing_page.status_code, 200, pricing_page.text)
+        self.assertIn("Pricing management", pricing_page.text)
         overview = self.hq_client.get("/hq/api/overview")
         self.assertEqual(overview.status_code, 200, overview.text)
         self.assertIn("company_jobs", overview.json())
@@ -158,6 +172,131 @@ class HarveyWorkerTests(unittest.TestCase):
         finally:
             if previous is not None:
                 os.environ["HQ_ADMIN_PASSWORD"] = previous
+
+    def test_pricing_management_is_private_but_public_catalog_is_safe(self):
+        self.assertEqual(self.hq_client.get("/hq/pricing", follow_redirects=False).status_code, 303)
+        self.assertEqual(self.hq_client.get("/hq/api/pricing").status_code, 401)
+        public = self.hq_client.get("/public/pricing")
+        self.assertEqual(public.status_code, 200)
+        self.assertEqual(public.headers.get("cache-control"), "no-store")
+        self.assertEqual(public.json()["items"], [])
+
+    def test_pricing_draft_publish_edit_and_audit_flow(self):
+        self.login_hq()
+        payload = {
+            "title": "Starter Automation", "slug": "starter-automation",
+            "category": "service", "description": "Setup and support",
+            "amount_inr": "9999.00", "billing_period": "one_time",
+            "discount_percent": "10", "promo_price_inr": "8999.00",
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        item = created.json()
+        item_id = item["id"]
+        self.assertEqual(item["status"], "draft")
+        self.assertEqual(item["amount_inr"], "9999.00")
+        self.assertEqual(self.hq_client.get("/public/pricing").json()["items"], [])
+
+        published = self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={})
+        self.assertEqual(published.status_code, 200, published.text)
+        self.assertTrue(published.json()["published"])
+        live = self.hq_client.get("/public/pricing").json()["items"]
+        self.assertEqual(len(live), 1)
+        self.assertEqual(live[0]["title"], "Starter Automation")
+        self.assertEqual(live[0]["amount_inr"], "9999.00")
+        self.assertEqual(live[0]["effective_price_inr"], "8999.00")
+
+        changed = dict(payload, title="Starter Automation Plus", slug="starter-automation-plus", amount_inr="12999.00")
+        updated = self.hq_client.put(f"/hq/api/pricing/{item_id}", json=changed)
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.assertTrue(updated.json()["has_unpublished_changes"])
+        live_before_publish = self.hq_client.get("/public/pricing").json()["items"][0]
+        self.assertEqual(live_before_publish["title"], "Starter Automation")
+        self.assertEqual(live_before_publish["slug"], "starter-automation")
+        self.assertEqual(live_before_publish["amount_inr"], "9999.00")
+
+        republished = self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={})
+        self.assertEqual(republished.status_code, 200, republished.text)
+        live_after_publish = self.hq_client.get("/public/pricing").json()["items"][0]
+        self.assertEqual(live_after_publish["title"], "Starter Automation Plus")
+        self.assertEqual(live_after_publish["slug"], "starter-automation-plus")
+        self.assertEqual(live_after_publish["amount_inr"], "12999.00")
+        history = self.hq_client.get(f"/hq/api/pricing/{item_id}/history")
+        self.assertEqual(history.status_code, 200, history.text)
+        events = [entry["event"] for entry in history.json()["items"]]
+        self.assertIn("created_draft", events)
+        self.assertIn("published", events)
+        self.assertIn("published_item_draft_updated", events)
+
+    def test_client_specific_quotes_never_appear_in_public_catalog(self):
+        self.login_hq()
+        payload = {
+            "title": "Private Client Quote", "slug": "private-client-quote",
+            "category": "client_quote", "description": "Confidential bespoke scope",
+            "amount_inr": "25000.00", "billing_period": "custom",
+            "discount_percent": "0", "promo_price_inr": None,
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        item_id = created.json()["id"]
+        self.assertEqual(self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={}).status_code, 200)
+        self.assertEqual(self.hq_client.get("/public/pricing").json()["items"], [])
+        private_list = self.hq_client.get("/hq/api/pricing")
+        self.assertIn("Private Client Quote", [item["title"] for item in private_list.json()["items"]])
+
+    def test_pricing_validation_rejects_invalid_slug_and_promotion(self):
+        self.login_hq()
+        base = {
+            "title": "Invalid Promotion", "slug": "invalid-promotion",
+            "category": "subscription", "description": "",
+            "amount_inr": "1000.00", "billing_period": "monthly",
+            "discount_percent": "0", "promo_price_inr": "1000.00",
+        }
+        response = self.hq_client.post("/hq/api/pricing", json=base)
+        self.assertEqual(response.status_code, 422, response.text)
+        bad_slug = dict(base, slug="../bad", promo_price_inr=None)
+        response = self.hq_client.post("/hq/api/pricing", json=bad_slug)
+        self.assertEqual(response.status_code, 422, response.text)
+        too_precise = dict(base, slug="too-precise", promo_price_inr=None, amount_inr="1.001")
+        response = self.hq_client.post("/hq/api/pricing", json=too_precise)
+        self.assertEqual(response.status_code, 422, response.text)
+
+    def test_percentage_discount_calculates_effective_price(self):
+        self.login_hq()
+        payload = {
+            "title": "Monthly Pro", "slug": "monthly-pro",
+            "category": "subscription", "description": "Monthly agent access",
+            "amount_inr": "2000.00", "billing_period": "monthly",
+            "discount_percent": "12.5", "promo_price_inr": None,
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        item_id = created.json()["id"]
+        published = self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={})
+        self.assertEqual(published.status_code, 200, published.text)
+        public_item = self.hq_client.get("/public/pricing").json()["items"][0]
+        self.assertEqual(public_item["amount_inr"], "2000.00")
+        self.assertEqual(public_item["effective_price_inr"], "1750.00")
+
+    def test_duplicate_pricing_slug_is_rejected_and_archive_unpublishes(self):
+        self.login_hq()
+        payload = {
+            "title": "Monthly Assistant", "slug": "monthly-assistant",
+            "category": "subscription", "description": "Monthly plan",
+            "amount_inr": "499.00", "billing_period": "monthly",
+            "discount_percent": "0", "promo_price_inr": None,
+        }
+        created = self.hq_client.post("/hq/api/pricing", json=payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        duplicate = self.hq_client.post("/hq/api/pricing", json=dict(payload, title="Another plan"))
+        self.assertEqual(duplicate.status_code, 422, duplicate.text)
+        item_id = created.json()["id"]
+        self.assertEqual(self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={}).status_code, 200)
+        archived = self.hq_client.post(f"/hq/api/pricing/{item_id}/archive", json={})
+        self.assertEqual(archived.status_code, 200, archived.text)
+        self.assertEqual(self.hq_client.get("/public/pricing").json()["items"], [])
+        events = self.hq_client.get(f"/hq/api/pricing/{item_id}/history").json()["items"]
+        self.assertIn("archived", [entry["event"] for entry in events])
 
     def test_agent_runtime_fails_closed_without_provider_credentials(self):
         old_key = os.environ.pop("LLM_API_KEY", None)
