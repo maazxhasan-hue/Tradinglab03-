@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent / "private-hq"
 APP_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENTS, GrowthStore
-from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured
+from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
@@ -135,7 +135,7 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/growth/overview":
                 self.body(200, json.dumps(GrowthStore(GROWTH_DB).overview()), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/agents":
-                self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED}), "application/json; charset=utf-8"); return
+                self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED,"ai_provider":provider_status()}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/tasks":
                 self.body(200, json.dumps({"tasks":GrowthStore(GROWTH_DB).list_tasks()}), "application/json; charset=utf-8"); return
             self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
