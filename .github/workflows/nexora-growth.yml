@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'company/nexora_growth_runtime.py'
+      - 'company/nexora_agent_executor.py'
       - 'tests/test_nexora_growth_runtime.py'
       - 'private_hq_server.py'
       - 'private-hq/growth-hq.html'
