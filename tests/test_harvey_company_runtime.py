@@ -22,6 +22,11 @@ class UnifiedWorkforceRegistryTests(unittest.TestCase):
         }
         cls._env_patch = patch.dict(os.environ, env)
         cls._env_patch.start()
+        try:
+            import fastapi  # noqa: F401
+        except ImportError:
+            cls._env_patch.stop()
+            raise unittest.SkipTest("Harvey integration dependencies are not installed in this test environment.")
         import app as harvey_app
         cls.app = harvey_app
 
