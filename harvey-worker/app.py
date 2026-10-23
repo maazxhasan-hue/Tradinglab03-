@@ -90,10 +90,10 @@ API_KEY = os.getenv("HARVEY_API_KEY", "")
 app = FastAPI(title=APP_NAME, version="0.2.0")
 
 _SAFE_CLIENT_DETAIL = re.compile(
-    r"(traceback|stack trace|file \"|\\.py\\b|\\.db\\b|\\.sqlite\\b|"
+    r"(traceback|stack trace|file \"|\.py\b|\.db\b|\.sqlite\b|"
     r"select |insert |update |delete |postgres|sqlite|psycopg|sqlalchemy|"
-    r"database url|connection refused|\\bline \\d+\\b|/home/|/app/|/usr/|"
-    r"\\b(password|secret|token|api[_ -]?key)\\b)",
+    r"database url|connection refused|\bline \d+\b|/home/|/app/|/usr/|"
+    r"\b(password|secret|token|api[_ -]?key)\b)",
     re.IGNORECASE,
 )
 
