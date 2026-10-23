@@ -672,7 +672,12 @@ AGENT_MANDATES = {
 
 def _register_extended_agent_mandates() -> None:
     """Register every declared company role and the 41 growth specialists in Harvey's roster."""
-    registry_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "company", "roles.json")
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    registry_candidates = [
+        os.path.join(app_dir, "company", "roles.json"),
+        os.path.join(os.path.dirname(app_dir), "company", "roles.json"),
+    ]
+    registry_path = next((path for path in registry_candidates if os.path.isfile(path)), registry_candidates[0])
     try:
         with open(registry_path, "r", encoding="utf-8") as registry_file:
             department_data = json.load(registry_file)
