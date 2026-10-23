@@ -137,6 +137,8 @@ jobs:
           node-version: "22"
       - name: Validate Worker JavaScript syntax
         run: node --check worker/index.js
+      - name: Run Worker unit tests
+        run: node --test worker/test_worker.mjs
       - name: Validate all D1 migrations against isolated SQLite
         run: |
           python - <<'PY'
