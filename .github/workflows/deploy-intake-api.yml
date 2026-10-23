@@ -169,7 +169,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          output="$(npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log','visitor_daily_totals','visitor_daily_sources','visitor_daily_landing_pages','visitor_range_snapshots','visitor_range_ai_metrics','visitor_range_sources','visitor_range_landing_pages','ai_referral_domains','visitor_sync_runs') ORDER BY name;")"
+          output="$(npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('submissions','client_accounts','client_sessions','client_auth_attempts','referrals','referral_commissions','referral_audit_log','visitor_daily_totals','visitor_daily_sources','visitor_daily_landing_pages','visitor_range_snapshots','visitor_range_ai_metrics','visitor_range_sources','visitor_range_landing_pages','ai_referral_domains','visitor_sync_runs','client_rate_limit_events') ORDER BY name;")"
           printf '%s\n' "$output"
           for table in submissions client_accounts client_sessions client_auth_attempts referrals referral_commissions referral_audit_log visitor_daily_totals visitor_daily_sources visitor_daily_landing_pages visitor_range_snapshots visitor_range_ai_metrics visitor_range_sources visitor_range_landing_pages ai_referral_domains visitor_sync_runs client_rate_limit_events; do
             if ! grep -Fq "$table" <<<"$output"; then
