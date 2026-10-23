@@ -13,6 +13,10 @@ The authenticated Growth HQ supports two real AI execution paths:
 
 These paths make actual model-provider requests. The work is internal and draft-only: they do not publish social posts, send DMs/emails, contact leads, spend money, place trades, or deploy production changes. A role definition is not proof of successful execution; check each batch's completed/failed counts and inspect saved task outputs.
 
+The company role registry includes explicit specialist entries for the requested Harvey, CEO/strategy, lead discovery, sales, contact, marketing, brand, Instagram growth, social/community, copywriting/reverse-writing, SEO, growth analysis, product/pricing, landing page, website, frontend/backend, video editing/cinematic production, testing/QA, security/privacy, release/development, project operations, finance, policy/compliance, knowledge/memory, workflow, customer support, experiment/learning, and trading-system roles. Each registered role is addressable through the same task store and receives a role-family-specific deliverable contract in its AI prompt. The exact role registry and regression tests are the source of truth for coverage.
+
+**Capability boundary:** role registration and a provider-generated draft are not the same as a dedicated tool integration. The current runner does not independently edit/render/export a finished video, commit/deploy a website, publish to Instagram, send outreach, or execute live trades. Those require verified integrations and explicit approvals. Trading-system work is research/paper-trading only. Treat any external execution as blocked until the relevant connector, audit trail, and end-to-end test are present.
+
 ## Required server configuration
 
 Configure these as private Render environment variables, never in browser code or source control:
