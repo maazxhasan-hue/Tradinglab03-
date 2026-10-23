@@ -30,7 +30,7 @@ def _worker(store: GrowthStore, task_ids: list[str]) -> None:
         for task_id in task_ids:
             try:
                 execute_agent_draft(store, task_id)
-            except (DraftExecutionError, KeyError, ValueError) as exc:
+            except Exception as exc:
                 failures += 1
                 last_error = type(exc).__name__
             finally:
