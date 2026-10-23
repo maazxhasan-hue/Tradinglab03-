@@ -204,18 +204,20 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(live[0]["title"], "Starter Automation")
         self.assertEqual(live[0]["amount_inr"], "9999.00")
 
-        changed = dict(payload, title="Starter Automation Plus", amount_inr="12999.00")
+        changed = dict(payload, title="Starter Automation Plus", slug="starter-automation-plus", amount_inr="12999.00")
         updated = self.hq_client.put(f"/hq/api/pricing/{item_id}", json=changed)
         self.assertEqual(updated.status_code, 200, updated.text)
         self.assertTrue(updated.json()["has_unpublished_changes"])
         live_before_publish = self.hq_client.get("/public/pricing").json()["items"][0]
         self.assertEqual(live_before_publish["title"], "Starter Automation")
+        self.assertEqual(live_before_publish["slug"], "starter-automation")
         self.assertEqual(live_before_publish["amount_inr"], "9999.00")
 
         republished = self.hq_client.post(f"/hq/api/pricing/{item_id}/publish", json={})
         self.assertEqual(republished.status_code, 200, republished.text)
         live_after_publish = self.hq_client.get("/public/pricing").json()["items"][0]
         self.assertEqual(live_after_publish["title"], "Starter Automation Plus")
+        self.assertEqual(live_after_publish["slug"], "starter-automation-plus")
         self.assertEqual(live_after_publish["amount_inr"], "12999.00")
         history = self.hq_client.get(f"/hq/api/pricing/{item_id}/history")
         self.assertEqual(history.status_code, 200, history.text)
