@@ -265,7 +265,9 @@ def public_items() -> list[dict[str, Any]]:
         data["amount_inr"] = f"{(Decimal(int(data.pop('amount_paise'))) / Decimal(100)):.2f}"
         promo = data.pop("promo_price_paise")
         data["promo_price_inr"] = f"{(Decimal(int(promo)) / Decimal(100)):.2f}" if promo is not None else None
-        data["slug"] = row["slug"]
+        # Use the published snapshot's slug; a draft slug edit must not leak
+        # into the public catalog before the owner explicitly republishes.
+        data["slug"] = item["slug"]
         data["published_at"] = row["published_at"]
         result.append(data)
     return result
