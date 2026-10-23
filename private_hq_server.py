@@ -153,26 +153,6 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path.startswith("/api/company/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
-            if parsed.path == "/api/company/agents/start-all":
-                try:
-                    length = int(self.headers.get("Content-Length", "0"))
-                    if length <= 0 or length > 8192:
-                        raise ValueError("Request body must be 1-8192 bytes.")
-                    data = json.loads(self.rfile.read(length).decode("utf-8"))
-                    mission = str(data.get("mission", "")).strip()
-                    if len(mission) < 10 or len(mission) > 4000:
-                        raise ValueError("Mission must be 10-4000 characters.")
-                    result = start_company_workforce(GrowthStore(GROWTH_DB), mission)
-                    status = 202 if result.get("started") else 409
-                    self.body(status, json.dumps(result), "application/json; charset=utf-8"); return
-                except ProviderNotConfigured as exc:
-                    self.body(503, json.dumps({"error":"provider_not_configured","message":str(exc)}),
-                              "application/json; charset=utf-8"); return
-                except (ValueError, json.JSONDecodeError) as exc:
-                    self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
-                except Exception as exc:
-                    self.body(500, json.dumps({"error":"company_workforce_start_failed",
-                                               "detail":type(exc).__name__}), "application/json; charset=utf-8"); return
             self.body(403, json.dumps({"error":"action_not_available"}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
@@ -212,6 +192,30 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/company/agents/start-all":
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 8192:
+                    raise ValueError("Request body must be 1-8192 bytes.")
+                data = json.loads(self.rfile.read(length).decode("utf-8"))
+                if not isinstance(data, dict):
+                    raise ValueError("Request body must be a JSON object.")
+                mission = str(data.get("mission", "")).strip()
+                if len(mission) < 10 or len(mission) > 4000:
+                    raise ValueError("Mission must be 10-4000 characters.")
+                result = start_company_workforce(GrowthStore(GROWTH_DB), mission)
+                status = 202 if result.get("started") else 409
+                self.body(status, json.dumps(result), "application/json; charset=utf-8"); return
+            except ProviderNotConfigured as exc:
+                self.body(503, json.dumps({"error":"provider_not_configured","message":str(exc)}),
+                          "application/json; charset=utf-8"); return
+            except (ValueError, json.JSONDecodeError) as exc:
+                self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except Exception as exc:
+                self.body(500, json.dumps({"error":"company_workforce_start_failed",
+                                           "detail":type(exc).__name__}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
