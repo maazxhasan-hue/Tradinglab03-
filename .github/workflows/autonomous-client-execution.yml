@@ -184,7 +184,7 @@ jobs:
           fi
       - name: Upload execution bundle for review
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-autonomous-client-review-${{ github.run_id }}
           path: data/client_executions/

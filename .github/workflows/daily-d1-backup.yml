@@ -84,7 +84,7 @@ jobs:
           rm -f database-backup.sql /tmp/backup-verify.sql wrangler.backup.json
           echo "Encrypted full database export verified; plaintext export removed."
       - name: Upload encrypted backup (30-day retention)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nexora-d1-encrypted-backup-${{ github.run_id }}
           path: |

@@ -24,7 +24,7 @@ jobs:
         run: |
           python company/instagram_content_pack.py --account nexora_ai --topic "Practical AI automation and websites for small businesses" --offer "Nexora AI builds websites and practical AI-assisted business workflows; scope and pricing confirmed before work begins" --audience "small businesses, creators, and local service providers" --cta "Tell us what task you want to simplify and visit the Nexora website to enquire."
       - name: Upload review-only drafts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nexora-instagram-drafts-${{ github.run_id }}
           path: data/instagram_content_packs/

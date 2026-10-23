@@ -54,7 +54,7 @@ jobs:
           fi
       - name: Upload draft output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-draft-${{ github.run_id }}
           path: data/agent_outputs/
