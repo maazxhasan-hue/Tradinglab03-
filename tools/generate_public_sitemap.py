@@ -109,10 +109,12 @@ def main() -> None:
         item = ET.SubElement(root, f"{{{NS}}}url")
         ET.SubElement(item, f"{{{NS}}}loc").text = url
         ET.SubElement(item, f"{{{NS}}}lastmod").text = modified
-    sitemap = PUBLIC / "sitemap.xml"
     ET.indent(root, space="  ")
-    sitemap.write_bytes(b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="utf-8") + b"\n")
-    print(f"Generated {sitemap.relative_to(ROOT)} with {len(urls)} indexable public URLs.")
+    payload = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="utf-8") + b"\n"
+    destinations = (PUBLIC / "sitemap.xml", ROOT / "sitemap.xml")
+    for sitemap in destinations:
+        sitemap.write_bytes(payload)
+        print(f"Generated {sitemap.relative_to(ROOT)} with {len(urls)} indexable public URLs.")
 
 
 if __name__ == "__main__":
