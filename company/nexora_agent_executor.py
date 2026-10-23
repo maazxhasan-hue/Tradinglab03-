@@ -27,12 +27,12 @@ def provider_status(environ: Mapping[str, str] | None = None) -> dict:
     """Report provider readiness without exposing credentials or their values."""
     env = os.environ if environ is None else environ
     if env.get("OPENROUTER_API_KEY", "").strip():
-        return {"configured": True, "provider": "openrouter", "model": env.get("OPENROUTER_MODEL", "openrouter/free")}
+        return {"configured": True, "provider": "openrouter"}
     if env.get("GEMINI_API_KEY", "").strip():
-        return {"configured": True, "provider": "gemini", "model": env.get("GEMINI_MODEL", "gemini-2.5-flash")}
+        return {"configured": True, "provider": "gemini"}
     if env.get("OPENAI_API_KEY", "").strip():
-        return {"configured": True, "provider": "openai", "model": env.get("OPENAI_MODEL", "gpt-4.1-mini")}
-    return {"configured": False, "provider": None, "model": None}
+        return {"configured": True, "provider": "openai"}
+    return {"configured": False, "provider": None}
 
 
 def _validated_model(value: str) -> str:
