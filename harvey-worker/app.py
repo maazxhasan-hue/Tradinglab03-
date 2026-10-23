@@ -801,6 +801,11 @@ async def _run_company_cycle(cycle_id: str, max_retries_per_job: int = 1) -> dic
                 # Provider/brain configuration failures are systemic; do not hammer a broken service.
                 if exc.status_code in {401, 403, 429, 502, 503, 504}:
                     logger.error("company_cycle_paused cycle_id=%s http_status=%s", cycle_id, exc.status_code)
+                    with db() as c:
+                        c.execute(
+                            "UPDATE company_jobs SET status='blocked',error=?,updated_at=? WHERE cycle_id=? AND status='queued'",
+                            ("Cycle paused due to provider/shared-brain failure (HTTP " + str(exc.status_code) + "). Fix configuration, then use /company/jobs/retry-failed.", now(), cycle_id),
+                        )
                     break
                 with db() as c:
                     failed = c.execute(
@@ -844,7 +849,7 @@ async def _run_company_cycle(cycle_id: str, max_retries_per_job: int = 1) -> dic
                 "SELECT status, COUNT(*) AS n FROM company_jobs WHERE cycle_id=? GROUP BY status",
                 (cycle_id,),
             ).fetchall()}
-        return {"cycle_id": cycle_id, "status": "completed" if not final_counts.get("queued", 0) and not final_counts.get("failed", 0) else "partial",
+        return {"cycle_id": cycle_id, "status": "completed" if not final_counts.get("queued", 0) and not final_counts.get("failed", 0) and not final_counts.get("blocked", 0) else "partial",
                 "processed": processed, "counts": final_counts}
     finally:
         _ACTIVE_COMPANY_CYCLES.discard(cycle_id)
@@ -1028,7 +1033,7 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
 def retry_failed_company_jobs(cycle_id: str, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     with db() as c:
-        cur=c.execute("UPDATE company_jobs SET status='queued',error=NULL,updated_at=? WHERE cycle_id=? AND status='failed'",(now(),cycle_id))
+        cur=c.execute("UPDATE company_jobs SET status='queued',error=NULL,updated_at=? WHERE cycle_id=? AND status IN ('failed','blocked')",(now(),cycle_id))
         count=cur.rowcount
     return {"cycle_id":cycle_id,"requeued":count,"status":"queued"}
 
