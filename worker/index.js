@@ -565,8 +565,17 @@ async function listSubmissions(request, env, cors) {
     return response({ error: "Unauthorized." }, 401, { ...cors, "www-authenticate": "Bearer" });
   }
   const url = new URL(request.url);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(url.searchParams.get("limit") || "50", 10) || 50));
-  const status = clean(url.searchParams.get("status"), 30);
+  const allowedParams = new Set(["limit", "status"]);
+  if ([...url.searchParams.keys()].some(key => !allowedParams.has(key)) ||
+      [...url.searchParams.keys()].some(key => url.searchParams.getAll(key).length !== 1)) {
+    return response({error:"Unsupported or repeated query parameter."},422,cors);
+  }
+  const limitRaw = url.searchParams.get("limit");
+  if (limitRaw !== null && !/^(?:[1-9]|[1-9][0-9]|100)$/.test(limitRaw)) return response({error:"Limit must be an integer from 1 to 100."},422,cors);
+  const limit = limitRaw === null ? 50 : Number(limitRaw);
+  const status = url.searchParams.get("status") || "";
+  const allowedStatuses = new Set(["new", "reviewing", "qualified", "proposal_ready", "in_progress", "delivered", "won", "lost"]);
+  if (status && (!stringField(status,{min:1,max:30,allowEmpty:false}) || !allowedStatuses.has(status))) return response({error:"Unsupported status filter."},422,cors);
   let result;
   if (status) {
     result = await env.DB.prepare(
@@ -955,8 +964,12 @@ async function getVisitorAnalytics(request, env, cors) {
   const origin = request.headers.get("Origin") || "";
   if (origin && !originAllowed(request,env)) return response({error:"This origin is not allowed."},403);
   const url = new URL(request.url);
-  const days = Number.parseInt(url.searchParams.get("days") || "7",10);
-  if (![7,30,90].includes(days)) return response({error:"Choose a supported reporting period: 7, 30, or 90 days."},422,cors);
+  const allowedParams = new Set(["days"]);
+  if ([...url.searchParams.keys()].some(key => !allowedParams.has(key)) ||
+      [...url.searchParams.keys()].some(key => url.searchParams.getAll(key).length !== 1)) return response({error:"Unsupported or repeated query parameter."},422,cors);
+  const daysRaw = url.searchParams.get("days") || "7";
+  if (!/^(7|30|90)$/.test(daysRaw)) return response({error:"Choose a supported reporting period: 7, 30, or 90 days."},422,cors);
+  const days = Number(daysRaw);
   const apiConfigured = analyticsApiConfigured(env);
   const websiteTrackingConfigured = analyticsWebsiteTagConfigured(env);
   const lastSync = await env.DB.prepare("SELECT id,started_at,finished_at,status,rows_processed,snapshot_date,property_timezone,error_code,error_message FROM visitor_sync_runs WHERE provider='ga4' ORDER BY started_at DESC LIMIT 1").first();
