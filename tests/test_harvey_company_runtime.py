@@ -64,6 +64,22 @@ class UnifiedWorkforceRegistryTests(unittest.TestCase):
         from company.nexora_agent_executor import _validated_model
         self.assertEqual(_validated_model("openrouter/free"), "openrouter/free")
 
+    def test_wider_company_role_can_create_a_persistent_task(self):
+        from company.nexora_growth_runtime import COMPANY_AGENTS, GrowthStore
+        store = GrowthStore(Path(self._tmp.name) / "growth-test.sqlite3")
+        agent = COMPANY_AGENTS[0]
+        task = store.create_task("Registry integration test", agent["agent_id"], {"mode": "test"})
+        self.assertEqual(task["agent_id"], agent["agent_id"])
+        self.assertEqual(task["status"], "queued")
+
+    def test_queue_recovery_fails_closed_without_provider_credentials(self):
+        from company.nexora_batch_executor import resume_queued_tasks
+        from company.nexora_growth_runtime import GrowthStore
+        store = GrowthStore(Path(self._tmp.name) / "recovery-test.sqlite3")
+        result = resume_queued_tasks(store, environ={})
+        self.assertFalse(result["started"])
+        self.assertEqual(result["reason"], "provider_not_configured")
+
     def test_company_dispatch_has_background_execution_and_restart_recovery(self):
         self.assertTrue(callable(self.app._run_company_cycle))
         self.assertTrue(callable(self.app._company_cycle_supervisor))
