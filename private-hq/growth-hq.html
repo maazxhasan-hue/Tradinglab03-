@@ -10,10 +10,10 @@ const ds=[
 ["Market & Audience Intelligence",["Research Lead","Market Trend Analyst","Audience/ICP Researcher","Competitor Intelligence Analyst","Keyword & Topic Researcher"]],
 ["Lead Intelligence",["Lead Intelligence Lead","Inbound Intent Classifier","Public Prospect Researcher","Lead Enrichment & Source Tracker","Lead Quality Reviewer"]],
 ["Sales & Conversion",["Sales Conversion Lead","Enquiry Qualifier","Proposal & Scope Drafter","Follow-up Planner","Meeting & Calendar Coordinator"]],
-["Community & Customer Experience",["Community Lead","Comment & DM Triage Agent","Customer Support Drafter","Feedback & Review Analyst"]],
-["Distribution & Search",["Distribution Lead","Social Scheduling Coordinator","SEO & Website Distribution Specialist","Campaign Link & UTM Manager"]],
-["Analytics & Growth Experiments",["Growth Analytics Lead","Content Performance Analyst","Funnel & Attribution Analyst","Experiment Planner"]],
-["Quality, Risk & Operations",["Quality & Operations Lead","Brand/Claims Reviewer","Privacy, Consent & Platform Policy Reviewer","Workflow Reliability & Audit Agent"]]];
+["Community & Customer Experience",["Community Lead","Comment & DM Triage Agent","Customer Support Drafter","Feedback & Review Analyst","Response Escalation Specialist"]],
+["Distribution & Search",["Distribution Lead","Social Scheduling Coordinator","SEO & Website Distribution Specialist","Campaign Link & UTM Manager","Campaign QA Specialist"]],
+["Analytics & Growth Experiments",["Growth Analytics Lead","Content Performance Analyst","Funnel & Attribution Analyst","Experiment Planner","Reporting Specialist"]],
+["Quality, Risk & Operations",["Quality & Operations Lead","Brand/Claims Reviewer","Privacy, Consent & Platform Policy Reviewer","Workflow Reliability & Audit Agent","Compliance Audit Specialist"]]];
 const all=[{id:"growth-director",name:"Growth Director",dept:"Executive"}];ds.forEach((d,i)=>d[1].forEach((name,j)=>all.push({id:"d"+String(i+1).padStart(2,"0")+"-a"+String(j+1).padStart(2,"0"),name,dept:d[0]})));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 document.querySelector("#departments").innerHTML=ds.map((d,i)=>'<article class="dept"><span class="muted small">DEPARTMENT '+(i+1)+' · '+d[1].length+' ROLES</span><h3>'+esc(d[0])+'</h3><span class="muted small">Lead: '+esc(d[1][0])+'</span><div class="agents">'+d[1].slice(1).map(n=>'<span class="agent">'+esc(n)+'</span>').join("")+'</div></article>').join("");
