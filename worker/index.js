@@ -402,7 +402,7 @@ async function handleAuth(request, env, cors, action) {
             .bind(crypto.randomUUID(),referrer.id,id,referralCode,new Date().toISOString()).run();
         }
       } catch (error) {
-        console.error("Referral attribution failed after account registration:", error && error.message ? error.message : "unknown error");
+        console.error("Referral attribution failed after account registration:", error);
       }
     }
   } else if (action === "login") {
@@ -943,7 +943,7 @@ async function runVisitorAnalyticsSync(env) {
       .bind(new Date().toISOString(),processed,latestDate,propertyTimezone,runId).run();
     return { ok: true, status: "success", snapshot_date: latestDate, property_timezone: propertyTimezone, rows_processed: processed, started_at: startedAt };
   } catch (error) {
-    console.error("Visitor analytics sync failed:", error && error.message ? error.message : "unknown error");
+    console.error("Visitor analytics sync failed:", error);
     return await recordAnalyticsSyncFailure(env,runId,error,processed,startedAt);
   }
 }
@@ -1045,50 +1045,51 @@ export default {
     }
     if (url.pathname === "/api/analytics/config") {
       try { return await handleAnalyticsConfig(request, env, cors); }
-      catch (error) { console.error("Analytics configuration lookup failed:", error && error.message ? error.message : "unknown error"); return response({error:"Analytics configuration is temporarily unavailable."},503,cors); }
+      catch (error) { console.error("Analytics configuration lookup failed:", error); return response({error:"Analytics configuration is temporarily unavailable."},503,cors); }
     }
     if (url.pathname === "/api/admin/analytics/visitors" && request.method === "GET") {
       try { return await getVisitorAnalytics(request, env, cors); }
-      catch (error) { console.error("Visitor analytics dashboard failed:", error && error.message ? error.message : "unknown error"); return response({error:"Visitor analytics are temporarily unavailable."},503,cors); }
+      catch (error) { console.error("Visitor analytics dashboard failed:", error); return response({error:"Visitor analytics are temporarily unavailable."},503,cors); }
     }
     if (url.pathname === "/api/admin/analytics/sync" && request.method === "POST") {
       try { return await adminAnalyticsSync(request, env, cors); }
-      catch (error) { console.error("Visitor analytics sync request failed:", error && error.message ? error.message : "unknown error"); return response({error:"Visitor analytics sync failed."},503,cors); }
+      catch (error) { console.error("Visitor analytics sync request failed:", error); return response({error:"Visitor analytics sync failed."},503,cors); }
     }
     if (url.pathname === "/health" && request.method === "GET") {
       try {
         await env.DB.prepare("SELECT 1 AS ok").first();
         return response({ ok: true, service: "tradinglab03-intake", storage: "ready" }, 200, cors);
-      } catch {
+      } catch (error) {
+        console.error("Health check database failure:", error);
         return response({ ok: false, service: "tradinglab03-intake", storage: "unavailable" }, 503, cors);
       }
     }
     const authMatch = url.pathname.match(/^\/api\/auth\/(register|login|me|logout)$/);
     if (authMatch) {
       try { return await handleAuth(request, env, cors, authMatch[1]); }
-      catch (error) { console.error("Nexora client authentication failed:", error && error.message ? error.message : "unknown error"); return response({error:"Authentication service temporarily unavailable."}, 503, cors); }
+      catch (error) { console.error("Nexora client authentication failed:", error); return response({error:"Authentication service temporarily unavailable."}, 503, cors); }
     }
     if (url.pathname === "/api/referrals/me" && request.method === "GET") {
       try { return await getMyReferrals(request, env, cors); }
-      catch (error) { console.error("Referral dashboard failed:", error && error.message ? error.message : "unknown error"); return response({error:"Referral dashboard temporarily unavailable."},503,cors); }
+      catch (error) { console.error("Referral dashboard failed:", error); return response({error:"Referral dashboard temporarily unavailable."},503,cors); }
     }
     if (url.pathname === "/api/admin/referrals" && request.method === "GET") {
       try { return await listAdminReferrals(request, env, cors); }
-      catch (error) { console.error("Referral listing failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not load referrals."},503,cors); }
+      catch (error) { console.error("Referral listing failed:", error); return response({error:"Could not load referrals."},503,cors); }
     }
     const adminReferralMatch=url.pathname.match(/^\/api\/admin\/referrals\/([^/]+)$/);
     if (adminReferralMatch && request.method === "PATCH") {
       try { return await updateAdminReferral(request, env, adminReferralMatch[1], cors); }
-      catch (error) { console.error("Referral status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update referral."},503,cors); }
+      catch (error) { console.error("Referral status update failed:", error); return response({error:"Could not update referral."},503,cors); }
     }
     const adminCommissionMatch=url.pathname.match(/^\/api\/admin\/referral-commissions\/([^/]+)$/);
     if (adminCommissionMatch && request.method === "PATCH") {
       try { return await updateReferralCommissionStatus(request, env, adminCommissionMatch[1], cors); }
-      catch (error) { console.error("Commission status update failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not update commission."},503,cors); }
+      catch (error) { console.error("Commission status update failed:", error); return response({error:"Could not update commission."},503,cors); }
     }
     if (url.pathname === "/api/admin/referral-commissions" && request.method === "POST") {
       try { return await createReferralCommission(request, env, cors); }
-      catch (error) { console.error("Referral commission operation failed:", error && error.message ? error.message : "unknown error"); return response({error:"Could not record commission."},503,cors); }
+      catch (error) { console.error("Referral commission operation failed:", error); return response({error:"Could not record commission."},503,cors); }
     }
     if (url.pathname === "/api/chat" && request.method === "POST") {
       if (!originAllowed(request, env)) return response({ error: "This origin is not allowed." }, 403);
@@ -1132,7 +1133,7 @@ export default {
         if (!reply) return response({ error: "The AI assistant returned an empty reply. Please try again." }, 502, cors);
         return response({ reply }, 200, cors);
       } catch (error) {
-        console.error("Nexora AI chat failed:", error && error.message ? error.message : "unknown error");
+        console.error("Nexora AI chat failed:", error);
         return response({ error: "The AI assistant is temporarily unavailable. Please use the project enquiry form." }, 503, cors);
       }
     }
@@ -1140,28 +1141,28 @@ export default {
       const intakeRate = await applyEndpointRateLimit(request, env, "public:intake", "ip:" + (request.headers.get("CF-Connecting-IP") || "unknown"), "PUBLIC_INTAKE_LIMIT_PER_WINDOW", 12, "PUBLIC_RATE_WINDOW_SECONDS", 3600);
       if (!intakeRate.allowed) return response({error:"Too many enquiries from this connection. Please try again later."},429,{...cors,"retry-after":String(intakeRate.retryAfter || 60)});
       try { return await createSubmission(request, env, cors); }
-      catch { return response({ error: "The enquiry service is temporarily unavailable. Please retry later." }, 503, cors); }
+      catch (error) { console.error("Enquiry submission failed:", error); return response({ error: "The enquiry service is temporarily unavailable. Please retry later." }, 503, cors); }
     }
     if (url.pathname === "/api/admin/submissions" && request.method === "GET") {
       try { return await listSubmissions(request, env, cors); }
-      catch { return response({ error: "Could not load submissions." }, 503, cors); }
+      catch (error) { console.error("Admin submission listing failed:", error); return response({ error: "Could not load submissions." }, 503, cors); }
     }
     const statusMatch = url.pathname.match(/^\/api\/admin\/submissions\/([^/]+)\/status$/);
     if (statusMatch && request.method === "PATCH") {
       try { return await updateSubmissionStatus(request, env, statusMatch[1], cors); }
-      catch { return response({ error: "Could not update submission status." }, 503, cors); }
+      catch (error) { console.error("Admin submission status update failed:", error); return response({ error: "Could not update submission status." }, 503, cors); }
     }
     const deleteMatch = url.pathname.match(/^\/api\/admin\/submissions\/([^/]+)$/);
     if (deleteMatch && request.method === "DELETE") {
       try { return await deleteSubmission(request, env, deleteMatch[1], cors); }
-      catch { return response({ error: "Could not delete the submission." }, 503, cors); }
+      catch (error) { console.error("Admin submission deletion failed:", error); return response({ error: "Could not delete the submission." }, 503, cors); }
     }
     return response({ error: "Not found." }, 404, cors);
   }
   ,
   async scheduled(controller, env, ctx) {
     ctx.waitUntil(runVisitorAnalyticsSync(env).catch(error => {
-      console.error("Scheduled visitor analytics sync failed:", error && error.message ? error.message : "unknown error");
+      console.error("Scheduled visitor analytics sync failed:", error);
     }));
   }
 };
