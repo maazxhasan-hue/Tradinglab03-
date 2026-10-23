@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-23T18:27:02.775959+00:00",
+  "updated_at": "2026-10-23T22:17:55.948476+00:00",
   "leads": [
     {
       "id": "TL-20261014035544-001",
@@ -3155,6 +3155,47 @@
       "source_name": "Reddit r/forhire - public service requests",
       "opportunity_score": 8,
       "opportunity_priority": "review",
+      "paid_contract_verified": false,
+      "client_fit": false,
+      "freelance_work_fit": true,
+      "opportunity_type": "freelance_work",
+      "contract_signals": [
+        "freelance"
+      ],
+      "project_signals": [],
+      "disqualifiers": [
+        "no explicit service-project request"
+      ]
+    },
+    {
+      "id": "TL-20261023221755-081",
+      "business_name": "[For Hire] I'm a freelance web developer, currently available | Custom Code | Portfolio, Landing Page, Business Website | Development + Maintenance | Starting a",
+      "service": "landing_page",
+      "need": "[For Hire] I'm a freelance web developer, currently available | Custom Code | Portfolio, Landing Page, Business Website | Development + Maintenance | Starting a",
+      "website_url": "",
+      "source_url": "https://www.reddit.com/r/forhire/comments/1xdnzwu/for_hire_im_a_freelance_web_developer_currently/",
+      "evidence": "Public listing title: [For Hire] I'm a freelance web developer, currently available | Custom Code | Portfolio, Landing Page, Business Website | Development + Maintenance | Starting a. Source: Reddit r/forhire - public service requests. Match score: 10. Payment/contract status is unverified.",
+      "contact_name": "",
+      "notes": "Auto-imported from public opportunity scout. This is a job/project listing, not a verified client. Confirm freelance eligibility, payment, legitimacy, scope, deadlines, and platform rules before acting. Scout priority=high; score=10; listing_id=41d3478545e3c7e0. Rechecked by current opportunity classifier; classification and payment remain unverified.",
+      "status": "new",
+      "status_history": [
+        {
+          "status": "new",
+          "at": "2026-10-23T22:17:55.925284+00:00",
+          "note": "Lead created; verify before outreach."
+        }
+      ],
+      "created_at": "2026-10-23T22:17:55.925292+00:00",
+      "updated_at": "2026-10-23T22:17:55.925294+00:00",
+      "quote_inr": null,
+      "revenue_inr": null,
+      "revenue_evidence": "",
+      "contacted": false,
+      "next_action": "Review as a possible freelance-work listing, not a direct client lead; verify pay, eligibility, scope, and rules.",
+      "source_type": "public_opportunity_listing",
+      "source_name": "Reddit r/forhire - public service requests",
+      "opportunity_score": 10,
+      "opportunity_priority": "high",
       "paid_contract_verified": false,
       "client_fit": false,
       "freelance_work_fit": true,
