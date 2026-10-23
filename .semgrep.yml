@@ -39,7 +39,7 @@ rules:
           regex: (?i)(?!changeme|example|placeholder|your[_-].*|.*\$\{.*\}).{12,}
     paths:
       exclude:
-        - tests/**
+        - '**/tests/**'
         - "**/*example*"
     metadata:
       category: security
