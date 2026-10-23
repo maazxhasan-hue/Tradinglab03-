@@ -277,7 +277,7 @@ jobs:
           python - <<'PY'
           import json, os, urllib.request, urllib.error
           base = os.environ["INTAKE_ENDPOINT"].rstrip("/")
-          origin = os.environ["SITE_ORIGIN"]
+          origin = os.environ["SITE_ORIGIN"].split(",")[0].strip().rstrip("/")
           def request(path, method="GET", headers=None):
               hdr = {"Accept":"application/json","Origin":origin,"User-Agent":"Nexora-Analytics-Smoke/1.0"}
               hdr.update(headers or {})
