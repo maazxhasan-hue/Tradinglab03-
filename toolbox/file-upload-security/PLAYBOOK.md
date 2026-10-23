@@ -52,6 +52,27 @@ Prior review found no user-controlled binary upload endpoint in the code reviewe
 - Findings, fixes, evidence, deployment status, and limitations are documented.
 - Final status is one of `PASS`, `PASS WITH LIMITATIONS`, or `FAIL`.
 
+## Completion checklist (check before closing the task)
+
+Mark each item only when supported by evidence. Use **N/A with a reason** when a control does not apply; use **Not verified** when evidence is missing.
+
+- [ ] **Scope is recorded:** repository, branch/commit, directories, routes, workers, storage providers, and relevant external integrations reviewed are listed.
+- [ ] **Upload discovery is evidenced:** search terms/locations and results are recorded; any “no upload endpoint found” conclusion is explicitly limited to the reviewed scope.
+- [ ] **Data flows are traced:** each discovered candidate is followed from entry point through validation, processing, storage, retrieval, and deletion.
+- [ ] **File type is validated:** allowlist and extension/MIME/signature or parser checks are verified, as appropriate; client metadata is not trusted alone.
+- [ ] **Size and content are bounded:** request/file limits, malformed-content handling, and archive expansion/entry/nesting/time limits are verified where applicable.
+- [ ] **Storage is isolated:** files cannot be written into the web root or overwrite application files; access is restricted and path traversal is prevented.
+- [ ] **Execution is prevented:** untrusted content is not executed, imported, evaluated, or served in an executable context; any processing is appropriately sandboxed.
+- [ ] **Access and delivery are checked:** authentication, object-level authorization, cross-user access, and download/content headers are tested where applicable.
+- [ ] **Errors and logs are safe:** clients receive generic errors; server logs retain useful diagnostics without exposing secrets or sensitive contents.
+- [ ] **Regression tests are recorded:** applicable positive and negative cases are run; non-applicable cases have a reason; results and commands/evidence are attached.
+- [ ] **Changes are reviewed:** the diff is minimal, relevant tests/security checks pass, and no unrelated changes or secrets are included.
+- [ ] **CI and deployment are distinguished:** CI results, merge status, and production smoke tests are each recorded separately; unrun checks are not represented as passing.
+- [ ] **Toolbox is current:** every artifact created for this task is saved under `toolbox/file-upload-security/`, linked from this playbook, and listed in [README.md](./README.md). No secrets, production uploads, or real customer files are stored there.
+- [ ] **Final report is complete:** findings, severity, evidence, fixes, residual risks, and a justified final status are documented using the [audit report template](./templates/audit-report.md).
+
+**Close-out rule:** Do not mark the task fully complete while a required applicable item is unchecked, a material finding remains, or a critical verification is missing. If scope or deployment cannot be fully verified, report **PASS WITH LIMITATIONS** only when the evidence supports it; otherwise report **FAIL** or **Not yet complete**.
+
 ## Required final report fields
 
 1. Scope reviewed.
