@@ -16,6 +16,11 @@ class PrivateHQStaticAssetsTests(unittest.TestCase):
         self.assertIn("visitor-analytics.html", private_hq_server.ALLOWED)
         self.assertIn("visitor-analytics-ui.js", private_hq_server.ALLOWED)
 
+    def test_specialist_agent_pages_are_allowlisted_for_authenticated_hq(self) -> None:
+        self.assertIn("video-agent.html", private_hq_server.ALLOWED)
+        self.assertIn("creative-agent.html", private_hq_server.ALLOWED)
+        self.assertIn("inbox.html", private_hq_server.ALLOWED)
+
     def test_javascript_is_served_with_executable_javascript_mime_type(self) -> None:
         self.assertEqual(
             private_hq_server.content_type_for("visitor-analytics-ui.js"),
