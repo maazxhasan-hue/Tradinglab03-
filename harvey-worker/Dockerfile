@@ -5,5 +5,6 @@ COPY harvey-worker/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY harvey-worker/app.py ./app.py
 COPY harvey-worker/hq_app.py ./hq_app.py
+COPY company ./company
 EXPOSE 8080
 CMD ["uvicorn", "hq_app:app", "--host", "0.0.0.0", "--port", "8080"]
