@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harvey-worker"))
 try:
     from fastapi.testclient import TestClient
     from hq_app import app, _session_token, _valid_session, _ensure_login_attempts_table
-from app import db
+    from app import db
 except ModuleNotFoundError as exc:
     # The repository-wide unit-test job intentionally installs only lightweight
     # project dependencies; the dedicated Harvey worker job installs FastAPI.
