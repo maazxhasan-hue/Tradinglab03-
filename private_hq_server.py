@@ -20,6 +20,7 @@ APP_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENTS, GrowthStore
 from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status
+from company.nexora_batch_executor import start_all_agents, batch_status
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
@@ -138,6 +139,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED,"ai_provider":provider_status()}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/tasks":
                 self.body(200, json.dumps({"tasks":GrowthStore(GROWTH_DB).list_tasks()}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/growth/batch":
+                self.body(200, json.dumps(batch_status()), "application/json; charset=utf-8"); return
             self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
         path = parsed.path
         if path == "/healthz":
@@ -168,6 +171,16 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/growth/agents/start-all":
+                try:
+                    result = start_all_agents(GrowthStore(GROWTH_DB))
+                    status = 202 if result.get("started") else 409
+                    self.body(status, json.dumps(result), "application/json; charset=utf-8"); return
+                except ProviderNotConfigured as exc:
+                    self.body(503, json.dumps({"error":"provider_not_configured","message":str(exc)}),
+                        "application/json; charset=utf-8"); return
+                except Exception:
+                    self.body(500, json.dumps({"error":"batch_start_failed"}), "application/json; charset=utf-8"); return
             if parsed.path.startswith("/api/growth/tasks/") and parsed.path.endswith("/run"):
                 task_id = parsed.path[len("/api/growth/tasks/"):-len("/run")].strip("/")
                 if not task_id or "/" in task_id:
