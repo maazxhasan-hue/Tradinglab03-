@@ -160,6 +160,9 @@ jobs:
           PY
       - name: Apply database migrations
         run: npx --yes wrangler@4 d1 migrations apply tradinglab03-intake --remote --config worker/wrangler.toml
+      - name: Ensure configurable rate-limit storage exists
+        run: |
+          npx --yes wrangler@4 d1 execute tradinglab03-intake --remote --config worker/wrangler.toml --command "CREATE TABLE IF NOT EXISTS client_rate_limit_events (id TEXT PRIMARY KEY, bucket_hash TEXT NOT NULL, route_type TEXT NOT NULL, outcome TEXT NOT NULL DEFAULT 'attempt', created_at TEXT NOT NULL); CREATE INDEX IF NOT EXISTS idx_rate_limit_bucket_time ON client_rate_limit_events(bucket_hash, route_type, created_at);"
       - name: Verify client authentication and referral tables exist
         shell: bash
         run: |
