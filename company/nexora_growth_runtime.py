@@ -297,4 +297,4 @@ class GrowthStore:
                 "company_roles_defined":len(COMPANY_AGENTS),"departments":department_count,"task_counts":counts,
                 "pending_approvals":pending,"approval_records":total_approvals,"audit_events":audit_events,
                 "brain":{"mode":"shared_local_sqlite_with_optional_supabase_sync","memory_records":self.memory_count()},
-                "runtime_status":"persistent_task_and_local_brain_store_available; live provider and remote brain readiness must be checked separately"}
+                "runtime_status":"SQLite_task_and_local_brain_store_available; restart durability depends on the deployment storage mount; live provider and remote brain readiness must be checked separately"}
