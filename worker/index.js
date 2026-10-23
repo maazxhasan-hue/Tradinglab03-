@@ -449,13 +449,13 @@ async function createSubmission(request, env, cors) {
   if (!exactKeys(payload, intakeRequired, intakeOptional) ||
       (Object.hasOwn(payload, "schema_version") && payload.schema_version !== 1) ||
       (Object.hasOwn(payload, "source") && !stringField(payload.source, {min: 1, max: 80, allowEmpty: false})) ||
-      (Object.hasOwn(payload, "created_at") && (typeof payload.created_at !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\.\\d{1,3})?Z$/.test(payload.created_at) || Number.isNaN(Date.parse(payload.created_at)))) ||
+      (Object.hasOwn(payload, "created_at") && (typeof payload.created_at !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(payload.created_at) || Number.isNaN(Date.parse(payload.created_at)))) ||
       !stringField(payload.name, {min: 1, max: 120, allowEmpty: false}) ||
       !stringField(payload.email, {min: 3, max: 180, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i}) ||
       !stringField(payload.company, {max: 160}) ||
       !stringField(payload.service, {min: 1, max: 80, allowEmpty: false}) ||
       !stringField(payload.budget, {max: 80}) ||
-      !stringField(payload.deadline, {max: 10, pattern: /^$|^\\d{4}-\\d{2}-\\d{2}$/}) ||
+      !stringField(payload.deadline, {max: 10, pattern: /^$|^\d{4}-\d{2}-\d{2}$/}) ||
       !stringField(payload.goal, {min: 10, max: 5000, allowEmpty: false}) ||
       !stringField(payload.reference, {max: 500}) ||
       !stringField(payload.website, {max: 300}) ||
