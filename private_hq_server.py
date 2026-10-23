@@ -34,6 +34,8 @@ ALLOWED = {
     "agent-town.html",
     "harvey.html",
     "inbox.html",
+    "video-agent.html",
+    "creative-agent.html",
     "marketing.html",
     "growth-hq.html",
     "visitor-analytics.html",
