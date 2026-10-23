@@ -14,7 +14,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harvey-worker"))
 
 try:
     from fastapi.testclient import TestClient
-    from hq_app import app, _session_token, _valid_session
+    from hq_app import app, _session_token, _valid_session, _ensure_login_attempts_table
+from app import db
 except ModuleNotFoundError as exc:
     # The repository-wide unit-test job intentionally installs only lightweight
     # project dependencies; the dedicated Harvey worker job installs FastAPI.
@@ -28,9 +29,14 @@ class PrivateHQTests(unittest.TestCase):
         os.environ["HQ_ADMIN_PASSWORD"] = "test-owner-password"
         os.environ["HQ_SESSION_SECRET"] = "test-session-signing-secret-with-sufficient-entropy"
         self.client = TestClient(app, base_url="https://testserver")
+        _ensure_login_attempts_table()
+        with db() as conn:
+            conn.execute("DELETE FROM hq_login_attempts")
 
     def tearDown(self):
         self.client.close()
+        with db() as conn:
+            conn.execute("DELETE FROM hq_login_attempts")
 
     def test_signed_session_rejects_tampering_and_expiry(self):
         token = _session_token(2000)
@@ -74,6 +80,18 @@ class PrivateHQTests(unittest.TestCase):
         self.assertEqual(response.status_code, 303)
         self.assertIn("error=1", response.headers["location"])
         self.assertNotIn("nexora_hq_session=", response.headers.get("set-cookie", ""))
+
+    def test_login_attempts_are_rate_limited(self):
+        for _ in range(8):
+            response = self.client.post(
+                "/hq/login", data={"password": "wrong-password"}, follow_redirects=False
+            )
+            self.assertEqual(response.status_code, 303)
+        blocked = self.client.post(
+            "/hq/login", data={"password": "wrong-password"}, follow_redirects=False
+        )
+        self.assertEqual(blocked.status_code, 429)
+        self.assertEqual(blocked.headers.get("retry-after"), "900")
 
     def test_unconfigured_hq_fails_closed(self):
         old_password = os.environ.pop("HQ_ADMIN_PASSWORD", None)
