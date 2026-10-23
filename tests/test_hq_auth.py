@@ -12,8 +12,15 @@ os.environ["HQ_ADMIN_PASSWORD"] = "test-owner-password"
 os.environ["HQ_SESSION_SECRET"] = "test-session-signing-secret-with-sufficient-entropy"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harvey-worker"))
 
-from fastapi.testclient import TestClient
-from hq_app import app, _session_token, _valid_session
+try:
+    from fastapi.testclient import TestClient
+    from hq_app import app, _session_token, _valid_session
+except ModuleNotFoundError as exc:
+    # The repository-wide unit-test job intentionally installs only lightweight
+    # project dependencies; the dedicated Harvey worker job installs FastAPI.
+    if exc.name in {"fastapi", "httpx", "starlette"}:
+        raise unittest.SkipTest("Private HQ integration tests require harvey-worker/requirements.txt") from exc
+    raise
 
 
 class PrivateHQTests(unittest.TestCase):
