@@ -180,7 +180,7 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/growth/overview":
                 self.body(200, json.dumps(GrowthStore(GROWTH_DB).overview()), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/agents":
-                self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED,"ai_provider":provider_status()}), "application/json; charset=utf-8"); return
+                self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED,"ai_provider":provider_status(),"brain":brain_status()}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/tasks":
                 self.body(200, json.dumps({"tasks":GrowthStore(GROWTH_DB).list_tasks()}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/batch":
