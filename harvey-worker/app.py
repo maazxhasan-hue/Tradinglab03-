@@ -283,7 +283,7 @@ def public_status():
             "service": APP_NAME,
             "status": "ready",
             "time": now(),
-            "agents": {"roles_defined": len(AGENT_MANDATES), "execution_mode": "on-demand",
+            "agents": {"roles_defined": len(AGENT_MANDATES), "execution_mode": ("automatic" if _company_runtime_ready() and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true" else "on-demand"), "automatic_execution_enabled": bool(_company_runtime_ready() and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true"),
                        "worker_name": "Harvey", "roles": [
                            {"name": role, "mandate": AGENT_MANDATES[role]}
                            for role in sorted(AGENT_MANDATES)
