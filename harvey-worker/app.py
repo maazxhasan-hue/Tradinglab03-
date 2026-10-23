@@ -4,10 +4,10 @@ confirmation, server-side credentials, a configured sender, unsubscribe protecti
 suppression checks, duplicate-send protection, and a daily limit.
 """
 from __future__ import annotations
-import os, sqlite3, secrets, re
+import os, sqlite3, secrets, re, asyncio
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -670,6 +670,54 @@ AGENT_MANDATES = {
  "Reverse Writing Agent":"Reconstruct specifications and documentation from provided artifacts; label uncertainty."
 }
 
+def _register_extended_agent_mandates() -> None:
+    """Register every declared company role and the 41 growth specialists in Harvey's roster."""
+    registry_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "company", "roles.json")
+    try:
+        with open(registry_path, "r", encoding="utf-8") as registry_file:
+            department_data = json.load(registry_file)
+        if not isinstance(department_data, list):
+            raise ValueError("Company role registry must be a JSON list.")
+        for department in department_data:
+            if not isinstance(department, dict):
+                continue
+            department_name = str(department.get("department", "Company Operations"))[:120]
+            roles = department.get("roles", [])
+            if not isinstance(roles, list):
+                continue
+            for role in roles:
+                if isinstance(role, str) and role.strip():
+                    name = role.strip()[:100]
+                    AGENT_MANDATES.setdefault(
+                        name,
+                        f"Execute the {name} responsibilities for the {department_name} department. "
+                        "Produce concrete, evidence-aware work, record assumptions, and hand off dependencies. "
+                        "Do not invent facts or perform external actions without approval.",
+                    )
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        logger.error("company_role_registry_load_failed error_type=%s", type(exc).__name__)
+        raise RuntimeError("The company role registry could not be loaded; refusing to start with an incomplete roster.") from None
+
+    try:
+        from company.nexora_growth_runtime import AGENTS as GROWTH_AGENTS
+        for agent in GROWTH_AGENTS:
+            name = "Growth / " + str(agent["name"]).strip()
+            AGENT_MANDATES.setdefault(
+                name,
+                f"Execute the {agent['name']} role in the Nexora 41-agent growth team ({agent['department']}). "
+                "Produce an actionable internal deliverable with evidence, assumptions, QA notes, and handoffs. "
+                "Draft only; do not publish, message, spend, or claim external actions.",
+            )
+    except (ImportError, KeyError, TypeError) as exc:
+        logger.error("growth_role_registry_load_failed error_type=%s", type(exc).__name__)
+        raise RuntimeError("The 41-agent growth roster could not be loaded; refusing to start with an incomplete roster.") from None
+
+
+_register_extended_agent_mandates()
+# Make the unified company roster available to the single-agent endpoint too.
+AGENT_ROLES.update(AGENT_MANDATES)
+
+
 COMPANY_DEPENDENCIES = {
  "Market Intelligence": ["CEO Strategy"],
  "Brand & Positioning": ["Market Intelligence"],
@@ -717,10 +765,121 @@ def agent_roster(x_api_key: Optional[str] = Header(default=None)):
                       for role in sorted(AGENT_MANDATES)],
             "model_configured": bool((os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")) and (os.getenv("LLM_MODEL", "") or os.getenv("OPENAI_MODEL", "openrouter/free" if os.getenv("OPENROUTER_API_KEY", "") else "gpt-4.1-mini")))}
 
+def _company_runtime_ready() -> bool:
+    model_key = (os.getenv("OPENROUTER_API_KEY", "") or os.getenv("LLM_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")).strip()
+    return bool(model_key and SHARED_BRAIN_AGENT_KEY)
+
+
+_ACTIVE_COMPANY_CYCLES: set[str] = set()
+
+
+async def _run_company_cycle(cycle_id: str, max_retries_per_job: int = 1) -> dict:
+    """Execute dependency-ready company jobs in the background with bounded retries."""
+    if cycle_id in _ACTIVE_COMPANY_CYCLES:
+        return {"cycle_id": cycle_id, "status": "already_running"}
+    _ACTIVE_COMPANY_CYCLES.add(cycle_id)
+    attempts: dict[int, int] = {}
+    processed = 0
+    try:
+        while processed < max(1, len(AGENT_MANDATES) * 3):
+            with db() as c:
+                counts = {str(row["status"]): int(row["n"]) for row in c.execute(
+                    "SELECT status, COUNT(*) AS n FROM company_jobs WHERE cycle_id=? GROUP BY status",
+                    (cycle_id,),
+                ).fetchall()}
+                queued = counts.get("queued", 0)
+            if not queued:
+                break
+            try:
+                result = await run_next_company_job(cycle_id, API_KEY)
+                processed += int(result.get("status") == "completed")
+                if result.get("status") in {"blocked", "finished"}:
+                    break
+                if result.get("status") != "completed":
+                    break
+            except HTTPException as exc:
+                # Provider/brain configuration failures are systemic; do not hammer a broken service.
+                if exc.status_code in {401, 403, 429, 502, 503, 504}:
+                    logger.error("company_cycle_paused cycle_id=%s http_status=%s", cycle_id, exc.status_code)
+                    break
+                with db() as c:
+                    failed = c.execute(
+                        "SELECT id FROM company_jobs WHERE cycle_id=? AND status='failed' ORDER BY id DESC LIMIT 1",
+                        (cycle_id,),
+                    ).fetchone()
+                    if failed is None:
+                        break
+                    job_id = int(failed["id"])
+                    attempts[job_id] = attempts.get(job_id, 0) + 1
+                    if attempts[job_id] <= max_retries_per_job:
+                        c.execute("UPDATE company_jobs SET status='queued',error=NULL,updated_at=? WHERE id=? AND status='failed'",
+                                  (now(), job_id))
+                    else:
+                        c.execute("UPDATE company_jobs SET status='blocked',error=?,updated_at=? WHERE cycle_id=? AND status='queued'",
+                                  ("Blocked after prerequisite failure; inspect failed specialist jobs.", now(), cycle_id))
+                        break
+            except Exception as exc:
+                logger.error("company_cycle_unexpected_error cycle_id=%s error_type=%s", cycle_id, type(exc).__name__)
+                break
+        with db() as c:
+            counts = {str(row["status"]): int(row["n"]) for row in c.execute(
+                "SELECT status, COUNT(*) AS n FROM company_jobs WHERE cycle_id=? GROUP BY status",
+                (cycle_id,),
+            ).fetchall()}
+            # If a prerequisite failed permanently, explicitly mark its dependants blocked.
+            failed_roles = {str(row["role"]) for row in c.execute(
+                "SELECT role FROM company_jobs WHERE cycle_id=? AND status IN ('failed','blocked')",
+                (cycle_id,),
+            ).fetchall()}
+            if failed_roles:
+                queued_rows = c.execute(
+                    "SELECT id,role FROM company_jobs WHERE cycle_id=? AND status='queued'", (cycle_id,)
+                ).fetchall()
+                for queued_row in queued_rows:
+                    unmet = [dep for dep in COMPANY_DEPENDENCIES.get(str(queued_row["role"]), []) if dep in failed_roles]
+                    if unmet:
+                        c.execute("UPDATE company_jobs SET status='blocked',error=?,updated_at=? WHERE id=?",
+                                  ("Blocked by failed prerequisite(s): " + ", ".join(unmet), now(), int(queued_row["id"])))
+            final_counts = {str(row["status"]): int(row["n"]) for row in c.execute(
+                "SELECT status, COUNT(*) AS n FROM company_jobs WHERE cycle_id=? GROUP BY status",
+                (cycle_id,),
+            ).fetchall()}
+        return {"cycle_id": cycle_id, "status": "completed" if not final_counts.get("queued", 0) and not final_counts.get("failed", 0) else "partial",
+                "processed": processed, "counts": final_counts}
+    finally:
+        _ACTIVE_COMPANY_CYCLES.discard(cycle_id)
+
+
+async def _company_cycle_supervisor() -> None:
+    """Recover queued cycles after process restarts when all required services are configured."""
+    while True:
+        try:
+            if _company_runtime_ready() and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true":
+                with db() as c:
+                    rows = c.execute(
+                        "SELECT DISTINCT cycle_id FROM company_jobs WHERE status='queued' ORDER BY MIN(id) LIMIT 5"
+                    ).fetchall()
+                for row in rows:
+                    cycle_id = str(row["cycle_id"])
+                    if cycle_id not in _ACTIVE_COMPANY_CYCLES:
+                        await _run_company_cycle(cycle_id)
+        except Exception as exc:
+            logger.error("company_supervisor_error error_type=%s", type(exc).__name__)
+        await asyncio.sleep(15)
+
+
+@app.on_event("startup")
+async def _start_company_cycle_supervisor() -> None:
+    # Queue state is durable in the DB; the supervisor resumes queued work after a restart.
+    if os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true":
+        asyncio.create_task(_company_cycle_supervisor())
+
+
 @app.post("/company/dispatch")
-def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
+def dispatch_company_mission(req: CompanyDispatchRequest, background_tasks: BackgroundTasks,
+                             x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
-    import uuid, json
+    import uuid
     cycle_id = uuid.uuid4().hex
     with db() as c:
         for role, mandate in AGENT_MANDATES.items():
@@ -728,10 +887,18 @@ def dispatch_company_mission(req: CompanyDispatchRequest, x_api_key: Optional[st
               (cycle_id,role,mandate,goal,context,status,created_at,updated_at)
               VALUES(?,?,?,?,?,'queued',?,?)""",
               (cycle_id, role, mandate, req.mission, req.context, now(), now()))
-    return {"cycle_id": cycle_id, "status": "queued",
-            "roles_assigned": len(AGENT_MANDATES),
-            "queued_jobs": len(AGENT_MANDATES),
-            "message": "Each specialist has a distinct mandate and persisted work item. Jobs are queued, not running yet; execute them with /company/jobs/{job_id}/run. No external actions are taken."}
+    ready = _company_runtime_ready()
+    if ready and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true":
+        background_tasks.add_task(_run_company_cycle, cycle_id)
+        status = "scheduled"
+        message = "All registered company and growth roles were queued. Background execution will start after this response; tasks require a configured model and shared brain."
+    else:
+        status = "queued"
+        message = "All roles were queued durably, but automatic execution is blocked until model credentials and SHARED_BRAIN_AGENT_KEY are configured on the server."
+    return {"cycle_id": cycle_id, "status": status,
+            "roles_assigned": len(AGENT_MANDATES), "queued_jobs": len(AGENT_MANDATES),
+            "automatic_execution_enabled": bool(ready and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true"),
+            "message": message}
 
 @app.post("/company/recover-empty-cycle")
 def recover_empty_company_cycle(cycle_id: str, req: CompanyDispatchRequest, x_api_key: Optional[str] = Header(default=None)):
