@@ -7,7 +7,9 @@ from __future__ import annotations
 import os, sqlite3, secrets, re
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import httpx
@@ -86,6 +88,45 @@ DB_PATH = os.getenv("DATABASE_PATH", "harvey.db")
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 API_KEY = os.getenv("HARVEY_API_KEY", "")
 app = FastAPI(title=APP_NAME, version="0.2.0")
+
+_SAFE_CLIENT_DETAIL = re.compile(
+    r"(traceback|stack trace|file \"|\\.py\\b|\\.db\\b|\\.sqlite\\b|"
+    r"select |insert |update |delete |postgres|sqlite|psycopg|sqlalchemy|"
+    r"database url|connection refused|\\bline \\d+\\b|/home/|/app/|/usr/|"
+    r"\\b(password|secret|token|api[_ -]?key)\\b)",
+    re.IGNORECASE,
+)
+
+@app.exception_handler(RequestValidationError)
+async def safe_validation_error(request: Request, exc: RequestValidationError):
+    # Validation details may contain rejected input; never echo them to clients or logs.
+    logger.warning("Request validation failed: method=%s path=%s error_count=%d",
+                   request.method, request.url.path, len(exc.errors()))
+    return JSONResponse(status_code=422, content={"detail": "Invalid request. Check the submitted fields."})
+
+@app.exception_handler(HTTPException)
+async def safe_http_error(request: Request, exc: HTTPException):
+    detail = str(exc.detail) if exc.detail is not None else ""
+    if exc.status_code >= 500:
+        logger.error("Handled server error: method=%s path=%s status=%d detail=%s",
+                     request.method, request.url.path, exc.status_code, detail)
+        message = "The service is temporarily unavailable. Please try again later."
+    elif _SAFE_CLIENT_DETAIL.search(detail):
+        logger.warning("Suppressed internal-looking HTTP error detail: method=%s path=%s status=%d",
+                       request.method, request.url.path, exc.status_code)
+        message = "The request could not be completed."
+    else:
+        message = detail or "The request could not be completed."
+    return JSONResponse(status_code=exc.status_code, content={"detail": message},
+                        headers=exc.headers)
+
+@app.exception_handler(Exception)
+async def safe_unhandled_error(request: Request, exc: Exception):
+    # Keep the full traceback in server logs only; never serialize exception text.
+    logger.exception("Unhandled request error: method=%s path=%s",
+                     request.method, request.url.path)
+    return JSONResponse(status_code=500,
+                        content={"detail": "An unexpected error occurred. Please try again later."})
 
 class PostgresCursorCompat:
     def __init__(self, cursor, lastrowid=None):
