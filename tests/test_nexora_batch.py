@@ -1,43 +1,73 @@
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
-import private_hq_server as hq
+
+from company.nexora_growth_runtime import AGENTS, GrowthStore
+from company.nexora_agent_executor import ProviderNotConfigured
+from company import nexora_batch_executor as batch
+
+
+class _InlineThread:
+    def __init__(self, target, args=(), **kwargs):
+        self.target, self.args = target, args
+
+    def start(self):
+        self.target(*self.args)
 
 
 class GrowthBatchTests(unittest.TestCase):
     def setUp(self):
-        with hq.BATCH_LOCK:
-            hq.BATCH_STATE.update({"batch_id": "test", "running": True, "total": 2,
-                                   "finished": 0, "failed": 0, "queued": 2,
-                                   "started_at": "test", "finished_at": None})
-            hq.BATCH_TASK_IDS[:] = ["task-a", "task-b"]
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = GrowthStore(Path(self.tmp.name) / "growth.sqlite3")
 
     def tearDown(self):
-        with hq.BATCH_LOCK:
-            hq.BATCH_STATE.update({"batch_id": None, "running": False, "total": 0,
-                                   "finished": 0, "failed": 0, "queued": 0,
-                                   "started_at": None, "finished_at": None})
-            hq.BATCH_TASK_IDS.clear()
+        self.tmp.cleanup()
 
-    def test_batch_runs_all_tasks_and_records_completion(self):
-        with patch.object(hq, "execute_agent_draft") as execute:
-            hq._run_growth_batch(["task-a", "task-b"])
-        self.assertEqual(execute.call_count, 2)
-        self.assertFalse(hq.BATCH_STATE["running"])
-        self.assertEqual(hq.BATCH_STATE["finished"], 2)
-        self.assertEqual(hq.BATCH_STATE["failed"], 0)
-        self.assertEqual(hq.BATCH_STATE["queued"], 0)
-        self.assertTrue(hq.BATCH_STATE["finished_at"])
+    def test_batch_requires_configured_provider(self):
+        with self.assertRaises(ProviderNotConfigured):
+            batch.start_all_agents(self.store, {})
 
-    def test_batch_counts_failures_without_stopping_other_roles(self):
-        def side_effect(store, task_id):
-            if task_id == "task-a":
+    def test_start_all_queues_and_processes_all_41_roles(self):
+        def fake_execute(store, task_id):
+            task = store.get_task(task_id)
+            store.transition(task_id, "running", "test-agent")
+            return store.transition(task_id, "completed", "test-agent",
+                                    outputs={"draft": "internal test draft"},
+                                    evidence_refs=[f"test:{task_id}"])
+
+        with patch.object(batch, "execute_agent_draft", side_effect=fake_execute), \
+             patch.object(batch.threading, "Thread", _InlineThread):
+            result = batch.start_all_agents(self.store, {"GEMINI_API_KEY": "test-key"})
+
+        self.assertTrue(result["started"])
+        self.assertEqual(result["total"], 41)
+        self.assertEqual(len(self.store.list_tasks(limit=100)), 41)
+        self.assertEqual(batch.batch_status()["finished"], 41)
+        self.assertEqual(batch.batch_status()["failed"], 0)
+        self.assertFalse(batch.batch_status()["running"])
+
+    def test_batch_continues_after_individual_task_failure(self):
+        calls = []
+        def fake_execute(store, task_id):
+            calls.append(task_id)
+            if len(calls) == 1:
                 raise RuntimeError("simulated provider failure")
-            return {"status": "completed"}
-        with patch.object(hq, "execute_agent_draft", side_effect=side_effect):
-            hq._run_growth_batch(["task-a", "task-b"])
-        self.assertEqual(hq.BATCH_STATE["finished"], 2)
-        self.assertEqual(hq.BATCH_STATE["failed"], 1)
-        self.assertFalse(hq.BATCH_STATE["running"])
+            task = store.get_task(task_id)
+            store.transition(task_id, "running", "test-agent")
+            return store.transition(task_id, "completed", "test-agent",
+                                    outputs={"draft": "internal test draft"},
+                                    evidence_refs=[f"test:{task_id}"])
+
+        with patch.object(batch, "execute_agent_draft", side_effect=fake_execute), \
+             patch.object(batch.threading, "Thread", _InlineThread):
+            result = batch.start_all_agents(self.store, {"OPENAI_API_KEY": "test-key"})
+
+        self.assertTrue(result["started"])
+        self.assertEqual(len(calls), 41)
+        self.assertEqual(batch.batch_status()["finished"], 41)
+        self.assertEqual(batch.batch_status()["failed"], 1)
+        self.assertFalse(batch.batch_status()["running"])
 
 
 if __name__ == "__main__":
