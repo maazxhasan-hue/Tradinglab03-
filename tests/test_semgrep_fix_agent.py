@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from company.semgrep_fix_agent import allowed_path, extract_diff, load_findings
+from company.semgrep_fix_agent import allowed_path, extract_diff, load_findings, validated_provider_base
 
 
 class SemgrepFixAgentTests(unittest.TestCase):
@@ -15,6 +15,21 @@ class SemgrepFixAgentTests(unittest.TestCase):
         self.assertFalse(allowed_path("../.env"))
         self.assertFalse(allowed_path(".github/workflows/semgrep.yml"))
         self.assertFalse(allowed_path("public-site/index.html"))
+
+    def test_provider_base_url_rejects_non_https_and_unapproved_hosts(self):
+        self.assertEqual(
+            validated_provider_base("https://api.openai.com/v1", "api.openai.com"),
+            "https://api.openai.com/v1",
+        )
+        for unsafe in (
+            "file:///etc/passwd",
+            "http://api.openai.com/v1",
+            "https://127.0.0.1/latest",
+            "https://user:pass@api.openai.com/v1",
+            "https://api.openai.com/v1?next=file:///etc/passwd",
+        ):
+            with self.subTest(url=unsafe), self.assertRaises(ValueError):
+                validated_provider_base(unsafe, "api.openai.com")
 
     def test_extract_diff_accepts_only_allowlisted_paths(self):
         patch = (
