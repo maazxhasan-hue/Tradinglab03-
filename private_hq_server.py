@@ -7,10 +7,6 @@ import hmac
 import html
 import json
 import sys
-import threading
-import concurrent.futures
-import uuid
-from datetime import datetime, timezone
 import http.cookies
 import os
 import secrets
@@ -31,38 +27,6 @@ PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
 SESSION_SECRET = os.environ.get("HQ_SESSION_SECRET", "")
 PORT = int(os.environ.get("PORT", "10000"))
 SESSION_TTL = 8 * 60 * 60
-BATCH_LOCK = threading.Lock()
-BATCH_STATE = {"batch_id": None, "running": False, "total": 0, "finished": 0,
-               "failed": 0, "queued": 0, "started_at": None, "finished_at": None}
-BATCH_TASK_IDS: list[str] = []
-
-
-def _run_growth_batch(task_ids: list[str]) -> None:
-    """Execute every queued role as a private draft; never perform public actions."""
-    def run_one(task_id: str) -> None:
-        failed = False
-        try:
-            execute_agent_draft(GrowthStore(GROWTH_DB), task_id)
-        except Exception:
-            failed = True
-        with BATCH_LOCK:
-            BATCH_STATE["finished"] += 1
-            BATCH_STATE["queued"] = max(0, BATCH_STATE["total"] - BATCH_STATE["finished"])
-            if failed:
-                BATCH_STATE["failed"] += 1
-    try:
-        # Small concurrency keeps provider load and free-instance memory bounded.
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-            futures = [pool.submit(run_one, task_id) for task_id in task_ids]
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-    finally:
-        with BATCH_LOCK:
-            BATCH_STATE["running"] = False
-            BATCH_STATE["queued"] = max(0, BATCH_STATE["total"] - BATCH_STATE["finished"])
-            BATCH_STATE["finished_at"] = datetime.now(timezone.utc).isoformat()
-
-
 # Serve only reviewed HQ documents and the local analytics asset they reference.
 # Everything in this allowlist is still protected by the authenticated session gate.
 ALLOWED = {
@@ -174,14 +138,9 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/growth/agents":
                 self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED,"ai_provider":provider_status()}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/batch":
-                with BATCH_LOCK:
-                    snapshot = dict(BATCH_STATE)
-                    snapshot["task_ids"] = list(BATCH_TASK_IDS)
-                self.body(200, json.dumps(snapshot), "application/json; charset=utf-8"); return
+                self.body(200, json.dumps(batch_status()), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/tasks":
                 self.body(200, json.dumps({"tasks":GrowthStore(GROWTH_DB).list_tasks()}), "application/json; charset=utf-8"); return
-            if parsed.path == "/api/growth/batch":
-                self.body(200, json.dumps(batch_status()), "application/json; charset=utf-8"); return
             self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
         path = parsed.path
         if path == "/healthz":
@@ -222,42 +181,6 @@ class Handler(BaseHTTPRequestHandler):
                         "application/json; charset=utf-8"); return
                 except Exception:
                     self.body(500, json.dumps({"error":"batch_start_failed"}), "application/json; charset=utf-8"); return
-            if parsed.path == "/api/growth/agents/start-all":
-                status = provider_status()
-                if not status["configured"]:
-                    self.body(503, json.dumps({"error":"provider_not_configured",
-                        "message":"Configure GEMINI_API_KEY or OPENAI_API_KEY in Render environment before starting the 41-agent batch."}),
-                        "application/json; charset=utf-8"); return
-                with BATCH_LOCK:
-                    if BATCH_STATE["running"]:
-                        self.body(409, json.dumps({"error":"batch_already_running","message":"An agent batch is already running."}),
-                                  "application/json; charset=utf-8"); return
-                    store = GrowthStore(GROWTH_DB)
-                    task_ids = []
-                    try:
-                        for agent in AGENTS:
-                            task = store.create_task(
-                                f"Autonomous growth work: {agent['name']}",
-                                agent["agent_id"],
-                                {"goal":"Advance Nexora AI company launch and social growth.",
-                                 "account":"nexoraai03",
-                                 "instructions":"Produce a practical, evidence-aware internal work product for this role. Prioritize launch readiness, content, audience growth, lead handling, measurement, and operational quality. Do not publish, send messages, contact leads, spend money, or invent facts. List assumptions and next steps."},
-                                campaign_id="nexora-company-launch")
-                            task_ids.append(task["task_id"])
-                    except Exception as exc:
-                        self.body(500, json.dumps({"error":"batch_task_creation_failed","message":type(exc).__name__}),
-                                  "application/json; charset=utf-8"); return
-                    BATCH_TASK_IDS[:] = task_ids
-                    BATCH_STATE.update({"batch_id":str(uuid.uuid4()),"running":True,"total":len(task_ids),
-                        "finished":0,"failed":0,"queued":len(task_ids),
-                        "started_at":datetime.now(timezone.utc).isoformat(),"finished_at":None})
-                    snapshot = dict(BATCH_STATE)
-                threading.Thread(target=_run_growth_batch, args=(list(task_ids),), daemon=True,
-                                 name="nexora-growth-batch").start()
-                self.body(202, json.dumps({"batch_id":snapshot["batch_id"],"total":snapshot["total"],
-                    "queued":snapshot["queued"],"running":True,"mode":"draft_only",
-                    "message":"All 41 roles queued. Private drafts only; no external actions."}),
-                    "application/json; charset=utf-8"); return
             if parsed.path.startswith("/api/growth/tasks/") and parsed.path.endswith("/run"):
                 task_id = parsed.path[len("/api/growth/tasks/"):-len("/run")].strip("/")
                 if not task_id or "/" in task_id:
