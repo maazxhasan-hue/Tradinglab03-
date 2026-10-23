@@ -47,6 +47,31 @@ def _worker(store: GrowthStore, task_ids: list[str]) -> None:
 
 
 
+
+def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
+    """Resume persisted queued tasks after a process restart, when an AI provider is configured."""
+    if not provider_status(environ)["configured"]:
+        return {"started": False, "reason": "provider_not_configured", "queued": 0}
+    if not _lock.acquire(blocking=False):
+        return {"started": False, "reason": "batch_already_running", **batch_status()}
+    try:
+        queued = store.list_tasks(status="queued", limit=250)
+        task_ids = [task["task_id"] for task in queued]
+        if not task_ids:
+            _lock.release()
+            return {"started": False, "reason": "no_queued_tasks", "queued": 0}
+        import uuid
+        with _state_lock:
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "recovered_queue",
+                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None})
+        thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
+                                  name="nexora-queued-task-recovery")
+        thread.start()
+        return {"started": True, "scope": "recovered_queue", "queued": len(task_ids), **batch_status()}
+    except Exception:
+        _lock.release()
+        raise
+
 def start_company_workforce(store: GrowthStore, mission: str,
                             environ: Mapping[str, str] | None = None) -> dict:
     """Run the complete company role registry and the 41 growth roles as real AI draft tasks."""
