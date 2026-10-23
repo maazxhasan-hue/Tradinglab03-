@@ -857,7 +857,7 @@ async def _company_cycle_supervisor() -> None:
             if _company_runtime_ready() and os.getenv("COMPANY_AUTORUN_ENABLED", "true").lower() == "true":
                 with db() as c:
                     rows = c.execute(
-                        "SELECT DISTINCT cycle_id FROM company_jobs WHERE status='queued' ORDER BY MIN(id) LIMIT 5"
+                        "SELECT cycle_id FROM company_jobs WHERE status='queued' GROUP BY cycle_id ORDER BY MIN(id) LIMIT 5"
                     ).fetchall()
                 for row in rows:
                     cycle_id = str(row["cycle_id"])
