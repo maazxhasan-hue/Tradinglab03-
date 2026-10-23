@@ -9,7 +9,7 @@ from typing import Mapping
 
 from company.nexora_growth_runtime import AGENTS, GrowthStore
 from company.nexora_agent_executor import (
-    DraftExecutionError, ProviderNotConfigured, execute_agent_draft, provider_status,
+    ProviderNotConfigured, execute_agent_draft, provider_status,
 )
 
 _lock = threading.Lock()
