@@ -21,6 +21,8 @@ sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
 from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status, brain_status
 from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status, resume_queued_tasks
+from company.service_pricing import PricingStore, PricingValidationError
+PRICING_DB = os.environ.get("NEXORA_PRICING_DB", str(APP_ROOT / "data" / "nexora_pricing.sqlite3"))
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "") or os.environ.get("HQ_ADMIN_PASSWORD", "")
@@ -40,6 +42,7 @@ ALLOWED = {
     "growth-hq.html",
     "visitor-analytics.html",
     "visitor-analytics-ui.js",
+    "pricing-admin.html",
 }
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -132,6 +135,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/pricing/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/pricing/services":
+                self.body(200, json.dumps({"currency":"INR","max_price":499,"services":PricingStore(PRICING_DB).list_services()}), "application/json; charset=utf-8"); return
+            self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/company/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
@@ -194,6 +203,28 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/pricing/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path != "/api/pricing/services/update":
+                self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 8192:
+                    raise ValueError("Request body must be 1-8192 bytes.")
+                data = json.loads(self.rfile.read(length).decode("utf-8"))
+                if not isinstance(data, dict):
+                    raise ValueError("Request body must be a JSON object.")
+                result = PricingStore(PRICING_DB).update_service(str(data.get("service_id", "")), data.get("price"))
+                self.body(200, json.dumps({"ok": True, "service": result, "max_price": 499}), "application/json; charset=utf-8"); return
+            except PricingValidationError as exc:
+                self.body(400, json.dumps({"error":"invalid_price","message":str(exc)}), "application/json; charset=utf-8"); return
+            except (ValueError, json.JSONDecodeError) as exc:
+                self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except KeyError:
+                self.body(404, json.dumps({"error":"service_not_found"}), "application/json; charset=utf-8"); return
+            except Exception:
+                self.body(500, json.dumps({"error":"pricing_update_failed"}), "application/json; charset=utf-8"); return
         if parsed.path == "/api/company/agents/start-all":
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
