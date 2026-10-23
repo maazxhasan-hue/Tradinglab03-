@@ -211,6 +211,8 @@ function newReferralCode() {
 async function getMyReferrals(request, env, cors) {
   const account = await accountFromRequest(request, env);
   if (!account) return response({error:"Sign in to view your referral dashboard."}, 401, cors);
+  const accountRate = await applyEndpointRateLimit(request, env, "authenticated:referrals", "account:" + account.id, "AUTHENTICATED_ACTION_LIMIT_PER_WINDOW", 120, "AUTHENTICATED_RATE_WINDOW_SECONDS", 3600);
+  if (!accountRate.allowed) return response({error:"Your account has reached its request limit. Please try again later."},429,{...cors,"retry-after":String(accountRate.retryAfter || 60)});
   let code = account.referral_code;
   if (!code) {
     code = newReferralCode();
@@ -385,6 +387,8 @@ async function createSubmission(request, env, cors) {
   }
   const account = await accountFromRequest(request, env);
   if (!account) return response({error:"Sign in before submitting a project request."}, 401, cors);
+  const accountRate = await applyEndpointRateLimit(request, env, "authenticated:intake", "account:" + account.id, "AUTHENTICATED_ACTION_LIMIT_PER_WINDOW", 120, "AUTHENTICATED_RATE_WINDOW_SECONDS", 3600);
+  if (!accountRate.allowed) return response({error:"Your account has reached its request limit. Please try again later."},429,{...cors,"retry-after":String(accountRate.retryAfter || 60)});
   const contentLength = Number(request.headers.get("Content-Length") || 0);
   if (contentLength > MAX_BODY_BYTES) return response({ error: "Request is too large." }, 413, cors);
   if (!(request.headers.get("Content-Type") || "").toLowerCase().includes("application/json")) {
