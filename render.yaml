@@ -8,6 +8,10 @@ services:
     envVars:
       - key: HARVEY_API_KEY
         generateValue: true
+      - key: HQ_ADMIN_PASSWORD
+        sync: false
+      - key: HQ_SESSION_SECRET
+        generateValue: true
       - key: DATABASE_PATH
         value: /var/data/harvey.db
     disk:
