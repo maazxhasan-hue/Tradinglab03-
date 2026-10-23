@@ -38,3 +38,32 @@ On the existing private Harvey backend service, configure `HQ_ADMIN_PASSWORD` as
 ## Status limitation
 
 Code and green CI are not proof that the HQ is live. The Render workspace/service must be selected, environment variables configured on the correct backend, changes merged/deployed, and hosted behavior verified. This document does not claim those external steps have happened.
+
+## Pricing Management
+
+The private owner workspace includes a separate page at `/hq/pricing`. It manages service packages, AI-agent subscriptions, and client-specific quotes through the authenticated backend.
+
+- `GET /hq/api/pricing`: owner-only list; supports `include_archived=true`.
+- `POST /hq/api/pricing`: create a draft.
+- `PUT /hq/api/pricing/{id}`: save draft changes. Editing a published record does not change the live snapshot.
+- `POST /hq/api/pricing/{id}/publish`: validate and publish the saved snapshot.
+- `POST /hq/api/pricing/{id}/archive`: archive an item and remove it from the public catalog.
+- `GET /hq/api/pricing/{id}/history`: owner-only audit history.
+- `GET /public/pricing`: public, read-only catalog containing only published service/subscription snapshots. Drafts, audit logs, and client-specific quotes are never exposed.
+
+Amounts are stored as integer paise. The API rejects malformed slugs, unsupported categories/billing periods, negative amounts, amounts with more than two decimal places, invalid discounts, duplicate slugs, and promotional prices that are not below the regular price. Create, update, publish, and archive actions are persisted to `pricing_audit_log`.
+
+Client-specific quotes can be finalized as owner-only records, but this feature does not email or share a quote with a customer, create invoices, take payments, or update an external website automatically. The public website must consume `/public/pricing` separately if customer-facing price cards are desired.
+
+## Pricing deployment checks
+
+- [ ] Pricing tables persist on the configured backend database.
+- [ ] Unauthenticated requests cannot read or change the owner catalog.
+- [ ] A saved draft is absent from `/public/pricing`.
+- [ ] Publishing a service/subscription exposes only the published snapshot.
+- [ ] Editing a published item leaves its previous public snapshot active until republished.
+- [ ] Client-specific quotes never appear in the public catalog.
+- [ ] Invalid prices and duplicate slugs are rejected.
+- [ ] Audit history records create/edit/publish/archive events.
+- [ ] Archive removes a price from the public catalog.
+- [ ] Backend CI passes and the deployed HTTPS HQ page is verified manually.
