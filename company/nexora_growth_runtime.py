@@ -24,10 +24,10 @@ DEPARTMENTS = [
     ("Market & Audience Intelligence", ["Research Lead", "Market Trend Analyst", "Audience/ICP Researcher", "Competitor Intelligence Analyst", "Keyword & Topic Researcher"]),
     ("Lead Intelligence", ["Lead Intelligence Lead", "Inbound Intent Classifier", "Public Prospect Researcher", "Lead Enrichment & Source Tracker", "Lead Quality Reviewer"]),
     ("Sales & Conversion", ["Sales Conversion Lead", "Enquiry Qualifier", "Proposal & Scope Drafter", "Follow-up Planner", "Meeting & Calendar Coordinator"]),
-    ("Community & Customer Experience", ["Community Lead", "Comment & DM Triage Agent", "Customer Support Drafter", "Feedback & Review Analyst"]),
-    ("Distribution & Search", ["Distribution Lead", "Social Scheduling Coordinator", "SEO & Website Distribution Specialist", "Campaign Link & UTM Manager"]),
-    ("Analytics & Growth Experiments", ["Growth Analytics Lead", "Content Performance Analyst", "Funnel & Attribution Analyst", "Experiment Planner"]),
-    ("Quality, Risk & Operations", ["Quality & Operations Lead", "Brand/Claims Reviewer", "Privacy, Consent & Platform Policy Reviewer", "Workflow Reliability & Audit Agent"]),
+    ("Community & Customer Experience", ["Community Lead", "Comment & DM Triage Agent", "Customer Support Drafter", "Feedback & Review Analyst", "Response Escalation Specialist"]),
+    ("Distribution & Search", ["Distribution Lead", "Social Scheduling Coordinator", "SEO & Website Distribution Specialist", "Campaign Link & UTM Manager", "Campaign QA Specialist"]),
+    ("Analytics & Growth Experiments", ["Growth Analytics Lead", "Content Performance Analyst", "Funnel & Attribution Analyst", "Experiment Planner", "Reporting Specialist"]),
+    ("Quality, Risk & Operations", ["Quality & Operations Lead", "Brand/Claims Reviewer", "Privacy, Consent & Platform Policy Reviewer", "Workflow Reliability & Audit Agent", "Compliance Audit Specialist"]),
 ]
 AGENTS = [{"agent_id": "growth-director", "name": "Growth Director", "department": "Executive", "kind": "director"}]
 for index, (department, roles) in enumerate(DEPARTMENTS, 1):
