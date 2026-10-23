@@ -178,6 +178,7 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(self.hq_client.get("/hq/api/pricing").status_code, 401)
         public = self.hq_client.get("/public/pricing")
         self.assertEqual(public.status_code, 200)
+        self.assertEqual(public.headers.get("cache-control"), "no-store")
         self.assertEqual(public.json()["items"], [])
 
     def test_pricing_draft_publish_edit_and_audit_flow(self):
