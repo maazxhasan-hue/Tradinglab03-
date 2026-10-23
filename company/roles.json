@@ -6,7 +6,11 @@
       "Operations Orchestrator",
       "Project Manager",
       "Delivery Director",
-      "Risk Committee Coordinator"
+      "Risk Committee Coordinator",
+      "Harvey Agent",
+      "Project Operations Agent",
+      "Workflow Agent",
+      "Knowledge & Memory Agent"
     ]
   },
   {
@@ -18,7 +22,12 @@
       "Social Media Manager",
       "Brand Strategist",
       "Campaign Operator",
-      "Marketing Analyst"
+      "Marketing Analyst",
+      "Marketing Agent",
+      "Brand Agent",
+      "Instagram Growth Agent",
+      "Social & Community Agent",
+      "Reverse Writing Agent"
     ]
   },
   {
@@ -30,7 +39,10 @@
       "Proposal Writer",
       "Partnerships Manager",
       "Sales Operations Analyst",
-      "Business Intelligence & Revenue Scout"
+      "Business Intelligence & Revenue Scout",
+      "Sales Agent",
+      "Lead Discovery Agent",
+      "Contact Agent"
     ]
   },
   {
@@ -41,7 +53,8 @@
       "Client Onboarding Specialist",
       "Customer Support Agent",
       "Customer Education Writer",
-      "Retention & Feedback Analyst"
+      "Retention & Feedback Analyst",
+      "Client Support Agent"
     ]
   },
   {
@@ -51,7 +64,10 @@
       "Service Designer",
       "Product Researcher",
       "Pricing Research Analyst",
-      "User Researcher"
+      "User Researcher",
+      "Product Manager Agent",
+      "Pricing Agent",
+      "Landing Page Agent"
     ]
   },
   {
@@ -61,7 +77,10 @@
       "Market Research Analyst",
       "Competitive Intelligence Analyst",
       "Data Analyst",
-      "Experiment Analyst"
+      "Experiment Analyst",
+      "Growth Analysis Agent",
+      "Experiment & Learning Agent",
+      "Policy & Compliance Agent"
     ]
   },
   {
@@ -75,7 +94,9 @@
       "Automation Developer",
       "AI Agent Developer",
       "Integration Engineer",
-      "DevOps Engineer"
+      "DevOps Engineer",
+      "Website Making Agent",
+      "Release & Development Agent"
     ]
   },
   {
@@ -88,7 +109,9 @@
       "Copywriter",
       "Presentation Designer",
       "Demo & Pitch Presenter",
-      "Voice Producer"
+      "Voice Producer",
+      "Video Editing Agent",
+      "Cinematic Video Production Agent"
     ]
   },
   {
@@ -102,7 +125,11 @@
       "Security Reviewer",
       "Red-Team Tester",
       "Release Acceptance Tester",
-      "Process Auditor"
+      "Process Auditor",
+      "Testing & QA Agent",
+      "Security & Privacy Agent",
+      "SEO Web Agent",
+      "Trading System Agent"
     ]
   },
   {
