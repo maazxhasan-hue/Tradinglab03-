@@ -122,9 +122,7 @@ def ask_gemini(prompt: str, api_key: str) -> str:
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 7000},
     }
-    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-    # Base URL is allowlisted to the official HTTPS Gemini host by validated_provider_base.
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- validated_provider_base enforces the official HTTPS Gemini host
         f"{base}/models/{model}:generateContent",
         data=json.dumps(payload).encode(),
         headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
@@ -159,9 +157,7 @@ def ask_openai(prompt: str, api_key: str) -> str:
             {"role": "user", "content": prompt},
         ],
     }
-    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-    # Base URL is allowlisted to the official HTTPS OpenAI host by validated_provider_base.
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- validated_provider_base enforces the official HTTPS OpenAI host
         base + "/chat/completions",
         data=json.dumps(payload).encode(),
         headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
