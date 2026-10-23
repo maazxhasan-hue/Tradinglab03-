@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parent / "private-hq"
 APP_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENTS, GrowthStore
+from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
@@ -167,6 +168,23 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path.startswith("/api/growth/tasks/") and parsed.path.endswith("/run"):
+                task_id = parsed.path[len("/api/growth/tasks/"):-len("/run")].strip("/")
+                if not task_id or "/" in task_id:
+                    self.body(400, json.dumps({"error":"invalid_task_id"}), "application/json; charset=utf-8"); return
+                try:
+                    task = execute_agent_draft(GrowthStore(GROWTH_DB), task_id)
+                    self.body(200, json.dumps({"task_id":task["task_id"],"status":task["status"],
+                        "outputs":task["outputs"],"execution_started":True,"mode":"draft_only"}),
+                        "application/json; charset=utf-8"); return
+                except ProviderNotConfigured as exc:
+                    self.body(503, json.dumps({"error":"provider_not_configured","message":str(exc)}),
+                        "application/json; charset=utf-8"); return
+                except KeyError:
+                    self.body(404, json.dumps({"error":"task_not_found"}), "application/json; charset=utf-8"); return
+                except DraftExecutionError as exc:
+                    self.body(409, json.dumps({"error":"draft_execution_failed","message":str(exc)}),
+                        "application/json; charset=utf-8"); return
             if parsed.path != "/api/growth/tasks":
                 self.body(403, json.dumps({"error":"action_not_available"}), "application/json; charset=utf-8"); return
             try:
