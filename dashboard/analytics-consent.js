@@ -3,7 +3,7 @@
   // Set this only to the verified GA4 Web stream Measurement ID (G-XXXXXXXXXX).
   // A blank value intentionally disables all analytics until configuration is complete.
   let MEASUREMENT_ID = "";
-  const PRODUCTION_HOSTS = new Set(["nexora-ai-public.onrender.com", "nexora-internal-hq.onrender.com"]);
+  const PRODUCTION_HOSTS = new Set(["nexora-ai-public.pages.dev", "nexora-ai-public.onrender.com", "nexora-internal-hq.onrender.com"]);
   const CONSENT_KEY = "nexora.analytics-consent.v1";
   const ALLOWED_KEY_EVENTS = new Set(["generate_lead", "sign_up", "purchase"]);
 
