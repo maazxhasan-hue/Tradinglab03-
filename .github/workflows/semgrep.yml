@@ -16,17 +16,55 @@ concurrency:
 
 jobs:
   semgrep:
-    name: Static analysis (Semgrep)
+    name: Backend static analysis (Semgrep)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out repository
+      - name: Check out repository and history
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Scan code for security and correctness issues
+      - name: Scan backend Python for new security findings
+        id: scan
+        continue-on-error: true
+        shell: bash
         run: |
+          mkdir -p data/semgrep
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            baseline="origin/$GITHUB_BASE_REF"
+          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            baseline="HEAD^"
+          else
+            baseline="origin/main"
+          fi
+          echo "Using baseline: $baseline"
           docker run --rm \
             --volume "${{ github.workspace }}:/src" \
             --workdir /src \
             semgrep/semgrep:latest \
-            semgrep scan --config p/default --metrics=off --error .
+            semgrep scan --config p/python --config p/security-audit \
+              --include '*.py' --baseline-commit "$baseline" \
+              --metrics=off --error --json \
+              --output data/semgrep/new-backend-findings.json \
+              company harvey-worker private_hq_server.py
+
+      - name: Upload scan findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-backend-findings-${{ github.run_id }}
+          path: data/semgrep/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce new-finding gate
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          if [ "$SCAN_OUTCOME" != "success" ]; then
+            echo "::error::Semgrep reported new backend findings or the scan failed. Download the artifact and run the manual Semgrep Remediation Agent for a bounded, reviewable fix proposal."
+            exit 1
+          fi
+          echo "No new Semgrep backend findings."
