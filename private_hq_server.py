@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import hmac
 import html
+import json
+import sys
 import http.cookies
 import os
 import secrets
@@ -14,6 +16,11 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent / "private-hq"
+APP_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(APP_ROOT))
+from company.nexora_growth_runtime import AGENTS, GrowthStore
+GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
+GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
 SESSION_SECRET = os.environ.get("HQ_SESSION_SECRET", "")
 PORT = int(os.environ.get("PORT", "10000"))
@@ -26,6 +33,7 @@ ALLOWED = {
     "harvey.html",
     "inbox.html",
     "marketing.html",
+    "growth-hq.html",
     "visitor-analytics.html",
     "visitor-analytics-ui.js",
 }
@@ -109,6 +117,16 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/growth/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/growth/overview":
+                self.body(200, json.dumps(GrowthStore(GROWTH_DB).overview()), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/growth/agents":
+                self.body(200, json.dumps({"agents":AGENTS,"execution_enabled":GROWTH_ENABLED}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/growth/tasks":
+                self.body(200, json.dumps({"tasks":GrowthStore(GROWTH_DB).list_tasks()}), "application/json; charset=utf-8"); return
+            self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
         path = parsed.path
         if path == "/healthz":
             self.body(200, '{"status":"ok"}', "application/json; charset=utf-8")
@@ -134,7 +152,26 @@ class Handler(BaseHTTPRequestHandler):
         self.body(200, content, content_type_for(name))
 
     def do_POST(self):
-        if urlparse(self.path).path != "/login":
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/growth/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path != "/api/growth/tasks":
+                self.body(403, json.dumps({"error":"action_not_available"}), "application/json; charset=utf-8"); return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 8192: raise ValueError("invalid_body_size")
+                data = json.loads(self.rfile.read(length).decode("utf-8"))
+                title, agent_id = str(data.get("title", "")), str(data.get("agent_id", ""))
+                context = str(data.get("context", ""))
+                if len(context) > 3000: raise ValueError("context_too_long")
+                task = GrowthStore(GROWTH_DB).create_task(title, agent_id, {"context":context,"mode":"draft_only"})
+                self.body(201, json.dumps({"task_id":task["task_id"],"status":task["status"],"execution_started":False}), "application/json; charset=utf-8"); return
+            except (ValueError, KeyError, json.JSONDecodeError) as exc:
+                self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except Exception:
+                self.body(500, json.dumps({"error":"internal_error"}), "application/json; charset=utf-8"); return
+        if parsed.path != "/login":
             self.body(404, "Not found"); return
         try:
             length = int(self.headers.get("Content-Length", "0"))
