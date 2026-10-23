@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parent / "private-hq"
 APP_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENTS, GrowthStore
+from company.nexora_drive_backup import DriveBackupError, create_backup, drive_status, list_backups, restore_backup
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "")
@@ -128,6 +129,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/backup/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            try:
+                if parsed.path == "/api/backup/status":
+                    self.body(200, json.dumps(drive_status()), "application/json; charset=utf-8"); return
+                if parsed.path == "/api/backup/list":
+                    self.body(200, json.dumps({"backups":list_backups()}), "application/json; charset=utf-8"); return
+                self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
+            except DriveBackupError as exc:
+                self.body(503, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except Exception:
+                self.body(500, json.dumps({"error":"backup_service_error"}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
@@ -164,6 +178,29 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/backup/"):
+            if not self.authenticated():
+                self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 4096: raise ValueError("invalid_body_size")
+                data = json.loads(self.rfile.read(length).decode("utf-8"))
+                if parsed.path == "/api/backup/create":
+                    result = create_backup(GROWTH_DB)
+                    self.body(201, json.dumps(result), "application/json; charset=utf-8"); return
+                if parsed.path == "/api/backup/restore":
+                    result = restore_backup(str(data.get("file_id", "")), GROWTH_DB)
+                    store = GrowthStore(GROWTH_DB)
+                    with store.connect() as con:
+                        store._audit(con, "owner", "backup_restored", result["file_id"], {"name":result.get("name")})
+                    self.body(200, json.dumps(result), "application/json; charset=utf-8"); return
+                self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
+            except (ValueError, json.JSONDecodeError) as exc:
+                self.body(400, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except DriveBackupError as exc:
+                self.body(409, json.dumps({"error":str(exc)}), "application/json; charset=utf-8"); return
+            except Exception:
+                self.body(500, json.dumps({"error":"backup_service_error"}), "application/json; charset=utf-8"); return
         if parsed.path.startswith("/api/growth/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
