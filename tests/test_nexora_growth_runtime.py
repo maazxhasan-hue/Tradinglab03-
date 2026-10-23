@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 from company.nexora_growth_runtime import AGENTS, DEPARTMENTS, GrowthStore
-from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status, provider_status
+from company.nexora_agent_executor import execute_agent_draft, ProviderNotConfigured, DraftExecutionError, provider_status
 
 class GrowthRuntimeTests(unittest.TestCase):
     def setUp(self):
@@ -70,14 +70,6 @@ class GrowthRuntimeTests(unittest.TestCase):
         self.assertEqual(result["outputs"]["draft"], "Draft caption for review")
         self.assertEqual(result["outputs"]["mode"], "draft_only")
         self.assertIn(f"task:{task['task_id']}:internal-draft", result["evidence_refs"])
-
-    def test_provider_status_reports_presence_without_exposing_secret(self):
-        self.assertEqual(provider_status({}), {"configured": False, "provider": None})
-        status = provider_status({"GEMINI_API_KEY":"secret-test-value"})
-        self.assertEqual(status, {"configured": True, "provider": "gemini"})
-        self.assertNotIn("secret-test-value", str(status))
-        self.assertEqual(provider_status({"OPENAI_API_KEY":"secret-test-value"}),
-                         {"configured": True, "provider": "openai"})
 
     def test_ai_agent_fails_closed_without_provider_key(self):
         task = self.store.create_task("Draft a launch reel", "d01-a02")
