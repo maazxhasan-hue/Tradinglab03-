@@ -36,7 +36,7 @@ def provider_status(environ: Mapping[str, str] | None = None) -> dict:
 
 
 def _validated_model(value: str) -> str:
-    if not re.fullmatch(r"[A-Za-z0-9._-]{1,100}", value):
+    if not re.fullmatch(r"[A-Za-z0-9._/-]{1,100}", value):
         raise DraftExecutionError("Configured model name is invalid.")
     return value
 
