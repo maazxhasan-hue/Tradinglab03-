@@ -1,4 +1,4 @@
-"""Regression checks for the separately published Nexora Render site."""
+"""Regression checks for the separately published Nexora Cloudflare Pages site."""
 from html.parser import HTMLParser
 from pathlib import Path
 import posixpath
@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public-site"
-LIVE_HOST = "https://nexora-ai-public.onrender.com"
+LIVE_HOST = "https://nexora-ai-public.pages.dev"
 
 
 class AssetLinks(HTMLParser):
@@ -22,7 +22,7 @@ class AssetLinks(HTMLParser):
                 self.links.append(value.strip())
 
 
-class RenderPublicSiteTests(unittest.TestCase):
+class CloudflarePublicSiteTests(unittest.TestCase):
     def test_published_html_local_links_and_assets_exist(self):
         html_files = sorted(PUBLIC.rglob("*.html"))
         self.assertTrue(html_files, "public-site must contain HTML pages")
@@ -87,13 +87,13 @@ class RenderPublicSiteTests(unittest.TestCase):
 
     def test_custom_404_page_is_published_and_has_helpful_navigation(self):
         page = PUBLIC / "404.html"
-        self.assertTrue(page.is_file(), "Render static publish root needs its own 404.html")
+        self.assertTrue(page.is_file(), "Cloudflare Pages publish root needs its own 404.html")
         html = page.read_text(encoding="utf-8")
         for marker in ('<title>Page Not Found | Nexora AI</title>', 'href="/"', 'href="/pricing/"', 'href="/about/"', 'href="/blog/seo-guide/"'):
             self.assertIn(marker, html)
         self.assertIn('name="robots" content="noindex,nofollow"', html)
 
-    def test_sitemap_and_robots_point_to_render(self):
+    def test_sitemap_and_robots_point_to_cloudflare_pages(self):
         sitemap = PUBLIC / "sitemap.xml"
         robots = PUBLIC / "robots.txt"
         self.assertTrue(sitemap.is_file())

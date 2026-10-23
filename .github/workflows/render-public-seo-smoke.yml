@@ -1,4 +1,4 @@
-name: Render public SEO live smoke
+name: Cloudflare Pages public SEO live smoke
 
 on:
   workflow_run:
@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Wait for the Render public site to publish the SEO release
+      - name: Wait for Cloudflare Pages to publish the SEO release
         env:
-          BASE_URL: https://nexora-ai-public.onrender.com
+          BASE_URL: https://nexora-ai-public.pages.dev
         run: |
           set -euo pipefail
           found=false
@@ -29,13 +29,13 @@ jobs:
               echo "Homepage is serving the SEO release (HTTP $code)."
               break
             fi
-            echo "Waiting for Render deployment; attempt $attempt returned HTTP $code."
+            echo "Waiting for Cloudflare Pages deployment; attempt $attempt returned HTTP $code."
             sleep 10
           done
-          test "$found" = "true" || { echo "::error::Render did not serve the expected homepage release in time."; exit 1; }
+          test "$found" = "true" || { echo "::error::Cloudflare Pages did not serve the expected homepage release in time."; exit 1; }
       - name: Verify real 404 status and custom page
         env:
-          BASE_URL: https://nexora-ai-public.onrender.com
+          BASE_URL: https://nexora-ai-public.pages.dev
         run: |
           set -euo pipefail
           url="$BASE_URL/seo-check-this-missing-page-8472"
@@ -47,7 +47,7 @@ jobs:
           echo "Custom 404 content verified with HTTP 404."
       - name: Verify robots and sitemap are reachable
         env:
-          BASE_URL: https://nexora-ai-public.onrender.com
+          BASE_URL: https://nexora-ai-public.pages.dev
         run: |
           set -euo pipefail
           robots_code=$(curl --silent --show-error --location --max-time 20 --output /tmp/robots.txt --write-out '%{http_code}' "$BASE_URL/robots.txt")
@@ -63,8 +63,8 @@ jobs:
           root = ET.parse("/tmp/sitemap.xml").getroot()
           urls = [e.text for e in root.iter() if e.tag.endswith("loc")]
           assert urls and len(urls) == len(set(urls)), "Empty or duplicate sitemap URLs"
-          assert all(u.startswith("https://nexora-ai-public.onrender.com/") for u in urls)
+          assert all(u.startswith("https://nexora-ai-public.pages.dev/") for u in urls)
           for excluded in ("/404.html", "/dashboard/login.html", "/dashboard/referrals.html", "/pay.html", "/studio-agent.html"):
               assert not any(u.endswith(excluded) for u in urls), f"Excluded URL found: {excluded}"
-          print(f"Live sitemap validated: {len(urls)} unique Render URLs.")
+          print(f"Live sitemap validated: {len(urls)} unique Cloudflare Pages URLs.")
           PY

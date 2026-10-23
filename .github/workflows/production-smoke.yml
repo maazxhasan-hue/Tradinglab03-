@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Check public Nexora website
         env:
-          PUBLIC_URL: https://nexora-ai-public.netlify.app
+          PUBLIC_URL: https://nexora-ai-public.pages.dev
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$PUBLIC_URL/" -o /tmp/nexora-home.html
@@ -103,7 +103,7 @@ jobs:
           {
             echo "## Nexora production smoke checks"
             echo
-            echo "- Checks the current public Netlify website, Render static safety boundary, and Harvey backend."
+            echo "- Checks the current public Cloudflare Pages website, Render static safety boundary, and Harvey backend."
             echo "- The Render HQ is a noindex operational dashboard. Its public endpoint is limited to aggregate counts, role definitions, and status metadata; secrets and task/prospect content must never be exposed."
             echo "- This is a smoke check, not proof that every agent role, social integration, or payment flow is autonomous."
           } >> "$GITHUB_STEP_SUMMARY"

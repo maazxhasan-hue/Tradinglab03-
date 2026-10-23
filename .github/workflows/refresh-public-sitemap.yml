@@ -37,8 +37,8 @@ jobs:
           urls = [n.text for n in tree.findall(".//sm:loc", ns)]
           assert urls, "Sitemap must contain public URLs"
           assert len(urls) == len(set(urls)), "Sitemap contains duplicate URLs"
-          assert all(u.startswith("https://nexora-ai-public.onrender.com/") for u in urls)
-          print(f"Validated {len(urls)} unique Render URLs.")
+          assert all(u.startswith("https://nexora-ai-public.pages.dev/") for u in urls)
+          print(f"Validated {len(urls)} unique Cloudflare Pages URLs.")
           PY
       - name: Commit sitemap only when changed
         run: |
