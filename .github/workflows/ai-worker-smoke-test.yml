@@ -137,22 +137,28 @@ jobs:
               "generationConfig": {"maxOutputTokens": 20, "temperature": 0}
           }))
           PY
-            code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
               --connect-timeout 10 --max-time 45 --retry 2 --retry-all-errors --retry-delay 2 \
               "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
               -H "x-goog-api-key: $GEMINI_API_KEY" \
-              -H "Content-Type: application/json" --data-binary @request.json)
+              -H "Content-Type: application/json" --data-binary @request.json); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
           elif [ -n "$LLM_API_KEY" ] && [ -n "$LLM_BASE_URL" ]; then
             BASE_URL="${LLM_BASE_URL%/}"
             MODEL="${LLM_MODEL:-gpt-4.1-mini}"
-            code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
               --max-time 45 "$BASE_URL/chat/completions" \
               -H "Authorization: Bearer $LLM_API_KEY" -H "Content-Type: application/json" \
-              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}")
+              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}"); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
           elif [ -n "$OPENAI_API_KEY" ] && [ -n "$OPENAI_BASE_URL" ]; then
             BASE_URL="${OPENAI_BASE_URL%/}"
             MODEL="${OPENAI_MODEL:-gpt-4.1-mini}"
-            code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
               --max-time 45 "$BASE_URL/chat/completions" \
               -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" \
               -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}")
