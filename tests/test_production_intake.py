@@ -67,8 +67,8 @@ class ProductionIntakeTests(unittest.TestCase):
         self.assertIn("TRADINGLAB03_ADMIN_API_KEY", workflow)
         self.assertIn("Deploy TradingLab03 Intake API", workflow)
         self.assertIn("data-intake-endpoint", workflow)
-        self.assertIn("SITE_ORIGINS: 'https://nexora-ai-public.onrender.com'", workflow)
-        self.assertIn("SITE_ORIGIN: 'https://nexora-ai-public.onrender.com'", workflow)
+        self.assertIn("SITE_ORIGINS: 'https://nexora-ai-public.pages.dev,https://nexora-ai-public.onrender.com'", workflow)
+        self.assertIn("SITE_ORIGIN: 'https://nexora-ai-public.pages.dev,https://nexora-ai-public.onrender.com'", workflow)
         self.assertNotIn("nexora-ai-public.netlify.app", workflow)
         self.assertNotIn("nexora-ai-sooty-two.vercel.app", workflow)
 

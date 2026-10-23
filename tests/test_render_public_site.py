@@ -115,7 +115,7 @@ class RenderPublicSiteTests(unittest.TestCase):
             LIVE_HOST + "/blog/small-business-website-checklist/",
             LIVE_HOST + "/dashboard/mythos.html",
             LIVE_HOST + "/dashboard/website.html",
-            LIVE_HOST + "/pricing/", LIVE_HOST + "/privacy.html",
+            LIVE_HOST + "/pricing/", LIVE_HOST + "/privacy/", LIVE_HOST + "/privacy.html",
             LIVE_HOST + "/video-studio.html",
         }
         self.assertEqual(set(locations), expected)
