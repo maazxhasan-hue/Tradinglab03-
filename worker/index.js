@@ -365,7 +365,7 @@ async function handleAuth(request, env, cors, action) {
   try { body = JSON.parse(await readLimitedBody(request, 3000)); } catch { return response({error:"Invalid request."}, 400, cors); }
   const authKeys = action === "register" ? ["email", "password", "referral_code"] : ["email", "password"];
   if (!exactKeys(body, ["email", "password"], action === "register" ? ["referral_code"] : []) ||
-      !stringField(body.email, {min: 3, max: 180, pattern: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/i}) ||
+      !stringField(body.email, {min: 3, max: 180, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i}) ||
       !stringField(body.password, {min: 12, max: 256, allowEmpty: false}) ||
       (action === "register" && Object.hasOwn(body, "referral_code") &&
         !stringField(body.referral_code, {min: 4, max: 32, pattern: /^[A-Za-z0-9]+$/}))) {
@@ -449,9 +449,9 @@ async function createSubmission(request, env, cors) {
   if (!exactKeys(payload, intakeRequired, intakeOptional) ||
       (Object.hasOwn(payload, "schema_version") && payload.schema_version !== 1) ||
       (Object.hasOwn(payload, "source") && !stringField(payload.source, {min: 1, max: 80, allowEmpty: false})) ||
-      (Object.hasOwn(payload, "created_at") && (typeof payload.created_at !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$/.test(payload.created_at) || Number.isNaN(Date.parse(payload.created_at)))) ||
+      (Object.hasOwn(payload, "created_at") && (typeof payload.created_at !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\.\\d{1,3})?Z$/.test(payload.created_at) || Number.isNaN(Date.parse(payload.created_at)))) ||
       !stringField(payload.name, {min: 1, max: 120, allowEmpty: false}) ||
-      !stringField(payload.email, {min: 3, max: 180, pattern: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/i}) ||
+      !stringField(payload.email, {min: 3, max: 180, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i}) ||
       !stringField(payload.company, {max: 160}) ||
       !stringField(payload.service, {min: 1, max: 80, allowEmpty: false}) ||
       !stringField(payload.budget, {max: 80}) ||
@@ -596,11 +596,11 @@ function aiSourceRegexForDomains(knownDomains) {
   const patterns = Array.from(knownDomains)
     .map(domain => String(domain || "").trim().toLowerCase())
     .filter(domain => /^[a-z0-9.-]+\.[a-z]{2,63}$/.test(domain) && !domain.includes(".."))
-    .map(domain => domain.split(".").join("\\."))
+    .map(domain => domain.split(".").join("\."))
     .sort((a, b) => b.length - a.length);
   // Match a configured hostname or its subdomains, without substring false positives.
   // "notchatgpt.com" must not be classified as "chatgpt.com".
-  return patterns.length ? "(^|\\.)(?:" + patterns.join("|") + ")$" : "^$";
+  return patterns.length ? "(^|\.)(?:" + patterns.join("|") + ")$" : "^$";
 }
 
 function analyticsApiConfigured(env) {
