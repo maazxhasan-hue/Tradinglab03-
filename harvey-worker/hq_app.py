@@ -433,5 +433,5 @@ def public_pricing_catalog():
     # Only explicitly published snapshots are returned; drafts and audit records stay private.
     return JSONResponse(
         {"items": public_items()},
-        headers={"Cache-Control": "public, max-age=60", "X-Content-Type-Options": "nosniff"},
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
     )
