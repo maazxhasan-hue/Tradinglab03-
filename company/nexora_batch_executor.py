@@ -121,7 +121,7 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
     """Queue all 41 roles and begin sequential internal draft generation."""
     if not provider_status(environ)["configured"]:
         raise ProviderNotConfigured(
-            "Configure GEMINI_API_KEY or OPENAI_API_KEY in Render before starting all agents."
+            "Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in the private HQ runtime before starting all agents."
         )
     if not _lock.acquire(blocking=False):
         return {"started": False, "reason": "batch_already_running", **batch_status()}
