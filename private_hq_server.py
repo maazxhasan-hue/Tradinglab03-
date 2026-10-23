@@ -83,6 +83,17 @@ def valid_token(token: str) -> bool:
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "NexoraHQGateway"
+
+    def do_HEAD(self):
+        """Support platform health probes without returning response bodies."""
+        parsed = urlparse(self.path)
+        if parsed.path == "/healthz":
+            self.send_headers(200, "application/json; charset=utf-8")
+            return
+        if parsed.path == "/":
+            self.send_headers(200, "text/html; charset=utf-8")
+            return
+        self.send_headers(404, "text/plain; charset=utf-8")
     def log_message(self, fmt, *args):
         # Never log credentials, request bodies, or cookie headers.
         super().log_message(fmt, *args)
