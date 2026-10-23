@@ -49,6 +49,16 @@ class UnifiedWorkforceRegistryTests(unittest.TestCase):
         self.assertTrue(expected.issubset(set(self.app.AGENT_MANDATES)))
         self.assertTrue(expected.issubset(self.app.AGENT_ROLES))
 
+    def test_live_hq_exposes_authenticated_company_workforce_routes(self):
+        import hq_app
+        paths = {route.path for route in hq_app.app.routes}
+        self.assertIn("/hq/api/company-workforce", paths)
+        self.assertIn("/hq/api/company-workforce/start", paths)
+
+    def test_openrouter_free_model_identifier_is_valid(self):
+        from company.nexora_agent_executor import _validated_model
+        self.assertEqual(_validated_model("openrouter/free"), "openrouter/free")
+
     def test_company_dispatch_has_background_execution_and_restart_recovery(self):
         self.assertTrue(callable(self.app._run_company_cycle))
         self.assertTrue(callable(self.app._company_cycle_supervisor))
