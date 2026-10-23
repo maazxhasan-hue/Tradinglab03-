@@ -18,6 +18,13 @@ from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from app import app, db, AGENT_ROLES, now, SHARED_BRAIN_AGENT_KEY
+from pydantic import BaseModel, Field
+from decimal import Decimal
+from typing import Optional
+from pricing_service import (
+    PricingValidationError, archive_item, audit_history, create_item,
+    list_items, public_items, publish_item, update_item,
+)
 
 COOKIE_NAME = "nexora_hq_session"
 SESSION_TTL_SECONDS = 8 * 60 * 60
@@ -120,6 +127,7 @@ HQ_HTML = """<!doctype html>
 header{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:20px max(20px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);background:#07101bd9}
 .brand{font-weight:950;letter-spacing:.12em;color:var(--teal);font-size:.8rem}.sub{color:var(--muted);font-size:.85rem;margin-top:5px}
 button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:10px 13px;color:#edf4ff;background:#111f2e;font:inherit;font-weight:700}button.primary{background:var(--teal);color:#071d1b;border-color:var(--teal)}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.navlink{display:inline-block;padding:10px 12px;border-radius:10px;color:#c9d8e8;text-decoration:none;border:1px solid transparent;font-size:.88rem}.navlink:hover,.navlink.active{border-color:#335466;background:#112433;color:var(--teal)}
 main{width:min(1240px,calc(100% - 32px));margin:30px auto 64px}.hero{display:flex;justify-content:space-between;align-items:end;gap:18px;flex-wrap:wrap;margin-bottom:22px}
 h1{font-size:clamp(2rem,4vw,3.5rem);letter-spacing:-.06em;margin:7px 0}.muted{color:var(--muted)}.eyebrow{color:var(--teal);font-size:.72rem;letter-spacing:.14em;font-weight:900;text-transform:uppercase}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.panel{border:1px solid var(--line);border-radius:16px;padding:19px;background:linear-gradient(145deg,#112033,var(--panel));min-width:0}
@@ -130,7 +138,7 @@ footer{margin-top:18px;color:var(--muted);font-size:.8rem;line-height:1.6}.error
 @media(max-width:440px){.grid{grid-template-columns:1fr}.value{font-size:1.7rem}header{align-items:flex-start}}
 </style></head><body>
 <header><div><div class="brand">NEXORA AI / PRIVATE HQ</div><div class="sub">Owner workspace · server-authenticated</div></div>
-<div><button id="refresh">Refresh</button> <button id="logout" class="primary">Sign out</button></div></header>
+<div class="header-actions"><a class="navlink" href="/hq">Overview</a><a class="navlink active" href="/hq/pricing">Pricing Management</a><button id="refresh">Refresh</button> <button id="logout" class="primary">Sign out</button></div></header>
 <main><section class="hero"><div><div class="eyebrow">Operations overview</div><h1>Company command.</h1><div class="muted">A live read-only view of recorded backend activity. Role definitions are not proof of autonomous execution.</div></div><div id="updated" class="muted">Loading live status…</div></section>
 <div id="error" class="notice" hidden></div>
 <section class="grid" aria-label="Company metrics">
@@ -168,6 +176,66 @@ $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleString();
 $('refresh').addEventListener('click',refresh);
 $('logout').addEventListener('click',async()=>{try{await fetch('/hq/logout',{method:'POST',credentials:'same-origin'});}finally{location.href='/hq/login';}});
 refresh();setInterval(refresh,30000);
+</script></body></html>"""
+
+
+PRICING_HTML = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<title>Pricing Management · Nexora AI HQ</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,sans-serif;background:#070b12;color:#edf4ff;--panel:#0e1926;--line:#253b50;--muted:#9fb0c5;--teal:#68e8d4;--gold:#f3d99a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% 0%,#123543 0,transparent 36%),#070b12}header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px max(16px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);background:#07101bd9}
+.brand{font-weight:950;letter-spacing:.12em;color:var(--teal);font-size:.8rem}.sub,.muted{color:var(--muted);font-size:.85rem;margin-top:5px}.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button,a.navlink{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:#edf4ff;background:#111f2e;font:inherit;font-weight:700;text-decoration:none;font-size:.88rem}button.primary{background:var(--teal);color:#071d1b;border-color:var(--teal)}button.danger{border-color:#70414a;color:#ffb7bf}
+main{width:min(1240px,calc(100% - 32px));margin:28px auto 60px}.eyebrow{color:var(--teal);font-size:.72rem;letter-spacing:.14em;font-weight:900;text-transform:uppercase}h1{font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.06em;margin:8px 0}.hero{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.85fr);gap:16px;align-items:start}.panel{border:1px solid var(--line);border-radius:16px;padding:19px;background:linear-gradient(145deg,#112033,var(--panel));min-width:0}.panel h2{font-size:1.05rem;margin:0 0 15px}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}.metric{padding:13px;border:1px solid var(--line);border-radius:12px;background:#0b1520}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{display:block;font-size:1.5rem;margin-top:6px}
+label{display:block;color:#c4d2e1;font-size:.82rem;margin:12px 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #344c61;border-radius:10px;background:#07101a;color:#edf4ff;font:inherit;min-width:0}textarea{min-height:82px;resize:vertical}.fields{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.notice{padding:12px 14px;border:1px solid #5b4c2d;border-radius:12px;color:var(--gold);background:#211c11;line-height:1.5;margin:12px 0}.message{padding:11px 13px;border-radius:10px;background:#102c2a;border:1px solid #2b665b;color:var(--teal);margin:12px 0}.message.error{background:#30191e;border-color:#70414a;color:#ffb7bf}.items{display:grid;gap:10px}.price-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:#0a1420}.price-top{display:flex;justify-content:space-between;gap:12px;align-items:start}.price-top strong{display:block;overflow-wrap:anywhere}.price-meta{font-size:.8rem;color:var(--muted);margin-top:5px;line-height:1.5}.amount{font-weight:900;font-size:1.1rem;white-space:nowrap}.pill{display:inline-block;font-size:.72rem;border:1px solid #335466;border-radius:999px;padding:4px 7px;color:var(--teal);margin:8px 5px 0 0}.pill.warning{border-color:#5b4c2d;color:var(--gold)}.price-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.price-actions button{font-size:.8rem;padding:8px 10px}.history{font-size:.82rem;line-height:1.5;color:var(--muted);max-height:300px;overflow:auto}.history-item{border-top:1px solid var(--line);padding:9px 0}.empty{color:var(--muted);font-size:.9rem;padding:14px 0}footer{margin-top:18px;color:var(--muted);font-size:.8rem;line-height:1.6}
+@media(max-width:850px){.layout{grid-template-columns:1fr}}@media(max-width:520px){.fields{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr 1fr}.metric strong{font-size:1.2rem}.price-top{flex-direction:column}.amount{white-space:normal}}
+</style></head><body>
+<header><div><div class="brand">NEXORA AI / PRIVATE HQ</div><div class="sub">Pricing control center · Owner-only</div></div>
+<div class="header-actions"><a class="navlink" href="/hq">Overview</a><a class="navlink" href="/hq/pricing">Pricing Management</a><button id="reload">Refresh</button><button id="logout" class="primary">Sign out</button></div></header>
+<main><section class="hero"><div><div class="eyebrow">Commercial operations</div><h1>Pricing management.</h1><div class="muted">Manage services, subscriptions, and client-specific quotes from one private workspace.</div></div><div id="updated" class="muted">Loading pricing catalog…</div></section>
+<div class="notice">Safe publishing: saving changes creates or updates a draft. Customer-facing prices change only after you press Publish. Editing a live price keeps the previous published version active until the new version is published.</div>
+<div id="message" class="message" role="status" aria-live="polite" hidden></div>
+<div class="metrics"><div class="metric"><span>Total records</span><strong id="count-all">—</strong></div><div class="metric"><span>Published</span><strong id="count-published">—</strong></div><div class="metric"><span>Draft changes</span><strong id="count-drafts">—</strong></div></div>
+<div class="layout"><section class="panel"><h2 id="form-title">Add a pricing item</h2><form id="price-form">
+<div class="fields"><div><label for="title">Plan / service name *</label><input id="title" maxlength="120" required placeholder="e.g. AI Automation Starter"></div><div><label for="slug">Public slug *</label><input id="slug" maxlength="100" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="ai-automation-starter"></div></div>
+<div class="fields"><div><label for="category">Category *</label><select id="category" required><option value="service">Service / package</option><option value="subscription">AI agent subscription</option><option value="client_quote">Client-specific quote</option></select></div><div><label for="billing">Billing period *</label><select id="billing" required><option value="one_time">One-time</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="custom">Custom</option></select></div></div>
+<div class="fields"><div><label for="amount">Regular price (₹ INR) *</label><input id="amount" type="number" min="0" max="1000000000" step="0.01" required placeholder="9999.00"></div><div><label for="promo">Promotional price (₹ INR)</label><input id="promo" type="number" min="0" max="1000000000" step="0.01" placeholder="Optional"></div></div>
+<div class="fields"><div><label for="discount">Discount percent</label><input id="discount" type="number" min="0" max="100" step="0.01" value="0"></div><div><label for="description">Short description</label><textarea id="description" maxlength="2000" placeholder="What is included?"></textarea></div></div>
+<div class="actions"><button class="primary" id="save" type="submit">Save draft</button><button type="button" id="reset">New item</button></div>
+</form><div class="muted">Prices are stored as paise-precision integers. Changes are audit-logged; this screen never collects payments or changes existing customer invoices.</div></section>
+<div><section class="panel"><h2>Pricing catalog</h2><div id="items" class="items"><div class="empty">Loading items…</div></div></section>
+<section class="panel" style="margin-top:14px"><h2>Change history</h2><div id="history" class="history">Choose History on a pricing item to inspect its audit trail.</div></section></div></div>
+<footer>Only published snapshots appear at the public endpoint <code>/public/pricing</code>. Archived items are removed from that endpoint. Every create, edit, publish, and archive action is recorded.</footer></main>
+<script>
+const $=id=>document.getElementById(id);let records=[];let editingId=null;let slugTouched=false;
+const money=v=>'₹'+Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+function showMessage(text,error=false){const el=$('message');el.hidden=false;el.textContent=text;el.className=error?'message error':'message'}
+function clearMessage(){$('message').hidden=true;$('message').textContent=''}
+function slugify(v){return v.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,100)}
+$('title').addEventListener('input',()=>{if(!slugTouched)$('slug').value=slugify($('title').value)});
+$('slug').addEventListener('input',()=>{slugTouched=$('slug').value.length>0});
+function resetForm(){editingId=null;slugTouched=false;$('price-form').reset();$('discount').value='0';$('form-title').textContent='Add a pricing item';$('save').textContent='Save draft'}
+$('reset').addEventListener('click',()=>{resetForm();clearMessage()});
+function setForm(x){editingId=x.id;slugTouched=true;$('title').value=x.title;$('slug').value=x.slug;$('category').value=x.category;$('billing').value=x.billing_period;$('amount').value=x.amount_inr;$('promo').value=x.promo_price_inr??'';$('discount').value=x.discount_percent??'0';$('description').value=x.description||'';$('form-title').textContent='Edit: '+x.title;$('save').textContent='Save draft changes';clearMessage();window.scrollTo({top:0,behavior:'smooth'})}
+function button(label,fn,cls=''){const b=document.createElement('button');b.type='button';b.textContent=label;if(cls)b.className=cls;b.addEventListener('click',fn);return b}
+async function api(path,options={}){const res=await fetch(path,{credentials:'same-origin',cache:'no-store',...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});if(res.status===401||res.status===403){location.href='/hq/login';throw new Error('Your session expired. Sign in again.')}let data={};try{data=await res.json()}catch{}if(!res.ok)throw new Error(data.detail||'The request could not be completed.');return data}
+function renderItems(){const el=$('items');el.replaceChildren();$('count-all').textContent=records.length;$('count-published').textContent=records.filter(x=>x.published).length;$('count-drafts').textContent=records.filter(x=>x.status==='draft'||x.has_unpublished_changes).length;
+if(!records.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='No pricing records yet. Add your first item on the left.';el.append(empty);return}
+for(const x of records){const card=document.createElement('article');card.className='price-card';const top=document.createElement('div');top.className='price-top';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=x.title;const meta=document.createElement('div');meta.className='price-meta';meta.textContent=x.category.replace('_',' ')+' · '+x.billing_period.replace('_',' ')+' · /'+x.slug;info.append(title,meta);const amount=document.createElement('div');amount.className='amount';amount.textContent=money(x.amount_inr);top.append(info,amount);card.append(top);
+const status=document.createElement('div');const pill=document.createElement('span');pill.className='pill';pill.textContent=x.status==='archived'?'Archived':x.published?'Published':'Draft';status.append(pill);if(x.has_unpublished_changes){const p=document.createElement('span');p.className='pill warning';p.textContent='Unpublished edits';status.append(p)}if(x.promo_price_inr!==null){const p=document.createElement('span');p.className='pill';p.textContent='Promo '+money(x.promo_price_inr);status.append(p)}card.append(status);
+if(x.description){const desc=document.createElement('div');desc.className='price-meta';desc.textContent=x.description;card.append(desc)}
+const actions=document.createElement('div');actions.className='price-actions';actions.append(button('Edit',()=>setForm(x)));
+if(x.status!=='archived')actions.append(button(x.published?'Publish updates':'Publish',async()=>{if(!confirm('Publish '+x.title+' to the public pricing endpoint?'))return;try{await api('/hq/api/pricing/'+x.id+'/publish',{method:'POST',body:'{}'});showMessage('Published '+x.title+'.');await loadItems()}catch(e){showMessage(e.message,true)}} ,'primary'));
+if(x.status!=='archived')actions.append(button('Archive',async()=>{if(!confirm('Archive '+x.title+' and remove it from public pricing?'))return;try{await api('/hq/api/pricing/'+x.id+'/archive',{method:'POST',body:'{}'});showMessage('Archived '+x.title+'.');await loadItems()}catch(e){showMessage(e.message,true)}} ,'danger'));
+actions.append(button('History',async()=>{try{const h=await api('/hq/api/pricing/'+x.id+'/history');renderHistory(h.items)}catch(e){showMessage(e.message,true)}}));card.append(actions);el.append(card)}}
+function renderHistory(items){const el=$('history');el.replaceChildren();if(!items.length){el.textContent='No history recorded yet.';return}for(const x of items){const d=document.createElement('div');d.className='history-item';const strong=document.createElement('strong');strong.textContent=x.event.replaceAll('_',' ');const meta=document.createElement('div');meta.textContent=x.created_at+' · '+x.actor;const detail=document.createElement('div');const snap=x.after||{};detail.textContent=snap.title?('After: '+snap.title+' · '+money(Number(snap.amount_paise||0)/100)):'No after snapshot';d.append(strong,meta,detail);el.append(d)}}
+async function loadItems(){try{const d=await api('/hq/api/pricing');records=d.items||[];renderItems();$('updated').textContent='Updated '+new Date().toLocaleString()}catch(e){$('items').textContent=e.message;showMessage(e.message,true);$('updated').textContent='Unavailable'}}
+$('price-form').addEventListener('submit',async e=>{e.preventDefault();clearMessage();const payload={title:$('title').value,slug:$('slug').value,category:$('category').value,billing_period:$('billing').value,amount_inr:$('amount').value,promo_price_inr:$('promo').value===''?null:$('promo').value,discount_percent:$('discount').value||'0',description:$('description').value};$('save').disabled=true;try{await api(editingId?'/hq/api/pricing/'+editingId:'/hq/api/pricing',{method:editingId?'PUT':'POST',body:JSON.stringify(payload)});showMessage(editingId?'Draft changes saved. The previous public price remains live until you publish.':'Draft saved. Publish it when you are ready.');resetForm();await loadItems()}catch(err){showMessage(err.message,true)}finally{$('save').disabled=false}});
+$('reload').addEventListener('click',loadItems);$('logout').addEventListener('click',async()=>{try{await fetch('/hq/logout',{method:'POST',credentials:'same-origin'})}finally{location.href='/hq/login'}});loadItems();
 </script></body></html>"""
 
 
@@ -279,3 +347,91 @@ def hq_overview(request: Request):
         "model_configured": model_configured,
         "email_sending": os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true",
     }, headers=_headers())
+
+
+class PricingPayload(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    slug: str = Field(min_length=1, max_length=100)
+    category: str
+    description: str = Field(default="", max_length=2000)
+    amount_inr: Decimal
+    billing_period: str = "one_time"
+    discount_percent: Decimal = Decimal("0")
+    promo_price_inr: Optional[Decimal] = None
+
+
+def _require_hq_owner(request: Request) -> None:
+    if not _valid_session(request.cookies.get(COOKIE_NAME)):
+        raise HTTPException(status_code=401, detail="Sign in to access pricing management.")
+
+
+@app.get("/hq/pricing", response_class=HTMLResponse, include_in_schema=False)
+def hq_pricing_page(request: Request):
+    if not _valid_session(request.cookies.get(COOKIE_NAME)):
+        return RedirectResponse("/hq/login", status_code=303, headers=_headers())
+    return HTMLResponse(PRICING_HTML, headers=_headers())
+
+
+@app.get("/hq/api/pricing", include_in_schema=False)
+def hq_list_pricing(request: Request, include_archived: bool = False):
+    _require_hq_owner(request)
+    return JSONResponse({"items": list_items(include_archived=include_archived)}, headers=_headers())
+
+
+@app.post("/hq/api/pricing", status_code=201, include_in_schema=False)
+def hq_create_pricing(payload: PricingPayload, request: Request):
+    _require_hq_owner(request)
+    try:
+        item = create_item(payload.dict(), actor="owner")
+        return JSONResponse(item, status_code=201, headers=_headers())
+    except PricingValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+
+
+@app.put("/hq/api/pricing/{item_id}", include_in_schema=False)
+def hq_update_pricing(item_id: int, payload: PricingPayload, request: Request):
+    _require_hq_owner(request)
+    try:
+        return JSONResponse(update_item(item_id, payload.dict(), actor="owner"), headers=_headers())
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Pricing item not found.") from None
+    except PricingValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+
+
+@app.post("/hq/api/pricing/{item_id}/publish", include_in_schema=False)
+def hq_publish_pricing(item_id: int, request: Request):
+    _require_hq_owner(request)
+    try:
+        return JSONResponse(publish_item(item_id, actor="owner"), headers=_headers())
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Pricing item not found.") from None
+    except PricingValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+
+
+@app.post("/hq/api/pricing/{item_id}/archive", include_in_schema=False)
+def hq_archive_pricing(item_id: int, request: Request):
+    _require_hq_owner(request)
+    try:
+        return JSONResponse(archive_item(item_id, actor="owner"), headers=_headers())
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Pricing item not found.") from None
+
+
+@app.get("/hq/api/pricing/{item_id}/history", include_in_schema=False)
+def hq_pricing_history(item_id: int, request: Request):
+    _require_hq_owner(request)
+    items = list_items(include_archived=True)
+    if not any(item["id"] == item_id for item in items):
+        raise HTTPException(status_code=404, detail="Pricing item not found.")
+    return JSONResponse({"items": audit_history(item_id)}, headers=_headers())
+
+
+@app.get("/public/pricing", include_in_schema=False)
+def public_pricing_catalog():
+    # Only explicitly published snapshots are returned; drafts and audit records stay private.
+    return JSONResponse(
+        {"items": public_items()},
+        headers={"Cache-Control": "public, max-age=60", "X-Content-Type-Options": "nosniff"},
+    )
