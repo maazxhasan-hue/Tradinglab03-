@@ -20,7 +20,7 @@ APP_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
 from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status, brain_status
-from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status
+from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status, resume_queued_tasks
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
 PASSWORD = os.environ.get("HQ_ACCESS_PASSWORD", "") or os.environ.get("HQ_ADMIN_PASSWORD", "")
@@ -279,5 +279,12 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     if len(PASSWORD) < 16 or len(SESSION_SECRET) < 32:
-        raise SystemExit("HQ_ACCESS_PASSWORD must be at least 16 chars and HQ_SESSION_SECRET at least 32 chars.")
+        raise SystemExit("HQ_ACCESS_PASSWORD/HQ_ADMIN_PASSWORD must be at least 16 chars and HQ_SESSION_SECRET at least 32 chars.")
+    # Recover any durable queued drafts after a process restart; no new tasks are fabricated.
+    try:
+        recovered = resume_queued_tasks(GrowthStore(GROWTH_DB))
+        if recovered.get("started"):
+            print(json.dumps({"event": "queued_task_recovery_started", "queued": recovered.get("queued", 0)}))
+    except Exception as exc:
+        print(json.dumps({"event": "queued_task_recovery_failed", "error_type": type(exc).__name__}))
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
