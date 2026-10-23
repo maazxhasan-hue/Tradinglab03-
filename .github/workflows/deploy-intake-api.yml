@@ -109,7 +109,7 @@ jobs:
       - name: Build Wrangler configuration
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
-          SITE_ORIGINS: 'https://nexora-ai-public.pages.dev,https://nexora-ai-public.onrender.com'
+          SITE_ORIGINS: 'https://nexora-ai-public.pages.dev,https://nexora-ai-public.onrender.com,https://nexora-hq-secure.onrender.com'
           NOTIFY_EMAIL: ${{ vars.TRADINGLAB03_NOTIFY_EMAIL }}
           FROM_EMAIL: ${{ vars.TRADINGLAB03_FROM_EMAIL || 'onboarding@resend.dev' }}
           GA4_PROPERTY_ID: ${{ vars.NEXORA_GA4_PROPERTY_ID }}
