@@ -1,40 +1,52 @@
 # Private Nexora AI HQ
 
-## Purpose
+## Current runtime
 
-The private HQ is served by the existing FastAPI backend at `/hq`; login is `/hq/login`; the protected read-only overview is `/hq/api/overview`. The dashboard displays persisted task/job counts, pending approvals, defined role count, recent status metadata, and integration configuration indicators. It does not expose task payloads, prospect details, approval content, or credentials. Defined roles do not prove agents are running.
+The live Render service identified in this workspace is `nexora-hq-secure`, using `Dockerfile.private-hq` and `private_hq_server.py`. The authenticated owner workspace is served at the service root; login is `/login`, and the Growth HQ is `/growth-hq.html` after sign-in. The newer FastAPI workspace at `/hq` is a separate backend implementation and must not be assumed to be the live entry point for this service.
 
-## Render configuration
+## Workforce execution
 
-On the existing private Harvey backend service, configure `HQ_ADMIN_PASSWORD` as a long, unique secret and ensure `HQ_SESSION_SECRET` is a random secret of at least 32 bytes. The Render Blueprint declares the session secret as generated and the password as manually supplied. Preserve existing backend variables such as `HARVEY_API_KEY` and `DATABASE_PATH`. Never commit credentials or put them in browser code.
+The authenticated Growth HQ supports two real AI execution paths:
 
-## Deploy
+- **Start 41 growth agents**: queues the canonical 41-role growth team.
+- **Start full company workforce**: queues the roles in `company/roles.json` plus all 41 growth roles and processes them through the shared local Brain/task store.
 
-1. Merge the reviewed change into `main`.
-2. Deploy the updated Dockerfile to the existing backend service; it starts `hq_app:app`.
-3. Verify both HQ environment variables exist on that backend and restart/redeploy after changes.
-4. Open the exact HTTPS hostname shown in Render followed by `/hq/login`. Do not guess the service hostname.
-5. Update the static HQ transition page to link to that verified backend URL. A static site cannot enforce private authentication itself.
+These paths make actual model-provider requests. The work is internal and draft-only: they do not publish social posts, send DMs/emails, contact leads, spend money, place trades, or deploy production changes. A role definition is not proof of successful execution; check each batch's completed/failed counts and inspect saved task outputs.
 
-## Security
+## Required server configuration
 
-- Missing configuration fails closed with HTTP 503.
-- The session cookie is signed server-side, HTTP-only, Secure, SameSite=Strict, scoped to `/hq`, and expires after eight hours.
-- Login attempts are rate-limited after eight failures in a 15-minute window per keyed peer-address digest; the raw peer address is not stored.
-- Unauthenticated `/hq` requests redirect to login; the overview API returns HTTP 401.
-- Responses use no-store caching, nosniff, no-referrer, and frame-denial headers.
-- The dashboard is read-only. It does not start agents, send messages, publish, spend money, approve work, deploy client projects, or collect payments.
+Configure these as private Render environment variables, never in browser code or source control:
 
-## Required live checks
+- `HQ_SESSION_SECRET`: random secret, at least 32 characters.
+- `HQ_ACCESS_PASSWORD` **or** `HQ_ADMIN_PASSWORD`: unique owner password, at least 16 characters.
+- One AI provider key: `OPENROUTER_API_KEY` (preferred; defaults to `openrouter/free`), `GEMINI_API_KEY`, or `OPENAI_API_KEY`.
+- Optional model overrides: `OPENROUTER_MODEL`, `GEMINI_MODEL`, or `OPENAI_MODEL`.
+- Optional remote shared Brain: `SHARED_BRAIN_AGENT_KEY` and `SHARED_BRAIN_AGENT_ID` (defaults to `company-agent-runtime`).
 
-- [ ] CI tests pass.
-- [ ] Backend health check passes after deployment.
-- [ ] Signed-out page redirects and API returns 401.
-- [ ] Wrong password issues no session; correct password issues Secure/HttpOnly/SameSite cookie.
-- [ ] Authenticated overview returns only sanitized counts/status metadata.
-- [ ] Logout and eight-hour expiry work.
-- [ ] Verify mobile layout and actual deployed login flow.
+A free-tier model still requires a provider account/key. The application never fabricates a key. If no provider key is configured, the start action must fail closed and explain that configuration is missing.
 
-## Status limitation
+## Persistence and restart behavior
 
-Code and green CI are not proof that the HQ is live. The Render workspace/service must be selected, environment variables configured on the correct backend, changes merged/deployed, and hosted behavior verified. This document does not claim those external steps have happened.
+The GrowthStore uses SQLite and creates its database directory automatically. Queued tasks can be resumed after a process restart when a provider key is configured. However, the currently identified Render service is on the free plan and has no persistent disk attached. SQLite data on its local filesystem can be lost when the container is replaced or redeployed. The remote Supabase shared Brain, when configured, stores shared memory but is not a substitute for durable task/queue storage. Do not describe the queue as fully durable across redeployments until a persistent disk or managed database is attached and verified.
+
+## Deployment and verification
+
+1. Review and merge the pull request only after relevant CI and security checks are green or remaining infrastructure-only failures are explicitly understood.
+2. Render auto-deploys the `main` branch for `nexora-hq-secure`; wait for a successful live deployment of the intended commit.
+3. Open the exact service URL shown in Render and sign in at `/login`.
+4. Confirm the provider indicator shows a configured provider; confirm the Brain indicator shows local/remote readiness.
+5. Start a small, bounded task first and verify the generated output and error reporting. Then start the full workforce only if the provider's quota/usage is acceptable.
+6. Verify that failed tasks remain visibly failed and that successful tasks contain real outputs and evidence. Do not count queued work as completed work.
+7. Check the authenticated APIs reject unsigned sessions and confirm no external side effect occurs from a draft-only task.
+
+## Security boundaries
+
+- Missing owner password/session secret causes startup to fail closed.
+- The owner session is server-signed and uses Secure, HttpOnly, SameSite cookies.
+- The HQ only exposes allowlisted documents and authenticated API routes.
+- External publishing, outreach, purchases, trading, and production deployments remain approval-gated.
+- Never commit provider credentials or put them in browser code, URLs, task outputs, or logs.
+
+## Known live limitation
+
+The code change and green CI do not prove that the live Render service has a provider key, remote Brain credentials, or durable storage. Verify these on the private Render service itself. This project should not be described as fully autonomous or error-free until real provider execution, persistence across redeployments, and live service behavior have been tested.
