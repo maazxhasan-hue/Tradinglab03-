@@ -10,6 +10,7 @@ import http.client
 import json
 import os
 import re
+import ssl
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,8 @@ def post_json_https(host: str, path: str, headers: dict[str, str], payload: dict
         raise ValueError("Provider host is not allowlisted.")
     if not path.startswith("/") or path.startswith("//") or "\\" in path:
         raise ValueError("Provider request path is invalid.")
-    connection = http.client.HTTPSConnection(host, timeout=90)
+    # nosemgrep: python.lang.security.audit.httpsconnection-detected.httpsconnection-detected -- explicit default CA verification and fixed provider host
+    connection = http.client.HTTPSConnection(host, timeout=90, context=ssl.create_default_context())
     try:
         connection.request(
             "POST", path, body=json.dumps(payload).encode("utf-8"),
