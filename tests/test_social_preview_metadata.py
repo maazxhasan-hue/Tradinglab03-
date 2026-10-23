@@ -7,7 +7,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public-site"
-BASE = "https://nexora-ai-public.onrender.com"
+BASE = "https://nexora-ai-public.pages.dev"
 PAGES = [
     "index.html", "about/index.html", "pricing/index.html", "privacy.html",
     "video-studio.html", "dashboard/website.html", "dashboard/mythos.html",
