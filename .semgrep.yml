@@ -1,0 +1,48 @@
+rules:
+  - id: nexora-python-subprocess-shell-true
+    languages: [python]
+    severity: WARNING
+    message: Avoid shell=True with dynamic input; prefer argument lists and validate inputs.
+    patterns:
+      - pattern: subprocess.$FUNC(..., shell=True, ...)
+    metadata:
+      category: security
+      cwe: "CWE-78"
+      confidence: MEDIUM
+      technology: [python]
+  - id: nexora-python-tls-verification-disabled
+    languages: [python]
+    severity: ERROR
+    message: TLS certificate verification is disabled. Keep verification enabled for network requests.
+    patterns:
+      - pattern-either:
+          - pattern: requests.$METHOD(..., verify=False, ...)
+          - pattern: httpx.$METHOD(..., verify=False, ...)
+    metadata:
+      category: security
+      cwe: "CWE-295"
+      confidence: HIGH
+      technology: [python]
+  - id: nexora-python-hardcoded-secret-assignment
+    languages: [python]
+    severity: ERROR
+    message: Possible hardcoded credential. Read secrets from environment or approved secret storage.
+    patterns:
+      - pattern-either:
+          - pattern: $KEY = "$VALUE"
+          - pattern: $KEY = '$VALUE'
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (?i).*(api[_-]?key|secret|password|token|private[_-]?key).*
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: (?i)(?!changeme|example|placeholder|your[_-].*|.*\$\{.*\}).{12,}
+    paths:
+      exclude:
+        - tests/**
+        - "**/*example*"
+    metadata:
+      category: security
+      cwe: "CWE-798"
+      confidence: LOW
+      technology: [python]
