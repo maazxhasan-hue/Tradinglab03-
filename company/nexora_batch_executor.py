@@ -5,18 +5,19 @@ Runs a small bounded pool of provider requests. Never publishes or contacts anyo
 from __future__ import annotations
 
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Mapping
 
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
 from company.nexora_agent_executor import (
-    ProviderNotConfigured, execute_agent_draft, provider_status,
+    DraftExecutionError, ProviderNotConfigured, execute_agent_draft, provider_status,
 )
 
 _lock = threading.Lock()
 _state_lock = threading.Lock()
 _state: dict = {"running": False, "batch_id": None, "scope": None, "total": 0, "finished": 0,
-                "failed": 0, "last_error": None}
+                "failed": 0, "last_error": None, "retry_count": 0}
 
 
 def batch_status() -> dict:
@@ -25,22 +26,52 @@ def batch_status() -> dict:
 
 
 MAX_PARALLEL_TASKS = 3
+MAX_TASK_ATTEMPTS = 3
+RETRYABLE_MARKERS = (
+    "HTTP 408", "HTTP 425", "HTTP 429", "HTTP 500", "HTTP 502",
+    "HTTP 503", "HTTP 504", "request failed", "availability and TLS",
+)
+
 
 def _run_one(store: GrowthStore, task_id: str) -> str | None:
-    try:
-        execute_agent_draft(store, task_id)
-        return None
-    except Exception as exc:
-        # Never expose provider response bodies or secrets in status/logs.
-        return type(exc).__name__
+    """Retry transient provider failures only; never log provider bodies or secrets."""
+    for attempt in range(1, MAX_TASK_ATTEMPTS + 1):
+        try:
+            execute_agent_draft(store, task_id)
+            if attempt > 1:
+                with _state_lock:
+                    _state["retry_count"] += attempt - 1
+            return None
+        except ProviderNotConfigured:
+            return "ProviderNotConfigured"
+        except Exception as exc:
+            message = str(exc)
+            retryable = isinstance(exc, DraftExecutionError) and any(
+                marker in message for marker in RETRYABLE_MARKERS
+            )
+            if not retryable or attempt >= MAX_TASK_ATTEMPTS:
+                if attempt > 1:
+                    with _state_lock:
+                        _state["retry_count"] += attempt - 1
+                # Return only a bounded, non-secret classification. Never return provider response bodies.
+                if "HTTP 401" in message or "HTTP 403" in message:
+                    return "ProviderAuthenticationOrPermissionError"
+                if "HTTP 429" in message:
+                    return "ProviderRateLimitError"
+                if any(f"HTTP {code}" in message for code in (500, 502, 503, 504)):
+                    return "ProviderTemporaryServerError"
+                if "request failed" in message or "availability and TLS" in message:
+                    return "ProviderNetworkOrTLSError"
+                return type(exc).__name__
+            # Exponential backoff with a small cap to reduce rate-limit pressure.
+            time.sleep(min(2 ** (attempt - 1), 4))
+    return "UnknownExecutionError"
 
 
 def _worker(store: GrowthStore, task_ids: list[str]) -> None:
     failures = 0
     last_error = None
     try:
-        # Bounded concurrency avoids one slow request freezing all progress while
-        # limiting bursts against provider rate limits.
         with ThreadPoolExecutor(max_workers=MAX_PARALLEL_TASKS, thread_name_prefix="nexora-agent") as pool:
             futures = [pool.submit(_run_one, store, task_id) for task_id in task_ids]
             for future in as_completed(futures):
@@ -56,7 +87,6 @@ def _worker(store: GrowthStore, task_ids: list[str]) -> None:
         with _state_lock:
             _state["running"] = False
         _lock.release()
-
 
 
 def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
@@ -75,7 +105,8 @@ def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = 
         import uuid
         with _state_lock:
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "recovered_queue",
-                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None, "recovered_interrupted": recovered_running})
+                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None,
+                           "retry_count": 0, "recovered_interrupted": recovered_running})
         thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
                                   name="nexora-queued-task-recovery")
         thread.start()
@@ -83,6 +114,7 @@ def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = 
     except Exception:
         _lock.release()
         raise
+
 
 def start_company_workforce(store: GrowthStore, mission: str,
                             environ: Mapping[str, str] | None = None) -> dict:
@@ -103,9 +135,7 @@ def start_company_workforce(store: GrowthStore, mission: str,
                 title=f"{agent['name']}: company mission - {mission[:100]}",
                 agent_id=agent["agent_id"],
                 inputs={
-                    "role": agent["name"],
-                    "department": agent["department"],
-                    "mission": mission,
+                    "role": agent["name"], "department": agent["department"], "mission": mission,
                     "goal": "Produce the assigned role-specific deliverable for this company mission.",
                     "instructions": (
                         f"Own the work of {agent['name']} in {agent['department']}. "
@@ -119,7 +149,8 @@ def start_company_workforce(store: GrowthStore, mission: str,
         import uuid
         with _state_lock:
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "full_company",
-                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None})
+                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None,
+                           "retry_count": 0})
         thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
                                   name="nexora-full-company-workforce")
         thread.start()
@@ -129,6 +160,8 @@ def start_company_workforce(store: GrowthStore, mission: str,
     except Exception:
         _lock.release()
         raise
+
+
 def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
     """Queue the canonical 41 growth roles for bounded-parallel internal draft generation."""
     if not provider_status(environ)["configured"]:
@@ -159,8 +192,9 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
             tasks.append(task["task_id"])
         import uuid
         with _state_lock:
-            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41", "total": len(tasks),
-                           "finished": 0, "failed": 0, "last_error": None})
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41",
+                           "total": len(tasks), "finished": 0, "failed": 0, "last_error": None,
+                           "retry_count": 0})
         thread = threading.Thread(target=_worker, args=(store, tasks), daemon=True,
                                   name="nexora-growth-agent-draft-batch")
         thread.start()
