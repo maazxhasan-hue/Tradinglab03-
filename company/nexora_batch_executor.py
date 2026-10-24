@@ -130,7 +130,7 @@ def start_company_workforce(store: GrowthStore, mission: str,
         _lock.release()
         raise
 def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
-    """Queue all registered roles and begin bounded-parallel internal draft generation."""
+    """Queue the canonical 41 growth roles for bounded-parallel internal draft generation."""
     if not provider_status(environ)["configured"]:
         raise ProviderNotConfigured(
             "Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in the private HQ runtime before starting all agents."
