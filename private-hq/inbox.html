@@ -55,23 +55,21 @@ a{color:#8dc3ff}a:hover{color:var(--cyan)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
 </style></head>
-<body data-intake-endpoint="https://tradinglab03-intake.maazxhasan.workers.dev">
+<body>
 <header class="wrap nav"><a href="./index.html">← Company HQ</a></header>
 <main class="wrap">
 <h1>Nexora AI enquiry inbox</h1>
-<p class="muted">Private owner view. The page never saves your access key to local storage or the repository. Use a trusted device, do not share screenshots containing client details, and clear the key before leaving.</p>
+<p class="muted">Private owner view. This page uses your authenticated Company HQ session; the intake owner key stays on the private server and is never sent to your browser.</p>
 <section class="panel">
-<label for="adminKey">Owner access key</label>
-<div class="row"><div class="grow"><input id="adminKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the owner key you created in GitHub Secrets"></div><button id="loadBtn" type="button">Load enquiries</button><button id="clearBtn" class="secondary" type="button">Clear key</button></div>
+<div class="row"><button id="loadBtn" type="button">Load enquiries</button></div>
 <p id="status" class="status" role="status" aria-live="polite">Checking intake configuration…</p>
 </section>
-<section id="results" aria-live="polite"><div class="empty">Enquiries will appear here after you authenticate.</div></section>
+<section id="results" aria-live="polite"><div class="empty">Enquiries will appear here after you load them.</div></section>
 </main>
-<footer><div class="wrap">Owner access is protected by the server-side key. Closing this page clears in-memory state; the browser field should also be cleared manually if needed. <a href="privacy.html">Privacy notice</a>.</div></footer>
+<footer><div class="wrap">Owner access is protected by your HQ session and the server-side intake key. <a href="privacy.html">Privacy notice</a>.</div></footer>
 <script>
 "use strict";
-const endpoint=document.body.dataset.intakeEndpoint.trim();
-const keyField=document.getElementById("adminKey");
+
 const statusBox=document.getElementById("status");
 const results=document.getElementById("results");
 const loadBtn=document.getElementById("loadBtn");
@@ -107,7 +105,7 @@ function render(rows){
   saveStatus.addEventListener("click",async function(){
    saveStatus.disabled=true;
    try{
-    const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id)+"/status",{method:"PATCH",headers:{Authorization:"Bearer "+keyField.value.trim(),"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:statusSelect.value}),mode:"cors",credentials:"omit"});
+    const res=await fetch("/api/inbox/submissions/"+encodeURIComponent(item.id)+"/status",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:statusSelect.value}),credentials:"same-origin"});
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.updated!==true)throw new Error(data.error||"Status update failed.");
     item.status=data.status;meta.textContent="Received "+(item.created_at||"date unknown")+" · Status: "+item.status+" · Email alert: "+(item.notification_status||"unknown");
@@ -122,7 +120,7 @@ function render(rows){
    if(!window.confirm("Permanently delete this enquiry from the intake database? This does not delete any email copy already delivered."))return;
    del.disabled=true;
    try{
-    const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions/"+encodeURIComponent(item.id),{method:"DELETE",headers:{Authorization:"Bearer "+keyField.value.trim(),Accept:"application/json"},mode:"cors",credentials:"omit"});
+    const res=await fetch("/api/inbox/submissions/"+encodeURIComponent(item.id)+"/delete",{method:"POST",headers:{Accept:"application/json"},credentials:"same-origin"});
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.deleted!==true)throw new Error(data.error||"Delete failed.");
     setStatus("Enquiry deleted from the database.","ok");await loadEnquiries();
@@ -132,24 +130,17 @@ function render(rows){
  });
 }
 async function loadEnquiries(){
- if(!endpoint){setStatus("The intake API has not been deployed yet. Follow worker/README.md and run the Deploy TradingLab03 Intake API workflow first.","error");return;}
- const key=keyField.value.trim();
- if(!key){setStatus("Enter the owner access key first.","error");return;}
  loadBtn.disabled=true;setStatus("Loading private enquiries…","");
  try{
-  const res=await fetch(endpoint.replace(/\/+$/,"")+"/api/admin/submissions?limit=100",{headers:{Authorization:"Bearer "+key,Accept:"application/json"},mode:"cors",credentials:"omit"});
+  const res=await fetch("/api/inbox/submissions?limit=100",{headers:{Accept:"application/json"},credentials:"same-origin"});
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(res.status===401?"Access key rejected.":(data.error||"Could not load enquiries."));
   render(Array.isArray(data.submissions)?data.submissions:[]);
-  setStatus("Loaded "+(data.submissions||[]).length+" private enquiries. The key remains in this page only.","ok");
+  setStatus("Loaded "+(data.submissions||[]).length+" private enquiries using your HQ session.","ok");
  }catch(err){results.replaceChildren();setStatus(String(err.message||"Request failed"),"error");}
  finally{loadBtn.disabled=false;}
 }
 loadBtn.addEventListener("click",loadEnquiries);
-keyField.addEventListener("keydown",e=>{if(e.key==="Enter")loadEnquiries();});
-window.addEventListener("pagehide",()=>{keyField.value="";results.replaceChildren();});
-document.getElementById("clearBtn").addEventListener("click",()=>{keyField.value="";results.replaceChildren();const empty=document.createElement("div");empty.className="empty";empty.textContent="Enquiries hidden. Enter the owner key to load them again.";results.append(empty);setStatus("Owner key cleared from this page.","ok");});
-if(!endpoint)setStatus("The intake API has not been deployed yet. Follow worker/README.md and run the Deploy TradingLab03 Intake API workflow first.","error");
-else setStatus("Intake endpoint configured. Enter the owner access key to load enquiries.","");
+setStatus("Ready. Your private HQ session will be used to load enquiries.","");
 </script>
 </body></html>
