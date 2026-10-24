@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, fix/shared-provider-rate-limit-backoff]
+    branches: [main, fix/shared-provider-rate-limit-backoff, fix/nexora-ci-security-gates]
 
 permissions:
   contents: read
@@ -15,9 +15,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.6.0
         with:
           python-version: "3.12"
       - name: Run Nexora mocked acceptance tests
