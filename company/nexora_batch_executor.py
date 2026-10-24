@@ -1,4 +1,4 @@
-"""Bounded background runner for all 41 Nexora internal-draft roles.
+"""Bounded background runner for all 196 Nexora internal-draft roles.
 
 Runs one provider request at a time. This module never publishes or contacts anyone.
 """
@@ -118,7 +118,7 @@ def start_company_workforce(store: GrowthStore, mission: str,
         _lock.release()
         raise
 def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
-    """Queue all 41 roles and begin sequential internal draft generation."""
+    """Queue all 196 registered roles and begin sequential internal draft generation."""
     if not provider_status(environ)["configured"]:
         raise ProviderNotConfigured(
             "Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in the private HQ runtime before starting all agents."
@@ -128,7 +128,7 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
 
     try:
         tasks = []
-        for agent in AGENTS:
+        for agent in AGENT_DIRECTORY.values():
             task = store.create_task(
                 title=f"Growth sprint: {agent['name']} deliverable for @nexoraai03",
                 agent_id=agent["agent_id"],
@@ -147,10 +147,10 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
             tasks.append(task["task_id"])
         import uuid
         with _state_lock:
-            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41", "total": len(tasks),
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "all_196", "total": len(tasks),
                            "finished": 0, "failed": 0, "last_error": None})
         thread = threading.Thread(target=_worker, args=(store, tasks), daemon=True,
-                                  name="nexora-41-agent-draft-batch")
+                                  name="nexora-196-agent-draft-batch")
         thread.start()
         return {"started": True, "task_ids": tasks, **batch_status()}
     except Exception:
