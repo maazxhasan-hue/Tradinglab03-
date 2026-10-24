@@ -269,7 +269,29 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
                            f"brain:local:{memory_key}"],
         )
     except Exception as exc:
-        store.transition(task_id, "failed", "draft-executor", error=type(exc).__name__)
+        # Persist only a safe, actionable category; never persist provider bodies, URLs, or credentials.
+        message = str(exc)
+        if "HTTP 401" in message or "HTTP 403" in message:
+            safe_error = "ProviderAuthenticationOrPermissionError"
+        elif "HTTP 429" in message:
+            safe_error = "ProviderRateLimitError"
+        elif any(f"HTTP {code}" in message for code in (408, 425, 500, 502, 503, 504)):
+            safe_error = "ProviderTemporaryServerError"
+        elif "request failed" in message or "availability and TLS" in message:
+            safe_error = "ProviderNetworkOrTLSError"
+        elif "shared brain" in message.casefold():
+            safe_error = "SharedBrainConfigurationOrAvailabilityError"
+        elif "no draft text" in message.casefold():
+            safe_error = "ProviderEmptyDraftError"
+        elif "invalid response" in message.casefold() or "invalid JSON" in message:
+            safe_error = "ProviderResponseFormatError"
+        else:
+            safe_error = type(exc).__name__
+        try:
+            store.transition(task_id, "failed", "draft-executor", error=safe_error)
+        except Exception:
+            # Preserve the original exception; a secondary state-write error must not mask it.
+            pass
         if isinstance(exc, DraftExecutionError):
             raise
-        raise DraftExecutionError("Draft generation failed; inspect runtime configuration without exposing secrets.") from exc
+        raise DraftExecutionError(safe_error) from exc
