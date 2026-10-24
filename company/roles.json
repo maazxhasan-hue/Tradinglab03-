@@ -10,7 +10,11 @@
       "Harvey Agent",
       "Project Operations Agent",
       "Workflow Agent",
-      "Knowledge & Memory Agent"
+      "Knowledge & Memory Agent",
+      "Chief of Staff Agent",
+      "Decision Intelligence Agent",
+      "Company Memory Curator",
+      "Agent Performance Auditor"
     ]
   },
   {
@@ -27,7 +31,11 @@
       "Brand Agent",
       "Instagram Growth Agent",
       "Social & Community Agent",
-      "Reverse Writing Agent"
+      "Reverse Writing Agent",
+      "Creative Brief Agent",
+      "Brand Voice QA Agent",
+      "Short-Form Video Planner",
+      "Campaign Experiment Designer"
     ]
   },
   {
@@ -42,7 +50,11 @@
       "Business Intelligence & Revenue Scout",
       "Sales Agent",
       "Lead Discovery Agent",
-      "Contact Agent"
+      "Contact Agent",
+      "Account Research Agent",
+      "Objection Handling Drafter",
+      "Client Onboarding Agent",
+      "Retention Strategy Agent"
     ]
   },
   {
@@ -198,6 +210,48 @@
       "Automation Opportunity Analyst",
       "KPI Reviewer",
       "Customer Feedback Analyst"
+    ]
+  },
+  {
+    "department": "Research & Intelligence",
+    "roles": [
+      "Evidence Verification Agent",
+      "Market Sizing Agent",
+      "Industry Research Agent",
+      "Source Citation Auditor"
+    ]
+  },
+  {
+    "department": "Websites & Software",
+    "roles": [
+      "Frontend Builder Agent",
+      "Backend Builder Agent",
+      "API Integration Agent",
+      "Accessibility QA Agent",
+      "Automated Test Engineer"
+    ]
+  },
+  {
+    "department": "Operations & Delivery",
+    "roles": [
+      "Task Decomposition Agent",
+      "Dependency Tracking Agent",
+      "Delivery Evidence Collector",
+      "Incident Triage Agent"
+    ]
+  },
+  {
+    "department": "Finance & Administration",
+    "roles": [
+      "Pricing Analysis Agent",
+      "Budget Control Agent",
+      "Invoice Workflow Agent"
+    ]
+  },
+  {
+    "department": "Security & Compliance",
+    "roles": [
+      "Security Review Agent"
     ]
   }
 ]
