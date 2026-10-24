@@ -190,6 +190,24 @@ class GrowthStore:
             self._audit(con, actor, "task_transition", task_id, {"from":current,"to":status,"error":error})
         return self.get_task(task_id)
 
+    def requeue_interrupted_tasks(self, limit: int = 250) -> int:
+        """Recover tasks left running by a process restart; preserve their audit trail."""
+        limit = max(1, min(int(limit), 250))
+        timestamp = now()
+        with self.connect() as con:
+            rows = con.execute(
+                "SELECT task_id FROM tasks WHERE status='running' ORDER BY updated_at LIMIT ?", (limit,)
+            ).fetchall()
+            ids = [row["task_id"] for row in rows]
+            for task_id in ids:
+                con.execute(
+                    "UPDATE tasks SET status='queued', error=?, updated_at=? WHERE task_id=? AND status='running'",
+                    ("Recovered after worker process restart; safe to retry.", timestamp, task_id),
+                )
+                self._audit(con, "worker-recovery", "task_requeued_after_restart", task_id,
+                            {"reason": "interrupted_running_task"})
+        return len(ids)
+
     def remember_memory(self, memory_key: str, summary: str, content: dict,
                         tags: list[str] | None = None, source_agent: str = "company-brain") -> dict:
         if not memory_key.strip() or len(memory_key) > 160:
