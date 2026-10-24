@@ -25,8 +25,26 @@ def batch_status() -> dict:
         return dict(_state)
 
 
-MAX_PARALLEL_TASKS = 3
+# Free/shared providers often enforce a quota across the entire API key.
+# Serialize requests and share a cooldown after HTTP 429 to prevent retry storms.
+MAX_PARALLEL_TASKS = 1
 MAX_TASK_ATTEMPTS = 3
+RATE_LIMIT_COOLDOWN_SECONDS = 30
+_provider_gate = threading.Lock()
+_provider_cooldown_until = 0.0
+
+def _wait_for_provider_slot() -> None:
+    while True:
+        with _provider_gate:
+            remaining = _provider_cooldown_until - time.monotonic()
+        if remaining <= 0:
+            return
+        time.sleep(min(remaining, 2.0))
+
+def _cool_down_provider(seconds: float = RATE_LIMIT_COOLDOWN_SECONDS) -> None:
+    global _provider_cooldown_until
+    with _provider_gate:
+        _provider_cooldown_until = max(_provider_cooldown_until, time.monotonic() + max(1.0, seconds))
 RETRYABLE_MARKERS = (
     "HTTP 408", "HTTP 425", "HTTP 429", "HTTP 500", "HTTP 502",
     "HTTP 503", "HTTP 504", "request failed", "availability and TLS",
@@ -37,6 +55,7 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
     """Retry transient provider failures only; never log provider bodies or secrets."""
     for attempt in range(1, MAX_TASK_ATTEMPTS + 1):
         try:
+            _wait_for_provider_slot()
             execute_agent_draft(store, task_id)
             if attempt > 1:
                 with _state_lock:
@@ -46,6 +65,8 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
             return "ProviderNotConfigured"
         except Exception as exc:
             message = str(exc)
+            if isinstance(exc, DraftExecutionError) and "HTTP 429" in message:
+                _cool_down_provider()
             retryable = isinstance(exc, DraftExecutionError) and any(
                 marker in message for marker in RETRYABLE_MARKERS
             )
