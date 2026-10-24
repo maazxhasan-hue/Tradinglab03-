@@ -33,6 +33,7 @@ SESSION_TTL = 8 * 60 * 60
 # Everything in this allowlist is still protected by the authenticated session gate.
 ALLOWED = {
     "index.html",
+    "company-workforce.html",
     "agent-town.html",
     "harvey.html",
     "inbox.html",
