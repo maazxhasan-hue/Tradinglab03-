@@ -66,6 +66,7 @@ def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = 
     if not _lock.acquire(blocking=False):
         return {"started": False, "reason": "batch_already_running", **batch_status()}
     try:
+        recovered_running = store.requeue_interrupted_tasks(limit=250)
         queued = store.list_tasks(status="queued", limit=250)
         task_ids = [task["task_id"] for task in queued]
         if not task_ids:
@@ -74,7 +75,7 @@ def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = 
         import uuid
         with _state_lock:
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "recovered_queue",
-                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None})
+                           "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None, "recovered_interrupted": recovered_running})
         thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
                                   name="nexora-queued-task-recovery")
         thread.start()
