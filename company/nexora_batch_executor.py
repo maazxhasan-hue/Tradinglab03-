@@ -1,10 +1,11 @@
 """Bounded background runner for all 196 Nexora internal-draft roles.
 
-Runs one provider request at a time. This module never publishes or contacts anyone.
+Runs a small bounded pool of provider requests. Never publishes or contacts anyone.
 """
 from __future__ import annotations
 
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Mapping
 
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
@@ -23,28 +24,38 @@ def batch_status() -> dict:
         return dict(_state)
 
 
+MAX_PARALLEL_TASKS = 3
+
+def _run_one(store: GrowthStore, task_id: str) -> str | None:
+    try:
+        execute_agent_draft(store, task_id)
+        return None
+    except Exception as exc:
+        # Never expose provider response bodies or secrets in status/logs.
+        return type(exc).__name__
+
+
 def _worker(store: GrowthStore, task_ids: list[str]) -> None:
     failures = 0
     last_error = None
     try:
-        for task_id in task_ids:
-            try:
-                execute_agent_draft(store, task_id)
-            except Exception as exc:
-                failures += 1
-                # One unexpected task failure must not terminate the remaining roles.
-                # Record only the exception class, never provider responses or secrets.
-                last_error = type(exc).__name__
-            finally:
+        # Bounded concurrency avoids one slow request freezing all progress while
+        # limiting bursts against provider rate limits.
+        with ThreadPoolExecutor(max_workers=MAX_PARALLEL_TASKS, thread_name_prefix="nexora-agent") as pool:
+            futures = [pool.submit(_run_one, store, task_id) for task_id in task_ids]
+            for future in as_completed(futures):
+                error_type = future.result()
                 with _state_lock:
                     _state["finished"] += 1
+                    if error_type:
+                        failures += 1
+                        last_error = error_type
                     _state["failed"] = failures
                     _state["last_error"] = last_error
     finally:
         with _state_lock:
             _state["running"] = False
         _lock.release()
-
 
 
 
@@ -118,7 +129,7 @@ def start_company_workforce(store: GrowthStore, mission: str,
         _lock.release()
         raise
 def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = None) -> dict:
-    """Queue all 196 registered roles and begin sequential internal draft generation."""
+    """Queue all registered roles and begin bounded-parallel internal draft generation."""
     if not provider_status(environ)["configured"]:
         raise ProviderNotConfigured(
             "Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in the private HQ runtime before starting all agents."
