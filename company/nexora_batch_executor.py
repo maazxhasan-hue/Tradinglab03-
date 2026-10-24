@@ -140,7 +140,7 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
 
     try:
         tasks = []
-        for agent in AGENT_DIRECTORY.values():
+        for agent in AGENTS:
             task = store.create_task(
                 title=f"Growth sprint: {agent['name']} deliverable for @nexoraai03",
                 agent_id=agent["agent_id"],
@@ -159,10 +159,10 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
             tasks.append(task["task_id"])
         import uuid
         with _state_lock:
-            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "all_196", "total": len(tasks),
+            _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41", "total": len(tasks),
                            "finished": 0, "failed": 0, "last_error": None})
         thread = threading.Thread(target=_worker, args=(store, tasks), daemon=True,
-                                  name="nexora-196-agent-draft-batch")
+                                  name="nexora-growth-agent-draft-batch")
         thread.start()
         return {"started": True, "task_ids": tasks, **batch_status()}
     except Exception:
