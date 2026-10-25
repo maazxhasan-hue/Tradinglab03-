@@ -191,10 +191,11 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
 
     remote_client = None
     remote_memories: list[dict] = []
+    remote_brain_warning: str | None = None
     # A headless worker must use the machine-to-machine agent key. A publishable
     # key plus a user access token is not a durable server credential and can
-    # expire, causing every task to fail with 401. Keep user-session support in
-    # SharedBrainClient for interactive callers, but do not auto-enable it here.
+    # expire, causing 401s. Keep user-session support in SharedBrainClient for
+    # interactive callers, but do not auto-enable it here.
     remote_configured = bool(env.get("SHARED_BRAIN_AGENT_KEY", "").strip())
     brain_query = f"{agent['name']} {agent['department']} {task['title']}"
     if remote_configured:
@@ -206,10 +207,12 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
             remote_memories = remote_client.recall(
                 project_key="nexora", namespace="company", query=brain_query, limit=5
             )
-        except Exception as exc:
-            raise DraftExecutionError(
-                "Configured shared brain could not be reached; task was not executed disconnected."
-            ) from exc
+        except Exception:
+            # Remote memory is an optional enhancement. Preserve the task and
+            # local memory path, but report degraded shared-brain status clearly.
+            remote_client = None
+            remote_memories = []
+            remote_brain_warning = "remote_recall_failed"
 
     local_memories = store.recall_memories(brain_query, limit=5)
     memories = []
@@ -248,23 +251,29 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
             memory_content, tags=["nexora", "company-agent", agent["department"][:60]],
             source_agent=agent["agent_id"],
         )
+        remote_memory_saved = False
         if remote_client is not None:
-            result = remote_client.remember(
-                memory_key="agent-run:" + task_id, content=memory_content,
-                source_agent=agent["agent_id"],
-                summary=f"{agent['name']} completed internal work: {task['title']}"[:2000],
-                project_key="nexora", namespace="company",
-                tags=["nexora", "company-agent", agent["department"][:60]], confidence=0.8,
-            )
-            if result.get("saved") is not True:
-                raise DraftExecutionError("Remote shared brain did not confirm the memory write.")
+            try:
+                result = remote_client.remember(
+                    memory_key="agent-run:" + task_id, content=memory_content,
+                    source_agent=agent["agent_id"],
+                    summary=f"{agent['name']} completed internal work: {task['title']}"[:2000],
+                    project_key="nexora", namespace="company",
+                    tags=["nexora", "company-agent", agent["department"][:60]], confidence=0.8,
+                )
+                remote_memory_saved = result.get("saved") is True
+                if not remote_memory_saved:
+                    remote_brain_warning = "remote_write_not_confirmed"
+            except Exception:
+                remote_brain_warning = "remote_write_failed"
         return store.transition(
             task_id, "completed", "draft-executor",
             outputs={"draft": draft, "provider": provider, "mode": "draft_only",
                      "agent_name": agent["name"], "department": agent["department"],
                      "brain": {"local_memory_saved": True, "local_memories_recalled": len(local_memories),
-                               "remote_memory_saved": remote_client is not None,
-                               "remote_memories_recalled": len(remote_memories)}},
+                               "remote_memory_saved": remote_memory_saved,
+                               "remote_memories_recalled": len(remote_memories),
+                               "remote_brain_warning": remote_brain_warning}},
             evidence_refs=[f"ai-provider:{provider}", f"task:{task_id}:internal-draft",
                            f"brain:local:{memory_key}"],
         )
