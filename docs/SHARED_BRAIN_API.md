@@ -47,7 +47,7 @@ Machine requests use the separate `public.agent_shared_facts` store, shared acro
 
 The workflow registry uses a short-lived GitHub Actions OIDC token instead of a long-lived repository secret:
 - The workflow requests audience `nexora-shared-brain` and sends the token in `x-github-oidc-token` with `x-agent-id: github-workflow-registry`.
-- The Edge Function validates the JWT signature against GitHub's published JWKS and checks issuer, audience, expiration, repository ID/name, workflow file on `refs/heads/main`, and allowed event type before using the server-side service-role credential.
+- The Edge Function validates the JWT signature against GitHub's published JWKS and checks issuer, audience, expiration, repository ID/name, exact workflow file on `refs/heads/main`, and allowed event type before using the server-side service-role credential. Only the registry workflow can use the `github-workflow-registry` identity; the live-smoke workflow can use the smoke writer/reader and `nexora-*` role identities.
 - The workflow must retain only the `contents: read` and `id-token: write` permissions it needs. Do not grant this identity to unrelated workflows.
 - No OIDC token is stored in repository secrets or logged. Tokens are short-lived and should never be copied into chat, source files, or artifacts.
 
