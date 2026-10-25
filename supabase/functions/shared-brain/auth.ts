@@ -76,11 +76,21 @@ export async function verifyGitHubActionsOidc(
       false,
       ["verify"],
     );
+    const signature = decodeBase64Url(parts[2]);
+    const signatureBuffer = signature.buffer.slice(
+      signature.byteOffset,
+      signature.byteOffset + signature.byteLength,
+    ) as ArrayBuffer;
+    const signed = new TextEncoder().encode(parts[0] + "." + parts[1]);
+    const signedBuffer = signed.buffer.slice(
+      signed.byteOffset,
+      signed.byteOffset + signed.byteLength,
+    ) as ArrayBuffer;
     return await crypto.subtle.verify(
       { name: "RSASSA-PKCS1-v1_5" },
       cryptoKey,
-      decodeBase64Url(parts[2]),
-      new TextEncoder().encode(parts[0] + "." + parts[1]),
+      signatureBuffer,
+      signedBuffer,
     );
   } catch {
     return false;
