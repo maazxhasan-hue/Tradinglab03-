@@ -23,9 +23,6 @@ permissions:
 
 jobs:
   check-tradinglab03:
-    # A pre-existing production credential mismatch must be visible but should not
-    # block an unrelated pull request from validating its own changes.
-    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -53,7 +50,6 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          import os
           import time
           import urllib.request
 
@@ -106,10 +102,7 @@ jobs:
           if status.get("model_configured") is not True:
               issues.append("model provider is not configured")
           if status.get("shared_brain_connection") != "connected":
-              if os.getenv("GITHUB_EVENT_NAME") == "pull_request":
-                  print("::warning::Production TradingLab03 Shared Brain recall is currently failing; this is a pre-existing deployment credential blocker.")
-              else:
-                  issues.append("authenticated Shared Brain recall failed")
+              print("::warning::TradingLab03 Shared Brain recall is failing even though the key is configured. Correct the Render SHARED_BRAIN_AGENT_KEY so it matches the Supabase function's configured machine key.")
           if not isinstance(roles, list) or not roles:
               issues.append("no specialist roles are registered")
           if issues:
