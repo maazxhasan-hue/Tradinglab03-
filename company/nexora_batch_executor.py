@@ -229,7 +229,7 @@ def start_company_workforce(store: GrowthStore, mission: str,
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "full_company",
                            "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None,
                            "retry_count": 0})
-        thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
+        thread = threading.Thread(target=_worker, args=(store, task_ids, environ), daemon=True,
                                   name="nexora-full-company-workforce")
         thread.start()
         return {"started": True, "scope": "full_company", "task_ids": task_ids,
