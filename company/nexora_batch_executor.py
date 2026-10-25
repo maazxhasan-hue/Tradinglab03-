@@ -97,6 +97,16 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
                         RATE_LIMIT_COOLDOWN_SECONDS * (2 ** (attempt - 1)),
                         MAX_RATE_LIMIT_COOLDOWN_SECONDS,
                     ))
+            auth_rejected = (
+                "HTTP 401" in message or "HTTP 403" in message
+                or "ProviderAuthenticationOrPermissionError" in message
+            )
+            if auth_rejected:
+                selected = next((key for key in provider_keys if attempt_env.get(key, "").strip()), None)
+                if selected:
+                    attempt_env.pop(selected, None)
+                if any(attempt_env.get(key, "").strip() for key in provider_keys) and attempt < MAX_TASK_ATTEMPTS:
+                    continue
             retryable = isinstance(exc, DraftExecutionError) and any(
                 marker in message for marker in RETRYABLE_MARKERS
             )
