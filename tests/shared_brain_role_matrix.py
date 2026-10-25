@@ -14,7 +14,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ENDPOINT = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain")
-KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
+OIDC_TOKEN = os.getenv("SHARED_BRAIN_GITHUB_OIDC_TOKEN", "")
 ROLES = [
     "CEO Strategy", "Market Intelligence", "Lead Discovery", "Sales Qualification",
     "Proposal & Pricing", "Client Success", "Brand & Positioning", "Content Strategy",
@@ -37,7 +37,7 @@ def post(payload: dict, identity: str) -> tuple[int, dict]:
         ENDPOINT,
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
-        headers={"Content-Type": "application/json", "x-agent-key": KEY, "x-agent-id": identity},
+        headers={"Content-Type": "application/json", "x-github-oidc-token": OIDC_TOKEN, "x-agent-id": identity},
     )
     try:
         with urllib.request.urlopen(request, timeout=12) as response:
@@ -76,8 +76,8 @@ def check_role(role: str, nonce: str) -> tuple[str, bool, str]:
 
 
 def main() -> int:
-    if not KEY:
-        print("FAIL: SHARED_BRAIN_AGENT_KEY is missing; role matrix cannot be skipped.")
+    if not OIDC_TOKEN:
+        print("FAIL: GitHub OIDC token is missing; role matrix cannot be skipped.")
         return 1
     nonce = secrets.token_hex(8)
     failures = []

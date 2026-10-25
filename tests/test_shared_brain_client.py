@@ -18,6 +18,7 @@ class SharedBrainClientTests(unittest.TestCase):
     def test_machine_auth_headers_and_recall_limit(self):
         client = SharedBrainClient(endpoint="https://example.invalid", timeout=1)
         client.agent_key = "test-only-key"
+        client.github_oidc_token = ""
         client.agent_id = "test-agent"
         body = MagicMock()
         body.__enter__.return_value.read.return_value = json.dumps({"memories": []}).encode()
@@ -28,6 +29,21 @@ class SharedBrainClientTests(unittest.TestCase):
         self.assertEqual(request.get_header("X-agent-id"), "test-agent")
         self.assertEqual(json.loads(request.data)["limit"], 50)
         self.assertEqual(result, [])
+
+    def test_github_oidc_header_takes_precedence_over_legacy_agent_key(self):
+        client = SharedBrainClient(endpoint="https://example.invalid", timeout=1)
+        client.github_oidc_token = "short-lived-oidc-test-token"
+        client.agent_key = "legacy-test-key"
+        client.agent_id = "github-workflow-registry"
+        body = MagicMock()
+        body.__enter__.return_value.read.return_value = json.dumps({"saved": True, "scope": "shared-agent"}).encode()
+        with patch("company.shared_brain.urllib.request.urlopen", return_value=body) as urlopen:
+            result = client.remember(memory_key="oidc:test", content={"ok": True}, source_agent="github-workflow-registry")
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.get_header("X-github-oidc-token"), "short-lived-oidc-test-token")
+        self.assertEqual(request.get_header("X-agent-id"), "github-workflow-registry")
+        self.assertIsNone(request.get_header("X-agent-key"))
+        self.assertTrue(result["saved"])
 
     def test_user_session_auth_headers(self):
         client = SharedBrainClient(endpoint="https://example.invalid", publishable_key="pub-test", access_token="user-test")

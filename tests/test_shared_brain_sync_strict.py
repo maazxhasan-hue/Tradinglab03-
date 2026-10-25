@@ -26,13 +26,23 @@ class SharedBrainSyncStrictTests(unittest.TestCase):
             with patch.object(sys, "argv", self._argv()):
                 with patch.object(shared_brain_sync, "SharedBrainClient") as client_cls:
                     client_cls.return_value.remember.return_value = {"saved": True, "scope": "shared"}
+                    client_cls.return_value.recall.return_value = [{"memory_key": "Unit-Test:12345", "content": {"run_id": "12345"}}]
                     self.assertEqual(shared_brain_sync.main(), 0)
+                    client_cls.return_value.recall.assert_called_once_with(project_key="nexora", namespace="agent-runs", query="run 12345", limit=50)
 
     def test_failed_write_returns_nonzero_in_strict_mode(self) -> None:
         with patch.dict(os.environ, {"SHARED_BRAIN_AGENT_ID": "test-agent", "SHARED_BRAIN_STRICT": "1"}):
             with patch.object(sys, "argv", self._argv()):
                 with patch.object(shared_brain_sync, "SharedBrainClient") as client_cls:
                     client_cls.return_value.remember.side_effect = SharedBrainError("unavailable")
+                    self.assertEqual(shared_brain_sync.main(), 1)
+
+    def test_failed_readback_returns_nonzero_in_strict_mode(self) -> None:
+        with patch.dict(os.environ, {"SHARED_BRAIN_AGENT_ID": "test-agent", "SHARED_BRAIN_STRICT": "1"}):
+            with patch.object(sys, "argv", self._argv()):
+                with patch.object(shared_brain_sync, "SharedBrainClient") as client_cls:
+                    client_cls.return_value.remember.return_value = {"saved": True, "scope": "shared"}
+                    client_cls.return_value.recall.return_value = []
                     self.assertEqual(shared_brain_sync.main(), 1)
 
     def test_failed_write_preserves_non_strict_compatibility(self) -> None:

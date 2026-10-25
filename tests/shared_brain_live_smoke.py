@@ -1,6 +1,6 @@
 """Authenticated live smoke test for the shared brain.
 
-Uses only synthetic test data. Requires SHARED_BRAIN_AGENT_KEY in the environment.
+Uses only synthetic test data. Requires a short-lived GitHub OIDC token in the environment.
 Never prints credentials or memory content.
 """
 from __future__ import annotations
@@ -15,8 +15,8 @@ ENDPOINT = os.getenv(
     "SHARED_BRAIN_URL",
     "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain",
 )
-KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
-AGENT = "shared-brain-smoke-test"
+OIDC_TOKEN = os.getenv("SHARED_BRAIN_GITHUB_OIDC_TOKEN", "")
+AGENT = "shared-brain-smoke-writer"
 
 
 def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
@@ -26,7 +26,7 @@ def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
         method="POST",
         headers={
             "Content-Type": "application/json",
-            "x-agent-key": KEY,
+            "x-github-oidc-token": OIDC_TOKEN,
             "x-agent-id": agent,
         },
     )
@@ -43,8 +43,8 @@ def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
 
 
 def main() -> int:
-    if not KEY:
-        print("FAIL: SHARED_BRAIN_AGENT_KEY is not configured; live shared-brain verification cannot be skipped.")
+    if not OIDC_TOKEN:
+        print("FAIL: GitHub OIDC token is not configured; live shared-brain verification cannot be skipped.")
         return 1
 
     nonce = secrets.token_hex(8)

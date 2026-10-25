@@ -1,7 +1,7 @@
 """Write a minimal workflow-run fact to the shared agent brain.
 
 This records run metadata only (never artifacts, credentials, or raw client briefs).
-The caller must configure SHARED_BRAIN_AGENT_KEY and a unique SHARED_BRAIN_AGENT_ID.
+The caller must configure an approved machine identity (GitHub OIDC for the workflow registry or SHARED_BRAIN_AGENT_KEY for legacy runtimes) and a unique SHARED_BRAIN_AGENT_ID.
 """
 from __future__ import annotations
 import argparse, json, os, re, sys
@@ -28,7 +28,23 @@ def main() -> int:
             tags=["workflow-run", args.status], confidence=1.0,
             source_ref=f"{args.repository}/actions/runs/{args.run_id}",
         )
-        print(json.dumps({"shared_brain": "saved", "scope": result.get("scope", "unknown")}))
+        readback = client.recall(
+            project_key="nexora", namespace="agent-runs",
+            query=f"run {args.run_id}", limit=50,
+        )
+        verified = any(
+            isinstance(item, dict)
+            and item.get("memory_key") == safe
+            and isinstance(item.get("content"), dict)
+            and str(item["content"].get("run_id")) == str(args.run_id)
+            for item in readback
+        )
+        if not verified:
+            raise SharedBrainError("Shared brain write/read-back verification failed.")
+        print(json.dumps({
+            "shared_brain": "saved_and_recalled",
+            "scope": result.get("scope", "unknown"),
+        }))
         return 0
     except SharedBrainError as exc:
         print(json.dumps({"shared_brain": "unavailable", "reason": str(exc)}))

@@ -43,11 +43,14 @@ The Edge Function also supports machine-to-machine requests for unattended agent
 
 Machine requests use the separate `public.agent_shared_facts` store, shared across connected agents within a project/namespace. User-session requests continue to use `public.agent_shared_memory` and are isolated per user. The service table denies direct anon/authenticated table access; the Edge Function uses the server-side service-role credential only after the machine secret matches. Never send the service-role key to a client or workflow.
 
-### Required secret configuration before machine agents can connect
-1. Generate one long random `SHARED_BRAIN_AGENT_KEY` privately.
-2. Add the same value to Supabase Edge Function secrets as `SHARED_BRAIN_AGENT_KEY`.
-3. Add it to GitHub repository Actions secrets as `SHARED_BRAIN_AGENT_KEY`.
-4. Do not paste it into chat, source files, issue comments, or artifacts.
-5. Set `SHARED_BRAIN_AGENT_ID` per runtime where the Python client is used.
+### GitHub Actions workflow registry via OIDC
 
-If the secret is absent, the function rejects machine writes and workflow integrations explicitly skip rather than pretending they synced. No secret value is stored in this repository.
+The workflow registry uses a short-lived GitHub Actions OIDC token instead of a long-lived repository secret:
+- The workflow requests audience `nexora-shared-brain` and sends the token in `x-github-oidc-token` with `x-agent-id: github-workflow-registry`.
+- The Edge Function validates the JWT signature against GitHub's published JWKS and checks issuer, audience, expiration, repository ID/name, exact workflow file on `refs/heads/main`, and allowed event type before using the server-side service-role credential. Only the registry workflow can use the `github-workflow-registry` identity; the live-smoke workflow can use the smoke writer/reader and `nexora-*` role identities.
+- The workflow must retain only the `contents: read` and `id-token: write` permissions it needs. Do not grant this identity to unrelated workflows.
+- No OIDC token is stored in repository secrets or logged. Tokens are short-lived and should never be copied into chat, source files, or artifacts.
+
+Legacy unattended runtimes may continue to use `SHARED_BRAIN_AGENT_KEY` while they migrate. The registry workflow no longer depends on matching that long-lived secret between GitHub and Supabase. The Edge Function must still have its server-side `SUPABASE_SERVICE_ROLE_KEY` configured; it is never sent to clients or workflows.
+
+If authentication fails, the registry must fail closed and the workflow should report the failure rather than pretending the memory sync succeeded.
