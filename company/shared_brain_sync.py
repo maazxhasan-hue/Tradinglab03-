@@ -1,7 +1,7 @@
 """Write a minimal workflow-run fact to the shared agent brain.
 
 This records run metadata only (never artifacts, credentials, or raw client briefs).
-The caller must configure SHARED_BRAIN_AGENT_KEY and a unique SHARED_BRAIN_AGENT_ID.
+The caller must configure an approved machine identity (GitHub OIDC for the workflow registry or SHARED_BRAIN_AGENT_KEY for legacy runtimes) and a unique SHARED_BRAIN_AGENT_ID.
 """
 from __future__ import annotations
 import argparse, json, os, re, sys
