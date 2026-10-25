@@ -2,7 +2,8 @@ const ISSUER = "https://token.actions.githubusercontent.com";
 const AUDIENCE = "nexora-shared-brain";
 const REPOSITORY = "maazxhasan-hue/Tradinglab03-";
 const REPOSITORY_ID = "1417902142";
-const WORKFLOW_REF = "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-registry.yml@refs/heads/main";
+const REGISTRY_WORKFLOW_REF = "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-registry.yml@refs/heads/main";
+const LIVE_SMOKE_WORKFLOW_REF = "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-live-smoke.yml@refs/heads/main";
 const JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks";
 
 type JwtClaims = Record<string, unknown>;
@@ -28,7 +29,7 @@ export async function verifyGitHubActionsOidc(
   token: string,
   fetcher: typeof fetch = fetch,
   nowSeconds = Math.floor(Date.now() / 1000),
-): Promise<boolean> {
+): Promise<"registry" | "live-smoke" | false> {
   try {
     const parts = token.split(".");
     if (parts.length !== 3 || parts.some((part) => part.length === 0)) return false;
@@ -40,6 +41,18 @@ export async function verifyGitHubActionsOidc(
     const audience = claims.aud;
     const audienceMatches = audience === AUDIENCE ||
       (Array.isArray(audience) && audience.includes(AUDIENCE));
+    const eventName = String(claims.event_name);
+    const workflowRef = claims.workflow_ref;
+    let identity: "registry" | "live-smoke" | false = false;
+    if (
+      workflowRef === REGISTRY_WORKFLOW_REF &&
+      ["workflow_run", "workflow_dispatch"].includes(eventName)
+    ) identity = "registry";
+    if (
+      workflowRef === LIVE_SMOKE_WORKFLOW_REF &&
+      ["push", "workflow_dispatch"].includes(eventName)
+    ) identity = "live-smoke";
+
     const exp = Number(claims.exp);
     const iat = Number(claims.iat);
     const nbf = claims.nbf === undefined ? iat : Number(claims.nbf);
@@ -49,8 +62,7 @@ export async function verifyGitHubActionsOidc(
       !audienceMatches ||
       claims.repository !== REPOSITORY ||
       String(claims.repository_id) !== REPOSITORY_ID ||
-      claims.workflow_ref !== WORKFLOW_REF ||
-      !["workflow_run", "workflow_dispatch"].includes(String(claims.event_name)) ||
+      !identity ||
       !Number.isFinite(exp) || exp <= nowSeconds || exp > nowSeconds + 600 ||
       !Number.isFinite(iat) || iat > nowSeconds + 60 || iat < nowSeconds - 600 ||
       !Number.isFinite(nbf) || nbf > nowSeconds + 60
@@ -86,12 +98,13 @@ export async function verifyGitHubActionsOidc(
       signed.byteOffset,
       signed.byteOffset + signed.byteLength,
     ) as ArrayBuffer;
-    return await crypto.subtle.verify(
+    const signatureValid = await crypto.subtle.verify(
       { name: "RSASSA-PKCS1-v1_5" },
       cryptoKey,
       signatureBuffer,
       signedBuffer,
     );
+    return signatureValid ? identity : false;
   } catch {
     return false;
   }
