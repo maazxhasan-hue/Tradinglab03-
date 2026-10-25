@@ -35,6 +35,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  id-token: write
 jobs:
   register-run:
     runs-on: ubuntu-latest
@@ -46,7 +47,6 @@ jobs:
           python-version: "3.11"
       - name: Register completed workflow run in shared brain
         env:
-          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
           SHARED_BRAIN_AGENT_ID: github-workflow-registry
           SHARED_BRAIN_STRICT: "1"
           SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
@@ -55,8 +55,11 @@ jobs:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
           SOURCE_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
         run: |
-          if [ -z "$SHARED_BRAIN_AGENT_KEY" ]; then
-            echo "::error::Shared Brain registry cannot verify or sync because SHARED_BRAIN_AGENT_KEY is missing. Configure the repository Actions secret and matching Supabase Edge Function secret."
+          OIDC_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=nexora-shared-brain"
+          OIDC_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "$OIDC_URL")"
+          export SHARED_BRAIN_GITHUB_OIDC_TOKEN="$(printf '%s' "$OIDC_RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')"
+          if [ -z "$SHARED_BRAIN_GITHUB_OIDC_TOKEN" ]; then
+            echo "::error::GitHub OIDC token request returned an empty token."
             exit 1
           fi
           STATUS="$SOURCE_STATUS"
