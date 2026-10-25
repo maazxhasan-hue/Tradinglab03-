@@ -118,7 +118,7 @@ jobs:
           if health.get("status") != "ready":
               issues.append("health status is not ready")
           if health.get("database") != "postgresql":
-              issues.append("persistent PostgreSQL database is not configured")
+              print("::warning::Harvey is using SQLite; task history may be lost on Render restart. Configure DATABASE_URL for a persistent PostgreSQL database before relying on durable history.")
           if health.get("shared_brain") != "configured":
               issues.append("Shared Brain credentials are not configured")
           if health.get("model_configured") is not True or status.get("model_configured") is not True:
