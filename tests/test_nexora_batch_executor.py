@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
-from company.nexora_agent_executor import ProviderNotConfigured, execute_agent_draft
+from company.nexora_agent_executor import ProviderNotConfigured, execute_agent_draft, brain_status
 from company.nexora_batch_executor import batch_status, start_all_agents, start_company_workforce
 
 
@@ -111,6 +111,43 @@ class BatchExecutorTests(unittest.TestCase):
         memories = self.store.recall_memories(agent["name"] + " Test company role memory", limit=5)
         self.assertTrue(any(m["source_agent"] == agent["agent_id"] for m in memories))
 
+
+    def test_user_session_token_does_not_enable_remote_brain_for_headless_worker(self):
+        # A publishable key and a short-lived user token must not make the
+        # server-side worker attempt machine-to-machine shared-brain calls.
+        env = {
+            "OPENROUTER_API_KEY": "test-key",
+            "SUPABASE_PUBLISHABLE_KEY": "public-test-key",
+            "SUPABASE_ACCESS_TOKEN": "expired-user-token",
+        }
+        self.assertFalse(brain_status(env)["remote_brain_configured"])
+        agent = COMPANY_AGENTS[0]
+        task = self.store.create_task(
+            "Headless brain auth regression", agent["agent_id"],
+            {"role": agent["name"], "department": agent["department"], "mission": "Validate auth selection"},
+        )
+        with patch("company.nexora_agent_executor._call_provider", return_value="Verified internal draft"):
+            result = execute_agent_draft(self.store, task["task_id"], env)
+        self.assertEqual(result["status"], "completed")
+        self.assertFalse(result["outputs"]["brain"]["remote_memory_saved"])
+        self.assertEqual(result["outputs"]["brain"]["remote_memories_recalled"], 0)
+
+    def test_remote_brain_auth_failure_does_not_block_local_draft_execution(self):
+        env = {"OPENROUTER_API_KEY": "test-key", "SHARED_BRAIN_AGENT_KEY": "mismatched-test-key"}
+        agent = COMPANY_AGENTS[0]
+        task = self.store.create_task(
+            "Remote brain failure regression", agent["agent_id"],
+            {"role": agent["name"], "department": agent["department"], "mission": "Continue safely"},
+        )
+        with patch("company.shared_brain.SharedBrainClient") as client_cls:
+            client_cls.return_value.configured = True
+            client_cls.return_value.recall.side_effect = RuntimeError("simulated HTTP 401")
+            with patch("company.nexora_agent_executor._call_provider", return_value="Verified internal draft"):
+                result = execute_agent_draft(self.store, task["task_id"], env)
+        self.assertEqual(result["status"], "completed")
+        self.assertTrue(result["outputs"]["brain"]["local_memory_saved"])
+        self.assertFalse(result["outputs"]["brain"]["remote_memory_saved"])
+        self.assertEqual(result["outputs"]["brain"]["remote_brain_warning"], "remote_recall_failed")
 
 if __name__ == "__main__":
     unittest.main()
