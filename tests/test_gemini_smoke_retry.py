@@ -1,5 +1,6 @@
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 SCRIPT = Path(__file__).with_name("gemini_tool_agent_live_smoke.py")
@@ -34,6 +35,32 @@ class GeminiSmokeRetryTests(unittest.TestCase):
         ):
             with self.subTest(message=message):
                 self.assertFalse(SMOKE.is_transient_provider_error(RuntimeError(message)))
+
+    def test_timeout_uses_fallback_model_without_repeating_slow_model(self):
+        called_models = []
+
+        def fake_run_tool_agent(*, brief, workspace, max_rounds, model):
+            called_models.append(model)
+            if model == "preferred-model":
+                raise RuntimeError("Gemini request failed after retries (TimeoutError).")
+            artifact = Path(workspace) / "agent_workspace/specialists/gemini-live-smoke.md"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_text("GEMINI_NATIVE_TOOL_CALL_OK", encoding="utf-8")
+            return {"status": "completed", "tool_calls": 1}
+
+        with (
+            patch.dict("os.environ", {
+                "GEMINI_API_KEY": "unit-test-key",
+                "GEMINI_MODEL": "preferred-model",
+                "GEMINI_SMOKE_FALLBACK_MODEL": "fallback-model",
+            }, clear=True),
+            patch.object(SMOKE, "run_tool_agent", side_effect=fake_run_tool_agent),
+            patch.object(SMOKE.time, "sleep") as sleep,
+        ):
+            self.assertEqual(SMOKE.main(), 0)
+
+        self.assertEqual(called_models, ["preferred-model", "fallback-model"])
+        sleep.assert_not_called()
 
 
 if __name__ == "__main__":
