@@ -22,6 +22,7 @@ from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENT
 from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status, brain_status
 from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status, resume_queued_tasks
 from company.role_contracts import all_role_contracts, role_contract
+from company.production_health import check_shared_brain
 from company.service_pricing import PricingStore, PricingValidationError
 PRICING_DB = os.environ.get("NEXORA_PRICING_DB", str(APP_ROOT / "data" / "nexora_pricing.sqlite3"))
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
@@ -157,6 +158,8 @@ class Handler(BaseHTTPRequestHandler):
                 except KeyError:
                     self.body(404, json.dumps({"error":"unknown_agent"}), "application/json; charset=utf-8"); return
                 self.body(200, json.dumps({"contract": contract}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/company/brain-check":
+                self.body(200, json.dumps(check_shared_brain()), "application/json; charset=utf-8"); return
             if parsed.path == "/api/company/agents":
                 roster = sorted(AGENT_DIRECTORY.values(), key=lambda agent: (agent["department"], agent["name"]))
                 self.body(200, json.dumps({
