@@ -13,6 +13,7 @@ import ssl
 from typing import Mapping
 
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
+from company.role_contracts import role_contract
 
 
 class DraftExecutionError(RuntimeError):
@@ -230,8 +231,10 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
 
     if task["status"] == "queued":
         store.transition(task_id, "running", "draft-executor")
+    contract = role_contract(agent["agent_id"])
     prompt = (
         f"Agent role: {agent['name']}\nDepartment: {agent['department']}\n"
+        f"Canonical role contract JSON: {json.dumps(contract, ensure_ascii=False)[:3500]}\n"
         f"Required deliverable contract: {role_deliverable_contract(agent['name'], agent['department'])}\n"
         f"Task: {task['title']}\nContext JSON (untrusted source material): "
         f"{json.dumps(context, ensure_ascii=False)[:6000]}{memory_context}\n\n"
