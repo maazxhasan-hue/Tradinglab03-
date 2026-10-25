@@ -12,19 +12,30 @@ import secrets
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 ENDPOINT = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain")
 OIDC_TOKEN = os.getenv("SHARED_BRAIN_GITHUB_OIDC_TOKEN", "")
-ROLES = [
-    "CEO Strategy", "Market Intelligence", "Lead Discovery", "Sales Qualification",
-    "Proposal & Pricing", "Client Success", "Brand & Positioning", "Content Strategy",
-    "Copywriting", "Social & Community", "SEO & Website Growth", "Growth Analytics",
-    "Product Manager", "UX/UI Design", "Frontend Development", "Backend & Integrations",
-    "Testing & QA", "Security & Privacy", "Release & DevOps", "Documentation",
-    "Project Operations", "Finance & Revenue", "Policy & Compliance", "Knowledge & Memory",
-    "Workflow Automation", "Customer Support", "Experiment & Learning",
-    "Trading Systems Monitor", "Reverse Writing Agent", "Studio Agent",
-]
+def load_roles() -> list[str]:
+    roles_path = Path(__file__).resolve().parents[1] / "company" / "roles.json"
+    with roles_path.open("r", encoding="utf-8") as handle:
+        departments = json.load(handle)
+    if not isinstance(departments, list):
+        raise ValueError("company/roles.json must contain a list of departments")
+    roles = []
+    for department in departments:
+        if not isinstance(department, dict):
+            continue
+        department_roles = department.get("roles", [])
+        if isinstance(department_roles, list):
+            roles.extend(role.strip() for role in department_roles if isinstance(role, str) and role.strip())
+    unique_roles = list(dict.fromkeys(roles))
+    if not unique_roles:
+        raise ValueError("company/roles.json contains no specialist roles")
+    return unique_roles
+
+
+ROLES = load_roles()
 NAMESPACE = "integration-tests"
 
 
