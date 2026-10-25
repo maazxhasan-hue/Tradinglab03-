@@ -5,6 +5,7 @@ const REPOSITORY_ID = "1417902142";
 const REGISTRY_WORKFLOW_REF = "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-registry.yml@refs/heads/main";
 const LIVE_SMOKE_WORKFLOW_REF = "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-live-smoke.yml@refs/heads/main";
 const JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks";
+let cachedJwks: { keys: JsonWebKey[]; expiresAt: number } | null = null;
 
 type JwtClaims = Record<string, unknown>;
 type JwtHeader = Record<string, unknown>;
@@ -68,17 +69,26 @@ export async function verifyGitHubActionsOidc(
       !Number.isFinite(nbf) || nbf > nowSeconds + 60
     ) return false;
 
-    const response = await fetcher(JWKS_URL, { headers: { accept: "application/json" } });
-    if (!response.ok) return false;
-    const jwks = await response.json() as { keys?: JsonWebKey[] };
-    if (!Array.isArray(jwks.keys)) return false;
-    const key = jwks.keys.find((candidate) => {
+    const isSigningKey = (candidate: JsonWebKey): boolean => {
       const extended = candidate as JsonWebKey & { kid?: string; use?: string; alg?: string };
       return extended.kid === header.kid &&
         extended.kty === "RSA" &&
         (extended.use === undefined || extended.use === "sig") &&
         (extended.alg === undefined || extended.alg === "RS256");
-    });
+    };
+
+    let key: JsonWebKey | undefined;
+    if (fetcher === fetch && cachedJwks && cachedJwks.expiresAt > nowSeconds) {
+      key = cachedJwks.keys.find(isSigningKey);
+    }
+    if (!key) {
+      const response = await fetcher(JWKS_URL, { headers: { accept: "application/json" } });
+      if (!response.ok) return false;
+      const jwks = await response.json() as { keys?: JsonWebKey[] };
+      if (!Array.isArray(jwks.keys)) return false;
+      if (fetcher === fetch) cachedJwks = { keys: jwks.keys, expiresAt: nowSeconds + 300 };
+      key = jwks.keys.find(isSigningKey);
+    }
     if (!key) return false;
 
     const cryptoKey = await crypto.subtle.importKey(
