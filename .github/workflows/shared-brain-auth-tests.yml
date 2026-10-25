@@ -24,5 +24,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Type-check shared brain Edge Function
+        run: deno check supabase/functions/shared-brain/index.ts
       - name: Verify GitHub OIDC validation
         run: deno test supabase/functions/shared-brain/auth_test.ts
