@@ -153,7 +153,11 @@ def _worker(store: GrowthStore, task_ids: list[str],
         with ThreadPoolExecutor(max_workers=MAX_PARALLEL_TASKS, thread_name_prefix="nexora-agent") as pool:
             futures = [pool.submit(_run_one, store, task_id, environ) for task_id in task_ids]
             for future in as_completed(futures):
-                error_type = future.result()
+                try:
+                    error_type = future.result()
+                except Exception as exc:
+                    # Isolate unexpected task errors so the remaining agents still run.
+                    error_type = type(exc).__name__[:100] or "UnexpectedWorkerError"
                 with _state_lock:
                     _state["finished"] += 1
                     if error_type:
