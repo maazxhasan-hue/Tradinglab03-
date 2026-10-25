@@ -33,7 +33,7 @@ jobs:
         run: |
           set +x
           if [ -z "${HARVEY_API_KEY:-}" ]; then
-            echo "::warning::Live agent execution was skipped: configure HARVEY_API_KEY in GitHub Actions secrets. No execution evidence was produced."
-            exit 0
+            echo "::error::Cannot verify live agent execution: configure HARVEY_API_KEY in GitHub Actions secrets. No execution evidence was produced."
+            exit 1
           fi
           python tests/harvey_agent_live_smoke.py
