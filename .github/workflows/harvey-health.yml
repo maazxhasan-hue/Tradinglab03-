@@ -110,6 +110,10 @@ jobs:
               "api_auth_configured": health.get("api_auth_configured"),
               "shared_brain_connection": status.get("shared_brain_connection"),
               "public_model_configured": status.get("model_configured"),
+              "automatic_execution_enabled": status.get("agents", {}).get("automatic_execution_enabled"),
+              "execution_mode": status.get("agents", {}).get("execution_mode"),
+              "task_status_counts": status.get("tasks", {}).get("by_status", {}),
+              "company_job_status_counts": status.get("company_jobs", {}).get("by_status", {}),
               "specialist_roles": len(roles) if isinstance(roles, list) else 0,
           }
           print("Harvey readiness summary: " + json.dumps(summary, sort_keys=True))
