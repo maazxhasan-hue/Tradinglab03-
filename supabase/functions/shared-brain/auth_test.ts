@@ -65,6 +65,27 @@ Deno.test("accepts a correctly signed token from the approved workflow", async (
   assert(await verifyGitHubActionsOidc(fixture.token, fixture.fetcher, fixture.now), "valid OIDC token was rejected");
 });
 
+Deno.test("accepts the approved live-smoke workflow on main", async () => {
+  const fixture = await signedToken({
+    workflow_ref: "maazxhasan-hue/Tradinglab03-/.github/workflows/shared-brain-live-smoke.yml@refs/heads/main",
+    event_name: "push",
+  });
+  assert(
+    (await verifyGitHubActionsOidc(fixture.token, fixture.fetcher, fixture.now)) === "live-smoke",
+    "valid live-smoke OIDC token was rejected",
+  );
+});
+
+Deno.test("rejects an unapproved workflow file", async () => {
+  const fixture = await signedToken({
+    workflow_ref: "maazxhasan-hue/Tradinglab03-/.github/workflows/untrusted.yml@refs/heads/main",
+  });
+  assert(
+    (await verifyGitHubActionsOidc(fixture.token, fixture.fetcher, fixture.now)) === false,
+    "unapproved workflow token was accepted",
+  );
+});
+
 Deno.test("rejects a token from a different repository", async () => {
   const fixture = await signedToken({ repository: "attacker/other-repo", repository_id: "12345" });
   assert(!(await verifyGitHubActionsOidc(fixture.token, fixture.fetcher, fixture.now)), "foreign repository token was accepted");
