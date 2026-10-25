@@ -62,10 +62,12 @@ RETRYABLE_MARKERS = (
 )
 
 
-def _run_one(store: GrowthStore, task_id: str) -> str | None:
+def _run_one(store: GrowthStore, task_id: str,
+             environ: Mapping[str, str] | None = None) -> str | None:
     """Retry transient failures and fail over to other configured providers safely."""
     # Work on a private copy; never mutate process-wide environment variables.
-    attempt_env = dict(os.environ)
+    # Honor the same injected environment used by the batch launch/readiness check.
+    attempt_env = dict(os.environ if environ is None else environ)
     provider_keys = ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY")
     for attempt in range(1, MAX_TASK_ATTEMPTS + 1):
         try:
@@ -143,12 +145,13 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
     return "UnknownExecutionError"
 
 
-def _worker(store: GrowthStore, task_ids: list[str]) -> None:
+def _worker(store: GrowthStore, task_ids: list[str],
+            environ: Mapping[str, str] | None = None) -> None:
     failures = 0
     last_error = None
     try:
         with ThreadPoolExecutor(max_workers=MAX_PARALLEL_TASKS, thread_name_prefix="nexora-agent") as pool:
-            futures = [pool.submit(_run_one, store, task_id) for task_id in task_ids]
+            futures = [pool.submit(_run_one, store, task_id, environ) for task_id in task_ids]
             for future in as_completed(futures):
                 error_type = future.result()
                 with _state_lock:
@@ -182,7 +185,7 @@ def resume_queued_tasks(store: GrowthStore, environ: Mapping[str, str] | None = 
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "recovered_queue",
                            "total": len(task_ids), "finished": 0, "failed": 0, "last_error": None,
                            "retry_count": 0, "recovered_interrupted": recovered_running})
-        thread = threading.Thread(target=_worker, args=(store, task_ids), daemon=True,
+        thread = threading.Thread(target=_worker, args=(store, task_ids, environ), daemon=True,
                                   name="nexora-queued-task-recovery")
         thread.start()
         return {"started": True, "scope": "recovered_queue", "queued": len(task_ids), **batch_status()}
@@ -270,7 +273,7 @@ def start_all_agents(store: GrowthStore, environ: Mapping[str, str] | None = Non
             _state.update({"running": True, "batch_id": str(uuid.uuid4()), "scope": "growth_41",
                            "total": len(tasks), "finished": 0, "failed": 0, "last_error": None,
                            "retry_count": 0})
-        thread = threading.Thread(target=_worker, args=(store, tasks), daemon=True,
+        thread = threading.Thread(target=_worker, args=(store, tasks, environ), daemon=True,
                                   name="nexora-growth-agent-draft-batch")
         thread.start()
         return {"started": True, "task_ids": tasks, **batch_status()}
