@@ -24,7 +24,7 @@ class BatchExecutorTests(unittest.TestCase):
 
     def test_batch_queues_all_41_and_runs_draft_only_tasks(self):
         with patch("company.nexora_batch_executor.execute_agent_draft",
-                   side_effect=lambda store, task_id: store.transition(
+                   side_effect=lambda store, task_id, environ=None: store.transition(
                        task_id, "running", "test-worker") and store.transition(
                        task_id, "completed", "test-worker",
                        outputs={"draft": "test draft", "mode": "draft_only"},
@@ -48,7 +48,7 @@ class BatchExecutorTests(unittest.TestCase):
     def test_unexpected_agent_error_does_not_stop_remaining_roles(self):
         calls = {"count": 0}
 
-        def execute(store, task_id):
+        def execute(store, task_id, environ=None):
             calls["count"] += 1
             if calls["count"] == 1:
                 raise RuntimeError("simulated unexpected worker error")
@@ -76,7 +76,7 @@ class BatchExecutorTests(unittest.TestCase):
 
 
     def test_full_company_workforce_queues_every_registered_role(self):
-        def execute(store, task_id):
+        def execute(store, task_id, environ=None):
             store.transition(task_id, "running", "test-worker")
             store.transition(task_id, "completed", "test-worker",
                              outputs={"draft": "test draft", "mode": "draft_only"},
