@@ -45,9 +45,13 @@ def _cool_down_provider(seconds: float = RATE_LIMIT_COOLDOWN_SECONDS) -> None:
     global _provider_cooldown_until
     with _provider_gate:
         _provider_cooldown_until = max(_provider_cooldown_until, time.monotonic() + max(1.0, seconds))
+# execute_agent_draft deliberately converts provider responses into safe categories.
+# Retry those categories here; raw provider bodies/credentials must never be logged.
 RETRYABLE_MARKERS = (
     "HTTP 408", "HTTP 425", "HTTP 429", "HTTP 500", "HTTP 502",
     "HTTP 503", "HTTP 504", "request failed", "availability and TLS",
+    "ProviderRateLimitError", "ProviderTemporaryServerError",
+    "ProviderNetworkOrTLSError",
 )
 
 
@@ -75,14 +79,19 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
                     with _state_lock:
                         _state["retry_count"] += attempt - 1
                 # Return only a bounded, non-secret classification. Never return provider response bodies.
-                if "HTTP 401" in message or "HTTP 403" in message:
+                if "HTTP 401" in message or "HTTP 403" in message or "ProviderAuthenticationOrPermissionError" in message:
                     return "ProviderAuthenticationOrPermissionError"
-                if "HTTP 429" in message:
+                if "HTTP 429" in message or "ProviderRateLimitError" in message:
                     return "ProviderRateLimitError"
-                if any(f"HTTP {code}" in message for code in (500, 502, 503, 504)):
+                if any(f"HTTP {code}" in message for code in (500, 502, 503, 504)) or "ProviderTemporaryServerError" in message:
                     return "ProviderTemporaryServerError"
-                if "request failed" in message or "availability and TLS" in message:
+                if "request failed" in message or "availability and TLS" in message or "ProviderNetworkOrTLSError" in message:
                     return "ProviderNetworkOrTLSError"
+                # DraftExecutionError messages are already sanitized by the executor.
+                # Preserve that safe category instead of collapsing every failure to
+                # the unhelpful generic label "DraftExecutionError".
+                if isinstance(exc, DraftExecutionError) and message:
+                    return message[:100]
                 return type(exc).__name__
             # Exponential backoff with a small cap to reduce rate-limit pressure.
             time.sleep(min(2 ** (attempt - 1), 4))
