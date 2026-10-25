@@ -28,8 +28,11 @@ def batch_status() -> dict:
 # Free/shared providers often enforce a quota across the entire API key.
 # Serialize requests and share a cooldown after HTTP 429 to prevent retry storms.
 MAX_PARALLEL_TASKS = 1
-MAX_TASK_ATTEMPTS = 3
-RATE_LIMIT_COOLDOWN_SECONDS = 30
+MAX_TASK_ATTEMPTS = 5
+# Shared/free-tier providers may need a longer reset window. Back off globally
+# on 429s so every queued agent does not immediately repeat the same failure.
+RATE_LIMIT_COOLDOWN_SECONDS = 60
+MAX_RATE_LIMIT_COOLDOWN_SECONDS = 300
 _provider_gate = threading.Lock()
 _provider_cooldown_until = 0.0
 
@@ -44,7 +47,10 @@ def _wait_for_provider_slot() -> None:
 def _cool_down_provider(seconds: float = RATE_LIMIT_COOLDOWN_SECONDS) -> None:
     global _provider_cooldown_until
     with _provider_gate:
-        _provider_cooldown_until = max(_provider_cooldown_until, time.monotonic() + max(1.0, seconds))
+        _provider_cooldown_until = max(
+            _provider_cooldown_until,
+            time.monotonic() + min(MAX_RATE_LIMIT_COOLDOWN_SECONDS, max(1.0, seconds)),
+        )
 # execute_agent_draft deliberately converts provider responses into safe categories.
 # Retry those categories here; raw provider bodies/credentials must never be logged.
 RETRYABLE_MARKERS = (
@@ -69,8 +75,16 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
             return "ProviderNotConfigured"
         except Exception as exc:
             message = str(exc)
-            if isinstance(exc, DraftExecutionError) and "HTTP 429" in message:
-                _cool_down_provider()
+            rate_limited = (
+                isinstance(exc, DraftExecutionError)
+                and ("HTTP 429" in message or "ProviderRateLimitError" in message)
+            )
+            if rate_limited:
+                # Exponential cooldown across attempts, capped to avoid an endless sleep.
+                _cool_down_provider(min(
+                    RATE_LIMIT_COOLDOWN_SECONDS * (2 ** (attempt - 1)),
+                    MAX_RATE_LIMIT_COOLDOWN_SECONDS,
+                ))
             retryable = isinstance(exc, DraftExecutionError) and any(
                 marker in message for marker in RETRYABLE_MARKERS
             )
@@ -94,7 +108,10 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
                     return message[:100]
                 return type(exc).__name__
             # Exponential backoff with a small cap to reduce rate-limit pressure.
-            time.sleep(min(2 ** (attempt - 1), 4))
+            # Do not hammer shared providers. Rate limits use the shared cooldown;
+            # other transient failures use short exponential backoff.
+            if not rate_limited:
+                time.sleep(min(2 ** (attempt - 1), 8))
     return "UnknownExecutionError"
 
 
