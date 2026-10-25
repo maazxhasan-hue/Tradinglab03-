@@ -62,8 +62,12 @@ def main() -> int:
         print("FAIL: specialist endpoint returned invalid JSON.")
         return 1
 
-    brain = data.get("shared_brain") if isinstance(data, dict) else {}
-    output = data.get("output") if isinstance(data, dict) else None
+    if not isinstance(data, dict):
+        print("FAIL: specialist endpoint returned a non-object JSON response.")
+        return 1
+
+    brain = data.get("shared_brain")
+    output = data.get("output")
     checks = {
         "status_completed": data.get("status") == "completed",
         "output_nonempty": isinstance(output, str) and bool(output.strip()),
