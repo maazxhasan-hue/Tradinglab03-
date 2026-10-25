@@ -23,19 +23,23 @@ class SharedBrainClient:
         self.publishable_key = publishable_key or os.getenv("SUPABASE_PUBLISHABLE_KEY", "")
         self.access_token = access_token or os.getenv("SUPABASE_ACCESS_TOKEN", "")
         self.agent_key = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
+        self.github_oidc_token = os.getenv("SHARED_BRAIN_GITHUB_OIDC_TOKEN", "")
         self.agent_id = os.getenv("SHARED_BRAIN_AGENT_ID", "company-agent-runtime")
         self.timeout = timeout
 
     @property
     def configured(self) -> bool:
-        return bool(self.endpoint and ((self.publishable_key and self.access_token) or (self.agent_key and self.agent_id)))
+        return bool(self.endpoint and ((self.publishable_key and self.access_token) or (self.agent_key and self.agent_id) or (self.github_oidc_token and self.agent_id)))
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.configured:
             raise SharedBrainError("Shared brain needs agent credentials or a valid user session.")
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         headers = {"Content-Type": "application/json"}
-        if self.agent_key:
+        if self.github_oidc_token:
+            headers["x-github-oidc-token"] = self.github_oidc_token
+            headers["x-agent-id"] = self.agent_id
+        elif self.agent_key:
             headers["x-agent-key"] = self.agent_key
             headers["x-agent-id"] = self.agent_id
         else:
