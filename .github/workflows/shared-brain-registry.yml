@@ -49,11 +49,11 @@ jobs:
         env:
           SHARED_BRAIN_AGENT_ID: github-workflow-registry
           SHARED_BRAIN_STRICT: "1"
-          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
-          SOURCE_STATUS: ${{ github.event.workflow_run.conclusion }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
-          SOURCE_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name || github.workflow }}
+          SOURCE_STATUS: ${{ github.event.workflow_run.conclusion || 'success' }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          SOURCE_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name || github.repository }}
         run: |
           OIDC_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=nexora-shared-brain"
           OIDC_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "$OIDC_URL")"
