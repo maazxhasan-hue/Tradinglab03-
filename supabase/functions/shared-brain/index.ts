@@ -32,11 +32,18 @@ Deno.serve(async (req: Request) => {
   let oidcMachineAuth = false;
   if (providedOidcToken) {
     if (!serviceRole) return json({ error: "Machine memory credentials are not configured" }, 503);
-    if (sourceAgent !== "github-workflow-registry") {
-      return json({ error: "GitHub OIDC is restricted to the workflow registry identity" }, 403);
+    const oidcIdentity = await verifyGitHubActionsOidc(providedOidcToken);
+    if (!oidcIdentity) return json({ error: "Invalid or unauthorized GitHub workflow identity" }, 401);
+    const registryIdentity = oidcIdentity === "registry" && sourceAgent === "github-workflow-registry";
+    const smokeIdentity = oidcIdentity === "live-smoke" && (
+      sourceAgent === "shared-brain-smoke-writer" ||
+      sourceAgent === "shared-brain-smoke-reader" ||
+      /^nexora-[a-z0-9._:-]{1,80}$/.test(sourceAgent)
+    );
+    if (!registryIdentity && !smokeIdentity) {
+      return json({ error: "GitHub OIDC identity is not authorized for this agent ID" }, 403);
     }
-    oidcMachineAuth = await verifyGitHubActionsOidc(providedOidcToken);
-    if (!oidcMachineAuth) return json({ error: "Invalid or unauthorized GitHub workflow identity" }, 401);
+    oidcMachineAuth = true;
   }
   const machineAuth = Boolean(
     serviceRole && (
