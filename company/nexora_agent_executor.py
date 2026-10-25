@@ -118,11 +118,11 @@ def _call_provider(provider: str, api_key: str, prompt: str, env: Mapping[str, s
 def brain_status(environ: Mapping[str, str] | None = None) -> dict:
     """Expose safe local and optional remote shared-brain readiness without credentials."""
     env = os.environ if environ is None else environ
-    remote_configured = bool(
-        env.get("SHARED_BRAIN_AGENT_KEY", "").strip()
-        or (env.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
-            and env.get("SUPABASE_ACCESS_TOKEN", "").strip())
-    )
+    # A headless worker must use the machine-to-machine agent key. A publishable
+    # key plus a user access token is not a durable server credential and can
+    # expire, causing every task to fail with 401. Keep user-session support in
+    # SharedBrainClient for interactive callers, but do not auto-enable it here.
+    remote_configured = bool(env.get("SHARED_BRAIN_AGENT_KEY", "").strip())
     return {
         "local_brain": "available",
         "remote_brain_configured": remote_configured,
@@ -191,11 +191,11 @@ def execute_agent_draft(store: GrowthStore, task_id: str,
 
     remote_client = None
     remote_memories: list[dict] = []
-    remote_configured = bool(
-        env.get("SHARED_BRAIN_AGENT_KEY", "").strip()
-        or (env.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
-            and env.get("SUPABASE_ACCESS_TOKEN", "").strip())
-    )
+    # A headless worker must use the machine-to-machine agent key. A publishable
+    # key plus a user access token is not a durable server credential and can
+    # expire, causing every task to fail with 401. Keep user-session support in
+    # SharedBrainClient for interactive callers, but do not auto-enable it here.
+    remote_configured = bool(env.get("SHARED_BRAIN_AGENT_KEY", "").strip())
     brain_query = f"{agent['name']} {agent['department']} {task['title']}"
     if remote_configured:
         try:
