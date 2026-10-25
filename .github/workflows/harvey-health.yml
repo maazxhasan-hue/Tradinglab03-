@@ -7,6 +7,12 @@ on:
       - "harvey-worker/tests/**"
       - ".github/workflows/harvey-health.yml"
       - ".github/workflows/harvey-tests.yml"
+  pull_request:
+    paths:
+      - "harvey-worker/**"
+      - "harvey-worker/tests/**"
+      - ".github/workflows/harvey-health.yml"
+      - ".github/workflows/harvey-tests.yml"
   workflow_dispatch:
   schedule:
     - cron: "17 * * * *"
@@ -15,18 +21,18 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  check-tradinglab03:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Wait for Harvey health endpoint
+      - name: Wait for TradingLab03 worker health endpoint
         shell: bash
         run: |
           set -uo pipefail
           ok=0
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error --max-time 15 https://tradinglab03.onrender.com/health -o health.json; then
-              if python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; assert d.get('shared_brain') == 'configured', {'shared_brain': d.get('shared_brain'), 'status': d.get('status')}; print('Harvey health OK; database:', d.get('database'), '; shared brain:', d.get('shared_brain'), '; email sending:', d.get('email_sending'))"; then
+              if python -c "import json; d=json.load(open('health.json')); assert d.get('status') == 'ready', d; assert d.get('shared_brain') == 'configured', {'shared_brain': d.get('shared_brain'), 'status': d.get('status')}; print('TradingLab03 health OK; database:', d.get('database'), '; shared brain:', d.get('shared_brain'), '; email sending:', d.get('email_sending'))"; then
                 ok=1
                 break
               fi
@@ -35,7 +41,7 @@ jobs:
             sleep 10
           done
           if [ "$ok" -ne 1 ]; then
-            echo "Harvey did not become healthy after 12 attempts."
+            echo "TradingLab03 did not become healthy after 12 attempts."
             exit 1
           fi
       - name: Confirm protected endpoints reject unauthenticated access
@@ -50,3 +56,69 @@ jobs:
             fi
           done
           echo "Protected endpoints reject unauthenticated requests."
+
+  check-private-harvey-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify the separate Harvey Render service, model readiness, and real Shared Brain recall
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = "https://nexora-harvey-worker.onrender.com"
+
+          def get_json(path):
+              request = urllib.request.Request(
+                  base + path,
+                  headers={"Accept": "application/json", "User-Agent": "Nexora-Harvey-Health/1.0"},
+              )
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  if response.status != 200:
+                      raise RuntimeError(f"HTTP {response.status}")
+                  return json.loads(response.read(256_000).decode("utf-8"))
+
+          last_error = "not checked"
+          for attempt in range(1, 7):
+              try:
+                  health = get_json("/health")
+                  if health.get("status") != "ready":
+                      raise RuntimeError("health status is not ready")
+                  if health.get("database") != "postgresql":
+                      raise RuntimeError("persistent PostgreSQL database is not configured")
+                  if health.get("shared_brain") != "configured":
+                      raise RuntimeError("Shared Brain credentials are not configured")
+                  if health.get("model_configured") is not True:
+                      raise RuntimeError("model provider is not configured")
+                  if health.get("api_auth_configured") is not True:
+                      raise RuntimeError("worker API authentication is not configured")
+
+                  status = get_json("/public-status")
+                  if status.get("shared_brain_connection") != "connected":
+                      raise RuntimeError("authenticated Shared Brain recall failed")
+                  if status.get("model_configured") is not True:
+                      raise RuntimeError("public status reports model runtime unavailable")
+                  roles = status.get("agents", {}).get("roles", [])
+                  if not isinstance(roles, list) or not roles:
+                      raise RuntimeError("no specialist roles are registered")
+
+                  print(
+                      "PASS: Harvey Render service is ready; PostgreSQL is configured; "
+                      "model and API auth are configured; Shared Brain recall is connected; "
+                      f"{len(roles)} specialist roles are registered."
+                  )
+                  break
+              except urllib.error.HTTPError as exc:
+                  last_error = f"HTTP {exc.code}"
+              except Exception as exc:
+                  last_error = type(exc).__name__ + ": " + str(exc)[:120]
+              print(f"Harvey service health attempt {attempt}/6 failed: {last_error}")
+              if attempt < 6:
+                  time.sleep(10)
+          else:
+              raise SystemExit("Harvey Render service failed end-to-end readiness checks: " + last_error)
+          PY
