@@ -20,6 +20,13 @@ class SharedBrainRoleMatrixConfigTests(unittest.TestCase):
         self.assertEqual(role_matrix.ROLES, expected)
         self.assertGreaterEqual(len(role_matrix.ROLES), 100)
 
+    def test_every_role_has_a_unique_stable_memory_key(self):
+        slugs = [
+            re.sub(r"[^a-z0-9]+", "-", role.lower()).strip("-")
+            for role in role_matrix.ROLES
+        ]
+        self.assertEqual(len(slugs), len(set(slugs)))
+
     def test_every_configured_role_maps_to_an_allowed_identity(self):
         for role in role_matrix.ROLES:
             with self.subTest(role=role):
