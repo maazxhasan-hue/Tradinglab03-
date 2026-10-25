@@ -4,6 +4,7 @@ Runs a small bounded pool of provider requests. Never publishes or contacts anyo
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -62,11 +63,14 @@ RETRYABLE_MARKERS = (
 
 
 def _run_one(store: GrowthStore, task_id: str) -> str | None:
-    """Retry transient provider failures only; never log provider bodies or secrets."""
+    """Retry transient failures and fail over to other configured providers safely."""
+    # Work on a private copy; never mutate process-wide environment variables.
+    attempt_env = dict(os.environ)
+    provider_keys = ("OPENROUTER_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY")
     for attempt in range(1, MAX_TASK_ATTEMPTS + 1):
         try:
             _wait_for_provider_slot()
-            execute_agent_draft(store, task_id)
+            execute_agent_draft(store, task_id, environ=attempt_env)
             if attempt > 1:
                 with _state_lock:
                     _state["retry_count"] += attempt - 1
@@ -80,11 +84,19 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
                 and ("HTTP 429" in message or "ProviderRateLimitError" in message)
             )
             if rate_limited:
-                # Exponential cooldown across attempts, capped to avoid an endless sleep.
-                _cool_down_provider(min(
-                    RATE_LIMIT_COOLDOWN_SECONDS * (2 ** (attempt - 1)),
-                    MAX_RATE_LIMIT_COOLDOWN_SECONDS,
-                ))
+                # A quota-limited provider should not block other configured providers.
+                # Remove only its key from this task's private environment copy so the
+                # executor selects the next configured provider on the next attempt.
+                selected = next((key for key in provider_keys if attempt_env.get(key, "").strip()), None)
+                if selected:
+                    attempt_env.pop(selected, None)
+                # Keep a shared cooldown only when no alternate provider is available.
+                has_alternate = any(attempt_env.get(key, "").strip() for key in provider_keys)
+                if not has_alternate:
+                    _cool_down_provider(min(
+                        RATE_LIMIT_COOLDOWN_SECONDS * (2 ** (attempt - 1)),
+                        MAX_RATE_LIMIT_COOLDOWN_SECONDS,
+                    ))
             retryable = isinstance(exc, DraftExecutionError) and any(
                 marker in message for marker in RETRYABLE_MARKERS
             )
@@ -111,6 +123,12 @@ def _run_one(store: GrowthStore, task_id: str) -> str | None:
             # Do not hammer shared providers. Rate limits use the shared cooldown;
             # other transient failures use short exponential backoff.
             if not rate_limited:
+                # Credentials rejected by one provider can also fall through to another
+                # configured provider without leaking keys or retrying the bad one.
+                if "HTTP 401" in message or "HTTP 403" in message or "ProviderAuthenticationOrPermissionError" in message:
+                    selected = next((key for key in provider_keys if attempt_env.get(key, "").strip()), None)
+                    if selected:
+                        attempt_env.pop(selected, None)
                 time.sleep(min(2 ** (attempt - 1), 8))
     return "UnknownExecutionError"
 
