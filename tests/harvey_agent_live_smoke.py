@@ -13,12 +13,12 @@ import urllib.request
 
 
 def main() -> int:
-    api_key = os.getenv("HARVEY_API_KEY") or os.getenv("TRADINGLAB03_API_KEY")
+    api_key = os.getenv("HARVEY_API_KEY")
     if not api_key:
-        print("SKIP: no HARVEY_API_KEY or TRADINGLAB03_API_KEY GitHub secret is configured.")
+        print("SKIP: HARVEY_API_KEY GitHub secret is not configured; no live agent run was attempted.")
         return 0
 
-    base = os.getenv("WORKER_URL", "https://tradinglab03.onrender.com").rstrip("/")
+    base = os.getenv("HARVEY_WORKER_URL", "https://nexora-harvey-worker.onrender.com").rstrip("/")
     payload = {
         "role": "Knowledge & Memory",
         "goal": (
