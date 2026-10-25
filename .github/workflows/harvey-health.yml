@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Verify the separate Harvey Render service, model readiness, and real Shared Brain recall
+      - name: Audit the separate Harvey Render service and report all readiness signals
         shell: bash
         run: |
           python - <<'PY'
@@ -82,43 +82,55 @@ jobs:
                       raise RuntimeError(f"HTTP {response.status}")
                   return json.loads(response.read(256_000).decode("utf-8"))
 
+          health = None
+          status = None
           last_error = "not checked"
           for attempt in range(1, 7):
               try:
                   health = get_json("/health")
-                  if health.get("status") != "ready":
-                      raise RuntimeError("health status is not ready")
-                  if health.get("database") != "postgresql":
-                      raise RuntimeError("persistent PostgreSQL database is not configured")
-                  if health.get("shared_brain") != "configured":
-                      raise RuntimeError("Shared Brain credentials are not configured")
-                  if health.get("model_configured") is not True:
-                      raise RuntimeError("model provider is not configured")
-                  if health.get("api_auth_configured") is not True:
-                      raise RuntimeError("worker API authentication is not configured")
-
                   status = get_json("/public-status")
-                  if status.get("shared_brain_connection") != "connected":
-                      raise RuntimeError("authenticated Shared Brain recall failed")
-                  if status.get("model_configured") is not True:
-                      raise RuntimeError("public status reports model runtime unavailable")
-                  roles = status.get("agents", {}).get("roles", [])
-                  if not isinstance(roles, list) or not roles:
-                      raise RuntimeError("no specialist roles are registered")
-
-                  print(
-                      "PASS: Harvey Render service is ready; PostgreSQL is configured; "
-                      "model and API auth are configured; Shared Brain recall is connected; "
-                      f"{len(roles)} specialist roles are registered."
-                  )
                   break
               except urllib.error.HTTPError as exc:
                   last_error = f"HTTP {exc.code}"
               except Exception as exc:
-                  last_error = type(exc).__name__ + ": " + str(exc)[:120]
-              print(f"Harvey service health attempt {attempt}/6 failed: {last_error}")
+                  last_error = type(exc).__name__
+              print(f"Harvey endpoint attempt {attempt}/6 failed: {last_error}")
               if attempt < 6:
                   time.sleep(10)
-          else:
-              raise SystemExit("Harvey Render service failed end-to-end readiness checks: " + last_error)
+
+          if health is None or status is None:
+              raise SystemExit("Could not read Harvey health and public status endpoints: " + last_error)
+
+          roles = status.get("agents", {}).get("roles", [])
+          summary = {
+              "health_status": health.get("status"),
+              "database": health.get("database"),
+              "shared_brain_configured": health.get("shared_brain"),
+              "model_configured": health.get("model_configured"),
+              "api_auth_configured": health.get("api_auth_configured"),
+              "shared_brain_connection": status.get("shared_brain_connection"),
+              "public_model_configured": status.get("model_configured"),
+              "specialist_roles": len(roles) if isinstance(roles, list) else 0,
+          }
+          print("Harvey readiness summary: " + json.dumps(summary, sort_keys=True))
+
+          issues = []
+          if health.get("status") != "ready":
+              issues.append("health status is not ready")
+          if health.get("database") != "postgresql":
+              issues.append("persistent PostgreSQL database is not configured")
+          if health.get("shared_brain") != "configured":
+              issues.append("Shared Brain credentials are not configured")
+          if health.get("model_configured") is not True or status.get("model_configured") is not True:
+              issues.append("model provider is not configured")
+          if health.get("api_auth_configured") is not True:
+              issues.append("worker API authentication is not configured")
+          if status.get("shared_brain_connection") != "connected":
+              issues.append("authenticated Shared Brain recall failed")
+          if not isinstance(roles, list) or not roles:
+              issues.append("no specialist roles are registered")
+          if issues:
+              raise SystemExit("Harvey service readiness blockers: " + "; ".join(issues))
+
+          print("PASS: Harvey Render service and authenticated Shared Brain recall are ready.")
           PY
