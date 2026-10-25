@@ -29,12 +29,11 @@ jobs:
       - name: Run one bounded production specialist task
         env:
           HARVEY_API_KEY: ${{ secrets.HARVEY_API_KEY }}
-          TRADINGLAB03_API_KEY: ${{ secrets.TRADINGLAB03_API_KEY }}
-          WORKER_URL: https://tradinglab03.onrender.com
+          HARVEY_WORKER_URL: https://nexora-harvey-worker.onrender.com
         run: |
           set +x
-          if [ -z "${HARVEY_API_KEY:-}" ] && [ -z "${TRADINGLAB03_API_KEY:-}" ]; then
-            echo "::warning::Live agent execution was skipped: configure HARVEY_API_KEY or TRADINGLAB03_API_KEY in GitHub Actions secrets. No execution evidence was produced."
+          if [ -z "${HARVEY_API_KEY:-}" ]; then
+            echo "::warning::Live agent execution was skipped: configure HARVEY_API_KEY in GitHub Actions secrets. No execution evidence was produced."
             exit 0
           fi
           python tests/harvey_agent_live_smoke.py
