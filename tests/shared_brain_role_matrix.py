@@ -64,7 +64,7 @@ def post(payload: dict, identity: str) -> tuple[int, dict]:
 def check_role(role: str, nonce: str) -> tuple[str, bool, str]:
     identity = agent_id(role)
     slug = re.sub(r"[^a-z0-9]+", "-", role.lower()).strip("-")
-    memory_key = f"role-matrix:{nonce}:{slug}"
+    memory_key = f"role-matrix:{slug}"
     marker = f"role-matrix:{nonce}:{role}"
     status, saved = post({
         "action": "remember", "project_key": "nexora", "namespace": NAMESPACE,
