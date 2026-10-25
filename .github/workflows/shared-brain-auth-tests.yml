@@ -1,0 +1,28 @@
+name: Shared Brain Auth Tests
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/shared-brain/**"
+      - ".github/workflows/shared-brain-auth-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/shared-brain/**"
+      - ".github/workflows/shared-brain-auth-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  oidc-auth-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Verify GitHub OIDC validation
+        run: deno test supabase/functions/shared-brain/auth_test.ts
