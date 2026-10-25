@@ -1,6 +1,6 @@
 """Authenticated live smoke test for the shared brain.
 
-Uses only synthetic test data. Requires SHARED_BRAIN_AGENT_KEY in the environment.
+Uses only synthetic test data. Requires a short-lived GitHub OIDC token in the environment.
 Never prints credentials or memory content.
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ ENDPOINT = os.getenv(
     "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain",
 )
 OIDC_TOKEN = os.getenv("SHARED_BRAIN_GITHUB_OIDC_TOKEN", "")
-AGENT = "shared-brain-smoke-test"
+AGENT = "shared-brain-smoke-writer"
 
 
 def post(payload: dict, agent: str = AGENT) -> tuple[int, dict]:
