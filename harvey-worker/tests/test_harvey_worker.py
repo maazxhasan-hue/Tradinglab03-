@@ -51,6 +51,10 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(body["status"], "ready")
         self.assertEqual(body["health"], "/health")
 
+    def test_root_health_probe_accepts_head(self):
+        response = self.client.head("/")
+        self.assertEqual(response.status_code, 200, response.text)
+
     def test_project_builder_fails_closed_without_model_credentials(self):
         names = ("LLM_API_KEY", "LLM_MODEL", "OPENAI_API_KEY", "OPENAI_MODEL")
         previous = {name: os.environ.pop(name, None) for name in names}
