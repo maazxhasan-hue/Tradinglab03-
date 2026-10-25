@@ -17,6 +17,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from company.tool_agent import run_tool_agent
 
 
+def is_timeout_error(exc: BaseException) -> bool:
+    """Recognize timeouts wrapped by the provider client as well as raw socket timeouts."""
+    message = f"{type(exc).__name__}: {exc}".lower()
+    return isinstance(exc, TimeoutError) or "timeout" in message or "timed out" in message
+
+
+def is_transient_provider_error(exc: BaseException) -> bool:
+    """Classify only provider capacity and network timeout errors as retryable."""
+    message = str(exc).lower()
+    return (
+        is_timeout_error(exc)
+        or "http 503" in message
+        or "http 429" in message
+        or "high demand" in message
+    )
+
+
 def main() -> int:
     if not os.getenv("GEMINI_API_KEY"):
         print("FAIL: GEMINI_API_KEY is missing; native tool-calling cannot be verified.")
@@ -53,14 +70,18 @@ def main() -> int:
                     break
                 except Exception as exc:
                     last_error = exc
-                    message = str(exc)
-                    transient = "HTTP 503" in message or "HTTP 429" in message or "high demand" in message.lower()
+                    transient = is_transient_provider_error(exc)
                     if not transient:
                         safe_detail = str(exc).replace("\r", " ").replace("\n", " ")[:220]
                         # run_tool_agent sanitizes provider errors; redact the key defensively.
                         safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
                         print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {safe_detail}")
                         return 1
+                    if is_timeout_error(exc):
+                        # A timeout already includes the tool agent's bounded internal retries.
+                        # Move to the fallback model instead of spending another full timeout window.
+                        print(f"WARN: Gemini request timed out on {model_name}; trying fallback model if available.")
+                        break
                     if attempt == 0:
                         time.sleep(2)
             if last_error is None:
