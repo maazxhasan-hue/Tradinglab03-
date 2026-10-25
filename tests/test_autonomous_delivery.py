@@ -33,7 +33,8 @@ class AutonomousDeliveryTests(unittest.TestCase):
             self.assertFalse(report["sent"])
             self.assertEqual(report["verified_revenue"], 0)
             self.assertEqual(report["counts"]["needs_implementation_and_acceptance_test"], 2)
-            rows = list(csv.DictReader((root / "requirement_traceability.csv").open(encoding="utf-8")))
+            with (root / "requirement_traceability.csv").open(encoding="utf-8", newline="") as traceability_file:
+                rows = list(csv.DictReader(traceability_file))
             self.assertEqual(len(rows), 5)
             self.assertTrue(any(row["status"] == "needs_implementation_and_acceptance_test" for row in rows))
 

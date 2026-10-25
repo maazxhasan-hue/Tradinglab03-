@@ -21,6 +21,7 @@ sys.path.insert(0, str(APP_ROOT))
 from company.nexora_growth_runtime import AGENT_DIRECTORY, AGENTS, COMPANY_AGENTS, GrowthStore
 from company.nexora_agent_executor import execute_agent_draft, DraftExecutionError, ProviderNotConfigured, provider_status, brain_status
 from company.nexora_batch_executor import start_all_agents, start_company_workforce, batch_status, resume_queued_tasks
+from company.role_contracts import all_role_contracts, role_contract
 from company.service_pricing import PricingStore, PricingValidationError
 PRICING_DB = os.environ.get("NEXORA_PRICING_DB", str(APP_ROOT / "data" / "nexora_pricing.sqlite3"))
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
@@ -146,6 +147,16 @@ class Handler(BaseHTTPRequestHandler):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
             store = GrowthStore(GROWTH_DB)
+            if parsed.path == "/api/company/role-contracts":
+                contracts = all_role_contracts()
+                self.body(200, json.dumps({"contract_count": len(contracts), "contracts": contracts}), "application/json; charset=utf-8"); return
+            if parsed.path.startswith("/api/company/role-contracts/"):
+                agent_id = parsed.path.removeprefix("/api/company/role-contracts/")
+                try:
+                    contract = role_contract(agent_id)
+                except KeyError:
+                    self.body(404, json.dumps({"error":"unknown_agent"}), "application/json; charset=utf-8"); return
+                self.body(200, json.dumps({"contract": contract}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/company/agents":
                 roster = sorted(AGENT_DIRECTORY.values(), key=lambda agent: (agent["department"], agent["name"]))
                 self.body(200, json.dumps({
