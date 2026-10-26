@@ -5,4 +5,4 @@ COPY urban-growth-hq/n8n/urban-growth-lead-intake.json /opt/urban-growth/workflo
 COPY urban-growth-hq/n8n/start-n8n.js /opt/urban-growth/start-n8n.js
 RUN chown -R node:node /opt/urban-growth
 USER node
-CMD ["node", "/opt/urban-growth/start-n8n.js"]
+ENTRYPOINT ["/usr/local/bin/node", "/opt/urban-growth/start-n8n.js"]
