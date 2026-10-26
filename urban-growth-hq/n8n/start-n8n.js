@@ -29,6 +29,9 @@ for (const workflowId of [
   'nexoraSharedBrainHealthMonitor01',
 ]) {
   runN8n(['publish:workflow', `--id=${workflowId}`]);
+  // Set the compatibility active flag as well; on n8n 2.x publishing is the
+  // production state, and the startup process registers triggers when n8n starts.
+  runN8n(['update:workflow', `--id=${workflowId}`, '--active=true']);
 }
 
 const child = spawn('n8n', ['start'], { stdio: 'inherit', env: process.env });
