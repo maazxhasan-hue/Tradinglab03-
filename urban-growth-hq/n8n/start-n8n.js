@@ -24,6 +24,8 @@ for (const workflow of [
 }
 
 runN8n(['publish:workflow', '--id=urbanGrowthLeadIntake01']);
+// Publishing creates the current workflow version; explicitly activate its webhook trigger.
+runN8n(['update:workflow', '--id=urbanGrowthLeadIntake01', '--active=true']);
 
 const child = spawn('n8n', ['start'], { stdio: 'inherit', env: process.env });
 child.on('exit', code => process.exit(code ?? 1));
