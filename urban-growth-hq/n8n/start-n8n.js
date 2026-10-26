@@ -12,11 +12,10 @@ function runN8n(args) {
   }
 }
 
-// The free filesystem may be recreated. Restore both versioned workflows on boot.
-// Imports default to draft; n8n 2.x uses publish:workflow to enable production triggers.
+// Urban Growth must remain independent from Nexora. Restore only its own workflow.
+// n8n CLI commands run before the server starts; publish the workflow, then start n8n.
 for (const workflow of [
   'urban-growth-lead-intake.json',
-  'nexora-shared-brain-health-monitor.json',
 ]) {
   runN8n([
     'import:workflow',
@@ -24,15 +23,7 @@ for (const workflow of [
   ]);
 }
 
-for (const workflowId of [
-  'urbanGrowthLeadIntake01',
-  'nexoraSharedBrainHealthMonitor01',
-]) {
-  runN8n(['publish:workflow', `--id=${workflowId}`]);
-  // Set the compatibility active flag as well; on n8n 2.x publishing is the
-  // production state, and the startup process registers triggers when n8n starts.
-  runN8n(['update:workflow', `--id=${workflowId}`, '--active=true']);
-}
+runN8n(['publish:workflow', '--id=urbanGrowthLeadIntake01']);
 
 const child = spawn('n8n', ['start'], { stdio: 'inherit', env: process.env });
 child.on('exit', code => process.exit(code ?? 1));
