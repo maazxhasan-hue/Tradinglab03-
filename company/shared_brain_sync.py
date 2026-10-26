@@ -48,8 +48,10 @@ def main() -> int:
         return 0
     except SharedBrainError as exc:
         print(json.dumps({"shared_brain": "unavailable", "reason": str(exc)}))
-        # Registry callers can opt into strict mode so green status always means the write succeeded.
-        return 1 if os.getenv("SHARED_BRAIN_STRICT", "").strip().lower() in {"1", "true", "yes"} else 0
+        # Fail closed by default: a green workflow must never imply memory persisted when it did not.
+        # Set SHARED_BRAIN_STRICT=false only for an explicitly best-effort caller.
+        strict_value = os.getenv("SHARED_BRAIN_STRICT", "true").strip().lower()
+        return 0 if strict_value in {"0", "false", "no", "off"} else 1
 
 if __name__ == "__main__":
     sys.exit(main())
