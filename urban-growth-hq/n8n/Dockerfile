@@ -5,4 +5,8 @@ COPY urban-growth-hq/n8n/urban-growth-lead-intake.json /opt/urban-growth/workflo
 COPY urban-growth-hq/n8n/start-n8n.js /opt/urban-growth/start-n8n.js
 RUN chown -R node:node /opt/urban-growth
 USER node
+ENV PORT=5678
+ENV N8N_PORT=5678
+ENV N8N_LISTEN_ADDRESS=0.0.0.0
+ENV N8N_RUNNERS_ENABLED=false
 ENTRYPOINT ["/usr/local/bin/node", "/opt/urban-growth/start-n8n.js"]
