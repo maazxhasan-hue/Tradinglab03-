@@ -1,7 +1,7 @@
 {
   "id": "urbanGrowthLeadIntake01",
   "name": "Urban Growth HQ - Lead Intake (safe starter)",
-  "active": false,
+  "active": true,
   "nodes": [
     {
       "id": "webhook-lead-intake",
