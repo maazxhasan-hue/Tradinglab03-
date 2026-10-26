@@ -1,24 +1,43 @@
 # Urban Growth HQ — The Urban Builders
 
-Self-contained, mobile-friendly static workspace added under `urban-growth-hq/`.
+Mobile-friendly real-estate growth workspace.
 
-## Deploy on Render
-- Repository: https://github.com/maazxhasan-hue/Tradinglab03-
-- Branch: `main`
-- Publish directory: `urban-growth-hq`
-- Build command: `echo "Static Urban Growth HQ ready"`
+## Current deployment
+- Workspace: https://github.com/maazxhasan-hue/Tradinglab03-/tree/main/urban-growth-hq
+- n8n: https://urban-growth-n8n.onrender.com
+- Lead intake webhook (POST): https://urban-growth-n8n.onrender.com/webhook/urban-growth-hq-lead-intake
 
-## Included
+Example request:
+```bash
+curl -X POST "https://urban-growth-n8n.onrender.com/webhook/urban-growth-hq-lead-intake" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Lead","email":"test@example.com","interest":"2-bedroom apartment","source":"website","contactConsent":false}'
+```
+Use only a test contact when validating. A successful HTTP 200 means the payload passed validation; it does not mean the lead was saved or contacted.
+
+## Workspace includes
 - Responsive command centre and six-stage growth workflow
 - Campaign drafts and human approval queue
-- Lead CRM and status tracking
-- Showings and call-outcome logs
+- Local lead records and status tracking
+- Showing and call-outcome logs
 - 41 specialist role definitions across eight departments
 - Rules-based operations scan, task list, activity feed
 - JSON export and restore
 
-## Limitations
-This version stores data in the current browser's localStorage; it does not sync across devices and has no login. The 41 entries are role definitions, not running autonomous agents. Social publishing, WhatsApp/email, phone calls, live AI providers and cloud persistence are not connected. Approval controls are internal records and do not publish externally. Do not store sensitive customer data in a public deployment.
+## Operational boundaries
+- The 41 entries are role definitions, not 41 independently running AI agents.
+- The n8n lead-intake workflow validates and normalizes contact details and records whether contact consent was supplied. It does not yet write leads to a CRM/database, perform durable deduplication, or send follow-up messages.
+- The workspace currently saves records in this browser's localStorage. Data does not sync across devices and can be lost if browser storage is cleared.
+- Social publishing, WhatsApp/email sending, phone calls, live AI provider execution, authentication and cloud CRM persistence are not connected.
+- Approval records are internal only; approving a campaign does not publish it externally.
+- Only contact people when you have the required permission and comply with applicable laws and platform rules. Do not enter highly sensitive customer data into a public deployment.
+
+## Next production requirements
+1. Connect a dedicated persistent database and CRM writes.
+2. Add authenticated access and server-side authorization.
+3. Connect an approved AI provider and test agent execution.
+4. Connect opted-in outreach channels with rate limits, unsubscribe/opt-out handling, and human approval.
+5. Test webhook acceptance/rejection and end-to-end lead persistence before describing the system as production-ready.
 
 ## Phone install and offline use
-Open the deployed HTTPS URL in Chrome on Android. Use the browser menu and choose **Install app** or **Add to Home screen** if offered. The web app shell is cached for offline opening after the first successful visit. Workspace records remain in this browser's local storage; they are not synced to another device. Export JSON backups regularly.
+Open the deployed HTTPS workspace in Chrome on Android. Use the browser menu and choose **Install app** or **Add to Home screen** if offered. Export JSON backups regularly.
