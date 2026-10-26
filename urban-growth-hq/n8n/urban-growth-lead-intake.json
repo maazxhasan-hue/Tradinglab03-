@@ -16,7 +16,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "urban-growth-hq-lead-intake",
-        "responseMode": "usingRespondToWebhook",
+        "responseMode": "responseNode",
         "options": {}
       }
     },
