@@ -9,6 +9,7 @@ import json
 import os
 import re
 import secrets
+import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -39,15 +40,21 @@ def post(payload: dict, identity: str) -> tuple[int, dict]:
         method="POST",
         headers={"Content-Type": "application/json", "x-github-oidc-token": OIDC_TOKEN, "x-agent-id": identity},
     )
-    try:
-        with urllib.request.urlopen(request, timeout=12) as response:
-            return response.status, json.loads(response.read(128_000).decode("utf-8"))
-    except urllib.error.HTTPError as exc:
+    for attempt in range(3):
         try:
-            body = json.loads(exc.read(4096).decode("utf-8", errors="replace"))
-        except json.JSONDecodeError:
-            body = {}
-        return exc.code, body
+            with urllib.request.urlopen(request, timeout=12) as response:
+                return response.status, json.loads(response.read(128_000).decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            try:
+                body = json.loads(exc.read(4096).decode("utf-8", errors="replace"))
+            except json.JSONDecodeError:
+                body = {}
+            if exc.code not in {502, 503, 504} or attempt == 2:
+                return exc.code, body
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            if attempt == 2:
+                return 599, {}
+        time.sleep(0.25 * (2 ** attempt))
 
 
 def check_role(role: str, nonce: str) -> tuple[str, bool, str]:
