@@ -1,0 +1,81 @@
+{
+  "id": "urbanGrowthLeadIntake01",
+  "name": "Urban Growth HQ - Lead Intake (safe starter)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "webhook-lead-intake",
+      "name": "Lead Intake Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "urban-growth-hq-lead-intake",
+        "responseMode": "usingRespondToWebhook",
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize-validate-lead",
+      "name": "Validate and Normalize Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json ?? {}; const body = input.body && typeof input.body === 'object' ? input.body : input; const clean = (v, max=200) => typeof v === 'string' ? v.trim().slice(0,max) : ''; const name = clean(body.name,120); const email = clean(body.email,254).toLowerCase(); const phone = clean(body.phone,40); const interest = clean(body.interest,160); const source = clean(body.source,80) || 'website'; const validEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email); const validPhone = /^[+\\d() .-]{7,40}$/.test(phone); const valid = !!name && (validEmail || validPhone); const leadKey = (email || phone.replace(/\\D/g,'')) ? (email || phone.replace(/\\D/g,'')) : ''; return [{json:{ok:valid,status:valid?'accepted':'rejected',reason:valid?undefined:'name_and_valid_contact_required',lead:{name,email:validEmail?email:'',phone:validPhone?phone:'',interest,source},dedupe_key:leadKey,requires_durable_deduplication:true,notice:'No CRM write or message is sent by this starter workflow.'}}];"
+      }
+    },
+    {
+      "id": "respond-lead-intake",
+      "name": "Return Intake Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        540,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.ok ? 200 : 400 }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Lead Intake Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate and Normalize Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and Normalize Lead": {
+      "main": [
+        [
+          {
+            "node": "Return Intake Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
