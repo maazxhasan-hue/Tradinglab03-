@@ -12,13 +12,24 @@ function runN8n(args) {
   }
 }
 
-// The service's free filesystem may be recreated. Restore the versioned workflow on boot.
+// The free filesystem may be recreated. Restore both versioned workflows on boot.
 // Imports default to draft; n8n 2.x uses publish:workflow to enable production triggers.
-runN8n([
-  'import:workflow',
-  '--input=/opt/urban-growth/workflows/urban-growth-lead-intake.json',
-]);
-runN8n(['publish:workflow', '--id=urbanGrowthLeadIntake01']);
+for (const workflow of [
+  'urban-growth-lead-intake.json',
+  'nexora-shared-brain-health-monitor.json',
+]) {
+  runN8n([
+    'import:workflow',
+    `--input=/opt/urban-growth/workflows/${workflow}`,
+  ]);
+}
+
+for (const workflowId of [
+  'urbanGrowthLeadIntake01',
+  'nexoraSharedBrainHealthMonitor01',
+]) {
+  runN8n(['publish:workflow', `--id=${workflowId}`]);
+}
 
 const child = spawn('n8n', ['start'], { stdio: 'inherit', env: process.env });
 child.on('exit', code => process.exit(code ?? 1));
