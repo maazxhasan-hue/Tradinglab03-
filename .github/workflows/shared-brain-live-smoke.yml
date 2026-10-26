@@ -66,3 +66,4 @@ jobs:
             exit 1
           fi
 # Keep this workflow path-triggered so live integration checks can be re-run on workflow changes.
+# Live verification trigger: keep this workflow testable on production configuration changes.
