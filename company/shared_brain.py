@@ -9,6 +9,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+import time
 from typing import Any
 
 DEFAULT_URL = "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain"
@@ -46,14 +47,21 @@ class SharedBrainClient:
             headers["Authorization"] = "Bearer " + self.access_token
             headers["apikey"] = self.publishable_key
         request = urllib.request.Request(self.endpoint, data=data, method="POST", headers=headers)
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                result = json.loads(response.read(128_000).decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            # Do not echo response bodies that might contain sensitive context.
-            raise SharedBrainError(f"Shared brain returned HTTP {exc.code}.") from None
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
-            raise SharedBrainError("Shared brain is unavailable or returned invalid JSON.") from None
+        # Edge Functions can briefly return 502/503/504 during cold starts or transient
+        # upstream faults. Retry only transient failures; never retry auth/validation errors.
+        result: Any = None
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                    result = json.loads(response.read(128_000).decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code not in {502, 503, 504} or attempt == 2:
+                    raise SharedBrainError(f"Shared brain returned HTTP {exc.code}.") from None
+            except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+                if attempt == 2:
+                    raise SharedBrainError("Shared brain is unavailable or returned invalid JSON.") from None
+            time.sleep(0.25 * (2 ** attempt))
         if not isinstance(result, dict):
             raise SharedBrainError("Shared brain returned an unexpected response.")
         return result
