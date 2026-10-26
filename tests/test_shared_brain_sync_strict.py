@@ -45,9 +45,16 @@ class SharedBrainSyncStrictTests(unittest.TestCase):
                     client_cls.return_value.recall.return_value = []
                     self.assertEqual(shared_brain_sync.main(), 1)
 
-    def test_failed_write_preserves_non_strict_compatibility(self) -> None:
+    def test_failed_write_fails_closed_by_default(self) -> None:
         with patch.dict(os.environ, {"SHARED_BRAIN_AGENT_ID": "test-agent"}):
             os.environ.pop("SHARED_BRAIN_STRICT", None)
+            with patch.object(sys, "argv", self._argv()):
+                with patch.object(shared_brain_sync, "SharedBrainClient") as client_cls:
+                    client_cls.return_value.remember.side_effect = SharedBrainError("unavailable")
+                    self.assertEqual(shared_brain_sync.main(), 1)
+
+    def test_explicit_best_effort_mode_preserves_compatibility(self) -> None:
+        with patch.dict(os.environ, {"SHARED_BRAIN_AGENT_ID": "test-agent", "SHARED_BRAIN_STRICT": "false"}):
             with patch.object(sys, "argv", self._argv()):
                 with patch.object(shared_brain_sync, "SharedBrainClient") as client_cls:
                     client_cls.return_value.remember.side_effect = SharedBrainError("unavailable")
