@@ -24,7 +24,7 @@ def fake_response(payload):
 
 
 class HarveyAgentLiveSmokeTests(unittest.TestCase):
-    def test_missing_key_fails_without_network(self):
+    def test_missing_oidc_token_fails_without_network(self):
         with patch.dict("os.environ", {}, clear=True), \
              patch.object(SMOKE.urllib.request, "urlopen") as urlopen:
             self.assertEqual(SMOKE.main(), 1)
