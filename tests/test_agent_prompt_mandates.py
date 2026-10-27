@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 # Isolate this import's database side effects from the developer's real data.
 _TEST_DB = tempfile.TemporaryDirectory(prefix="nexora-agent-mandates-")
+os.environ.pop("DATABASE_URL", None)
 os.environ["DATABASE_PATH"] = str(Path(_TEST_DB.name) / "test.db")
 
 _SPEC = importlib.util.spec_from_file_location("nexora_agent_mandate_test_app", WORKER / "app.py")
