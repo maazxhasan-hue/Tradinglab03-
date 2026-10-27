@@ -16,6 +16,11 @@ This is the dedicated API for Urban Growth HQ using its separate Cloudflare D1 d
 - `GET /health`: checks database connectivity.
 - `POST /api/leads`: validates and persists a lead, deduplicating by a SHA-256 contact key. It never sends outreach.
 - `GET /api/leads`: returns a limited list only with `Authorization: Bearer <ADMIN_TOKEN>`.
+- `PATCH /api/leads`: updates a lead status only with the same administrator token; accepted statuses are `new`, `contacted`, `qualified`, `visit planned`, `won`, `lost`, and `do not contact`.
+
+## Admin setup required before cloud CRM can connect
+
+Set the secret from a trusted terminal (never commit it or put it in browser source): `npx wrangler secret put ADMIN_TOKEN` while authenticated to the correct Cloudflare account and Worker. The dashboard's **Lead intelligence → Connect cloud leads** prompts for this token in the current browser session only. If the token is absent, the protected API must return HTTP 401; this is expected and no lead data is exposed. After deploying API code changes, verify GET and PATCH with the token before relying on CRM status sync.
 
 ## Security and limitations
 
