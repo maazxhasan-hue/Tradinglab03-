@@ -688,14 +688,17 @@ def _verify_github_actions_smoke_identity(token: str) -> dict:
         "repo:" + GITHUB_ACTIONS_SMOKE_REPOSITORY
         + ":ref:" + GITHUB_ACTIONS_SMOKE_REF
     )
-    allowed = (
-        claims.get("sub") == expected_subject
-        and claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY
-        and claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF
-        and claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF
-        and claims.get("event_name") in {"push", "workflow_dispatch"}
-    )
-    if not allowed:
+    checks = {
+        "subject": claims.get("sub") == expected_subject,
+        "repository": claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY,
+        "ref": claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF,
+        "workflow_ref": claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF,
+        "event_name": claims.get("event_name") in {"push", "workflow_dispatch"},
+    }
+    if not all(checks.values()):
+        # Log only which predicates failed; never log the token or claim values.
+        failed = ",".join(name for name, passed in checks.items() if not passed)
+        logger.warning("github_actions_smoke_identity_denied failed_checks=%s", failed)
         raise HTTPException(status_code=403, detail="GitHub Actions workflow is not authorized.")
     return claims
 
@@ -763,6 +766,63 @@ AGENT_MANDATES = {
  "Reverse Writing Agent":"Reconstruct specifications and documentation from provided artifacts; label uncertainty."
 }
 
+def _registry_role_mandate(role_name: str, department_name: str) -> str:
+    """Build a responsibility-specific mandate for registry roles without hand-written entries."""
+    role = re.sub(r"[^a-z0-9]+", " ", role_name.casefold()).strip()
+    department = re.sub(r"[^a-z0-9]+", " ", department_name.casefold()).strip()
+    identity = f"Role: {role_name}. Department: {department_name}."
+    rules = (
+        "Work only from available evidence; label assumptions and unknowns; include a concrete deliverable, "
+        "verification checks, risks, and a clear handoff. Never fabricate sources, contacts, results, or completed actions. "
+        "External publishing, outreach, spending, trading, permission changes, and irreversible actions require human approval."
+    )
+    groups = [
+        (r"security|privacy|red team|compliance|policy|risk|contract|legal|access provisioning",
+         "Identify applicable controls, threats, consent and data-handling requirements; test the highest-impact failure paths; "
+         "document evidence, severity, mitigations, and any decision that needs an authorized reviewer."),
+        (r"quality|\bqa\b|tester|testing|auditor|reviewer|acceptance|code review",
+         "Define acceptance criteria, exercise normal and failure cases, check regressions and security/privacy boundaries, "
+         "and report reproducible findings with severity, evidence, and a pass/fail recommendation."),
+        (r"seo|search engine|keyword",
+         "Map search intent and relevant keywords, check technical/indexing and accessibility concerns, prioritize fixes by impact, "
+         "and define measurable organic-traffic and conversion checks without promising rankings."),
+        (r"social|instagram|community|comment|direct message|\bdm\b|distribution|campaign operator",
+         "Prepare platform-appropriate content and moderation guidance, check brand voice and policy/consent risks, "
+         "define scheduling and measurement recommendations, and leave publication or replies pending human approval."),
+        (r"content|copywriter|copywriting|writer|script|brand voice|creative brief|editorial",
+         "Produce a concrete audience-led content or copy deliverable with message hierarchy, channel fit, factual-claim checks, "
+         "and a review checklist; mark claims that need evidence and do not publish it."),
+        (r"lead|prospect|account research|contact|sales|qualification|partnership|objection|follow up|conversion",
+         "Research and qualify opportunities using lawful public evidence; distinguish verified facts from inferred fit, "
+         "record source and freshness, state qualification gaps, and draft outreach only for human review."),
+        (r"finance|bookkeep|cash flow|budget|revenue|invoic|procurement|pricing|collections",
+         "Use explicit assumptions and reproducible arithmetic; separate actuals from estimates, reconcile totals, "
+         "flag tax/legal uncertainty and affordability constraints, and require approval for financial commitments."),
+        (r"frontend|backend|developer|engineer|builder|website|integration|automation|devops|release|agent developer|full stack",
+         "Translate the goal into implementation steps and acceptance criteria; respect existing interfaces and secrets; "
+         "include tests, error handling, observability, rollback considerations, and evidence of what was actually changed."),
+        (r"customer|client|support|onboarding|retention|education|feedback|success",
+         "Focus on the customer outcome and service context; produce a clear, empathetic plan or draft, preserve privacy, "
+         "identify unresolved issues and escalation criteria, and do not contact the customer without approval."),
+        (r"research|intelligence|analyst|data|experiment|trend|audience|market",
+         "Answer the decision question using relevant evidence and dated sources where available; compare alternatives, "
+         "show methods and uncertainty, distinguish correlation from causation, and propose measurable next steps."),
+        (r"design|creative|video|graphic|presentation|demo|visual|producer|editor",
+         "Create a usable creative brief or artifact specification with audience, objective, hierarchy, accessibility, "
+         "brand consistency, production constraints, and a quality-review checklist; do not claim exports that were not produced."),
+        (r"project|operation|coordinator|scheduler|manager|chief of staff|orchestrator|director|resource planner|delivery",
+         "Coordinate work into owners, milestones, dependencies, and decision points; surface blockers early, keep status evidence-based, "
+         "and make the next action and responsible owner explicit."),
+    ]
+    for pattern, responsibility in groups:
+        if re.search(pattern, role) or re.search(pattern, department):
+            return f"{identity} {responsibility} {rules}"
+    return (
+        f"{identity} Determine the role's specific outcome from its title and department, then produce a focused deliverable, "
+        f"acceptance criteria, evidence/assumptions, risks, and a handoff. {rules}"
+    )
+
+
 def _register_extended_agent_mandates() -> None:
     """Register every declared company role and the 41 growth specialists in Harvey's roster."""
     app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -786,12 +846,7 @@ def _register_extended_agent_mandates() -> None:
             for role in roles:
                 if isinstance(role, str) and role.strip():
                     name = role.strip()[:100]
-                    AGENT_MANDATES.setdefault(
-                        name,
-                        f"Execute the {name} responsibilities for the {department_name} department. "
-                        "Produce concrete, evidence-aware work, record assumptions, and hand off dependencies. "
-                        "Do not invent facts or perform external actions without approval.",
-                    )
+                    AGENT_MANDATES.setdefault(name, _registry_role_mandate(name, department_name))
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         logger.error("company_role_registry_load_failed error_type=%s", type(exc).__name__)
         raise RuntimeError("The company role registry could not be loaded; refusing to start with an incomplete roster.") from None
@@ -805,9 +860,7 @@ def _register_extended_agent_mandates() -> None:
             name = "Growth / " + str(agent["name"]).strip()
             AGENT_MANDATES.setdefault(
                 name,
-                f"Execute the {agent['name']} role in the Nexora 41-agent growth team ({agent['department']}). "
-                "Produce an actionable internal deliverable with evidence, assumptions, QA notes, and handoffs. "
-                "Draft only; do not publish, message, spend, or claim external actions.",
+                _registry_role_mandate(str(agent["name"]), str(agent["department"])),
             )
     except (ImportError, KeyError, TypeError) as exc:
         logger.error("growth_role_registry_load_failed error_type=%s", type(exc).__name__)
