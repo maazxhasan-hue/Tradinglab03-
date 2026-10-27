@@ -15,8 +15,8 @@ import urllib.request
 def main() -> int:
     api_key = os.getenv("HARVEY_API_KEY")
     if not api_key:
-        print("SKIP: HARVEY_API_KEY GitHub secret is not configured; no live agent run was attempted.")
-        return 0
+        print("FAIL: HARVEY_API_KEY GitHub secret is not configured; live agent execution was not verified.")
+        return 1
 
     base = os.getenv("HARVEY_WORKER_URL", "https://nexora-harvey-worker.onrender.com").rstrip("/")
     payload = {
