@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
+from fastapi import HTTPException
 
 # Isolate the SQLite database before importing the app (which initializes tables).
 _TEST_DIR = tempfile.TemporaryDirectory(prefix="harvey-tests-")
