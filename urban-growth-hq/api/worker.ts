@@ -10,7 +10,7 @@ const json = (body: unknown, status = 200) =>
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "access-control-allow-origin": "https://urban-growth-hq.onrender.com",
-      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
       "access-control-allow-headers": "content-type, authorization",
     },
   });
@@ -28,7 +28,7 @@ async function digest(value: string): Promise<string> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === "OPTIONS") return new Response(null, { status: 204 });
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-origin": "https://urban-growth-hq.onrender.com", "access-control-allow-methods": "GET, POST, PATCH, OPTIONS", "access-control-allow-headers": "content-type, authorization", "access-control-max-age": "86400" } });
     if (url.pathname === "/health" && request.method === "GET") {
       try {
         await env.DB.prepare("SELECT 1 AS ok").first();
