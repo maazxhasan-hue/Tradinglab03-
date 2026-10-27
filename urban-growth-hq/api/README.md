@@ -1,31 +1,31 @@
 # Urban Growth HQ API
 
-This is the dedicated API for Urban Growth HQ using its separate Cloudflare D1 database. The Worker is deployed at https://urban-growth-hq-api.maazxhasan.workers.dev and the database connection, lead persistence, duplicate detection, invalid-input rejection, and unauthorized-read rejection were verified on 2026-10-27. The n8n webhook integration is deploying separately and still requires an end-to-end verification after Render finishes deploying.
+Dedicated Cloudflare Worker + D1 lead service for Urban Growth HQ.
 
-## Required setup
-
-1. A separate Cloudflare D1 database named `urban-growth-hq-leads` has been provisioned (UUID `32c6ca74-1f50-4c22-b26d-197a6ef93ccb`). It is separate from the TradingLab03 intake database.
-2. `wrangler.toml` is configured with the dedicated database UUID.
-3. The schema is applied and verified against the live database.
-4. The Worker is deployed and `GET /health` returns `database: connected`.
-5. Set a strong random admin token as a Worker secret: `npx wrangler secret put ADMIN_TOKEN`.
-6. Live tests: `GET /health` HTTP 200; valid `POST /api/leads` persisted; repeated email returned duplicate; invalid lead HTTP 400; unauthenticated `GET /api/leads` HTTP 401. A smoke-test lead is present in the dedicated database.
+- Worker: https://urban-growth-hq-api.maazxhasan.workers.dev
+- Database: `urban-growth-hq-leads` (dedicated D1 database)
+- Dashboard: https://urban-growth-hq.onrender.com
+- Lead intake webhook: https://urban-growth-n8n.onrender.com/webhook/urban-growth-hq-lead-intake
 
 ## Routes
+- `GET /health` checks D1 connectivity.
+- `POST /api/leads` validates and persists leads, deduplicating by a SHA-256 contact key. No messages are sent.
+- `GET /api/leads?limit=50` requires `Authorization: Bearer <ADMIN_TOKEN>`.
+- `PATCH /api/leads` requires the same token and updates an allowed lead status.
 
-- `GET /health`: checks database connectivity.
-- `POST /api/leads`: validates and persists a lead, deduplicating by a SHA-256 contact key. It never sends outreach.
-- `GET /api/leads`: returns a limited list only with `Authorization: Bearer <ADMIN_TOKEN>`.
-- `PATCH /api/leads`: updates a lead status only with the same administrator token; accepted statuses are `new`, `contacted`, `qualified`, `visit planned`, `won`, `lost`, and `do not contact`.
+## Security and operation
+- `ADMIN_TOKEN` is configured as a Cloudflare Worker secret. Never commit it or put it in browser source.
+- The dashboard asks for the token only when connecting cloud leads; it keeps the token in page memory for that session, not localStorage.
+- CORS permits the Urban Growth HQ dashboard origin and the required GET/POST/PATCH methods.
+- The n8n webhook is configured for the dashboard origin. It validates, persists to D1 through the Worker, rejects invalid input and deduplicates repeat submissions.
+- Consent is recorded separately; no outreach, publishing, purchasing, or trading is triggered.
+- Campaigns, showings, calls, tasks and knowledge notes remain browser-local. Export backups regularly.
+- The 41 specialist roles are definitions, not 41 continuously executing agents. AI provider execution is not enabled by this API.
 
-## Admin setup required before cloud CRM can connect
-
-Set the secret from a trusted terminal (never commit it or put it in browser source): `npx wrangler secret put ADMIN_TOKEN` while authenticated to the correct Cloudflare account and Worker. The dashboard's **Lead intelligence → Connect cloud leads** prompts for this token in the current browser session only. If the token is absent, the protected API must return HTTP 401; this is expected and no lead data is exposed. After deploying API code changes, verify GET and PATCH with the token before relying on CRM status sync.
-
-## Security and limitations
-
-- Keep the admin token secret; never put it in browser JavaScript or commit it to Git.
-- This API intentionally does not send email, WhatsApp messages, or publish campaigns.
-- Configure appropriate rate limiting / bot protection before public production use.
-- The current static dashboard and n8n webhook are not automatically connected to this API. Update them only after deployment and successful live tests.
-- Until these setup steps and tests pass, do not describe cloud persistence as active.
+## Smoke checks
+```sh
+curl -i https://urban-growth-hq-api.maazxhasan.workers.dev/health
+curl -i -X POST https://urban-growth-n8n.onrender.com/webhook/urban-growth-hq-lead-intake -H 'Content-Type: application/json' -d '{"name":"Example","email":"example@example.com","contactConsent":false}'
+curl -i https://urban-growth-hq-api.maazxhasan.workers.dev/api/leads
+```
+The final command should return HTTP 401 without an admin token. Do not use real customer details in smoke tests.
