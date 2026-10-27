@@ -72,13 +72,25 @@ export default {
       }
     }
 
-    if (url.pathname === "/api/leads" && request.method === "GET") {
+    if (url.pathname === "/api/leads" && (request.method === "GET" || request.method === "PATCH")) {
       if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
         return json({ ok: false, error: "unauthorized" }, 401);
       }
-      const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 50));
-      const rows = await env.DB.prepare("SELECT id, name, email, phone, interest, source, contact_consent, contact_allowed, status, created_at FROM leads ORDER BY created_at DESC LIMIT ?").bind(limit).all();
-      return json({ ok: true, leads: rows.results });
+      if (request.method === "GET") {
+        const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 50));
+        const rows = await env.DB.prepare("SELECT id, name, email, phone, interest, source, contact_consent, contact_allowed, status, created_at FROM leads ORDER BY created_at DESC LIMIT ?").bind(limit).all();
+        return json({ ok: true, leads: rows.results });
+      }
+      let body: Record<string, unknown>;
+      try { body = await request.json() as Record<string, unknown>; }
+      catch { return json({ ok: false, error: "invalid_json" }, 400); }
+      const id = clean(body.id, 80);
+      const status = clean(body.status, 40).toLowerCase();
+      const allowed = ["new", "contacted", "qualified", "visit planned", "won", "lost", "do not contact"];
+      if (!id || !allowed.includes(status)) return json({ ok: false, error: "invalid_lead_status" }, 400);
+      const result = await env.DB.prepare("UPDATE leads SET status = ? WHERE id = ?").bind(status, id).run();
+      if (!result.meta.changes) return json({ ok: false, error: "lead_not_found" }, 404);
+      return json({ ok: true, id, status });
     }
 
     return json({ ok: false, error: "not_found" }, 404);
