@@ -688,14 +688,17 @@ def _verify_github_actions_smoke_identity(token: str) -> dict:
         "repo:" + GITHUB_ACTIONS_SMOKE_REPOSITORY
         + ":ref:" + GITHUB_ACTIONS_SMOKE_REF
     )
-    allowed = (
-        claims.get("sub") == expected_subject
-        and claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY
-        and claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF
-        and claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF
-        and claims.get("event_name") in {"push", "workflow_dispatch"}
-    )
-    if not allowed:
+    checks = {
+        "subject": claims.get("sub") == expected_subject,
+        "repository": claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY,
+        "ref": claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF,
+        "workflow_ref": claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF,
+        "event_name": claims.get("event_name") in {"push", "workflow_dispatch"},
+    }
+    if not all(checks.values()):
+        # Log only which predicates failed; never log the token or claim values.
+        failed = ",".join(name for name, passed in checks.items() if not passed)
+        logger.warning("github_actions_smoke_identity_denied failed_checks=%s", failed)
         raise HTTPException(status_code=403, detail="GitHub Actions workflow is not authorized.")
     return claims
 
