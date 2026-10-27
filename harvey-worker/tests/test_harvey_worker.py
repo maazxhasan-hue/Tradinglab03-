@@ -303,5 +303,34 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(run_agent.await_args.kwargs["x_api_key"], "test-only-secret")
 
 
+    def test_agent_recall_failure_records_terminal_failed_task(self):
+        names = ("OPENROUTER_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY")
+        previous = {name: os.environ.pop(name, None) for name in names}
+        os.environ["OPENAI_API_KEY"] = "test-provider-key"
+        try:
+            with patch.object(worker, "_shared_brain_configured", return_value=True), \\
+                 patch.object(worker, "shared_brain_recall", side_effect=RuntimeError("synthetic recall failure")):
+                response = self.client.post(
+                    "/agents/run",
+                    headers={"X-API-Key": "test-only-secret"},
+                    json={"role": "Knowledge & Memory", "goal": "Test recall failure task status."},
+                )
+            self.assertEqual(response.status_code, 503, response.text)
+            with worker.db() as conn:
+                row = conn.execute(
+                    "SELECT status,error FROM tasks WHERE kind=? ORDER BY id DESC LIMIT 1",
+                    ("agent:Knowledge & Memory",),
+                ).fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual(row["status"], "failed")
+            self.assertIn("Shared Brain recall failed", row["error"])
+        finally:
+            for name in names:
+                os.environ.pop(name, None)
+            for name, value in previous.items():
+                if value is not None:
+                    os.environ[name] = value
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
