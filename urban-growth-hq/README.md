@@ -4,6 +4,7 @@ Mobile-friendly real-estate growth workspace.
 
 ## Current deployment
 - Workspace: https://github.com/maazxhasan-hue/Tradinglab03-/tree/main/urban-growth-hq
+- Dashboard: https://urban-growth-hq.onrender.com
 - n8n: https://urban-growth-n8n.onrender.com
 - Lead intake webhook (POST): https://urban-growth-n8n.onrender.com/webhook/urban-growth-hq-lead-intake
 
@@ -23,6 +24,11 @@ Use only a test contact when validating. A successful HTTP 200 means the payload
 - 41 specialist role definitions across eight departments
 - Rules-based operations scan, task list, activity feed
 - JSON export and restore
+
+## Smoke tests
+Run `bash urban-growth-hq/tests/smoke-lead-intake.sh` from the repository root. The script uses synthetic test data and checks HTTP status, validation, consent gating, and the explicit non-persistence status. Override the endpoint with `BASE_URL` when testing a different deployment.
+
+Latest verified live test results (2026-10-27): valid synthetic lead returns HTTP 200; invalid lead returns HTTP 400. These tests verify intake validation only, not durable CRM persistence or real outreach.
 
 ## Operational boundaries
 - The 41 entries are role definitions, not 41 independently running AI agents.
