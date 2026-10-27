@@ -308,8 +308,10 @@ class HarveyWorkerTests(unittest.TestCase):
         previous = {name: os.environ.pop(name, None) for name in names}
         os.environ["OPENAI_API_KEY"] = "test-provider-key"
         try:
-            with patch.object(worker, "_shared_brain_configured", return_value=True), \\
-                 patch.object(worker, "shared_brain_recall", side_effect=RuntimeError("synthetic recall failure")):
+            with (
+                patch.object(worker, "_shared_brain_configured", return_value=True),
+                patch.object(worker, "shared_brain_recall", side_effect=RuntimeError("synthetic recall failure")),
+            ):
                 response = self.client.post(
                     "/agents/run",
                     headers={"X-API-Key": "test-only-secret"},
