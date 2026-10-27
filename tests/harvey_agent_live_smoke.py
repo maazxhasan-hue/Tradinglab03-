@@ -12,9 +12,9 @@ import urllib.request
 
 
 def main() -> int:
-    api_key = os.getenv("HARVEY_API_KEY")
-    if not api_key:
-        print("FAIL: HARVEY_API_KEY GitHub secret is missing; live execution was not tested.")
+    oidc_token = os.getenv("HARVEY_GITHUB_OIDC_TOKEN")
+    if not oidc_token:
+        print("FAIL: HARVEY_GITHUB_OIDC_TOKEN is missing; live execution was not tested.")
         return 1
 
     base = os.getenv("HARVEY_WORKER_URL", "https://nexora-harvey-worker.onrender.com").rstrip("/")
@@ -35,13 +35,13 @@ def main() -> int:
         ),
     }
     request = urllib.request.Request(
-        base + "/agents/run",
+        base + "/internal/agent-smoke",
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
         headers={
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "X-API-Key": api_key,
+            "Authorization": "Bearer " + oidc_token,
             "User-Agent": "Nexora-Agent-Live-Smoke/1.0",
         },
     )
