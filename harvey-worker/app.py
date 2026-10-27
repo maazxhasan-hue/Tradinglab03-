@@ -782,7 +782,7 @@ def _registry_role_mandate(role_name: str, department_name: str) -> str:
         (r"quality|\bqa\b|tester|testing|auditor|reviewer|acceptance|code review",
          "Define acceptance criteria, exercise normal and failure cases, check regressions and security/privacy boundaries, "
          "and report reproducible findings with severity, evidence, and a pass/fail recommendation."),
-        (r"\\bseo\\b|\\bsearch engine\\b|\\bkeyword\\b",
+        (r"\bseo\b|\bsearch engine\b|\bkeyword\b",
          "Map search intent and relevant keywords, check technical/indexing and accessibility concerns, prioritize fixes by impact, "
          "and define measurable organic-traffic and conversion checks without promising rankings."),
         (r"research|lead|prospect|account research|contact|sales|qualification|partnership|objection|follow up|conversion",
