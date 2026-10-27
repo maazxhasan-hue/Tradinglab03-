@@ -9,7 +9,7 @@ import urllib.error
 SCRIPT = Path(__file__).with_name("harvey_agent_live_smoke.py")
 SPEC = importlib.util.spec_from_file_location("harvey_agent_live_smoke_under_test", SCRIPT)
 if SPEC is None or SPEC.loader is None:
-    raise RuntimeError("Could not load live agent smoke script")
+    raise RuntimeError("Could not load live smoke script")
 SMOKE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SMOKE)
 
@@ -24,10 +24,10 @@ def fake_response(payload):
 
 
 class HarveyAgentLiveSmokeTests(unittest.TestCase):
-    def test_missing_key_skips_without_network(self):
+    def test_missing_key_fails_without_network(self):
         with patch.dict("os.environ", {}, clear=True), \
              patch.object(SMOKE.urllib.request, "urlopen") as urlopen:
-            self.assertEqual(SMOKE.main(), 0)
+            self.assertEqual(SMOKE.main(), 1)
         urlopen.assert_not_called()
 
     def test_success_requires_completion_and_shared_brain_writeback(self):
