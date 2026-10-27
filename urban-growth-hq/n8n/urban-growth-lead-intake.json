@@ -34,19 +34,108 @@
       }
     },
     {
-      "id": "respond-lead-intake",
-      "name": "Return Intake Result",
+      "id": "route-valid-lead",
+      "name": "Is Lead Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "valid-lead-condition",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "persist-lead",
+      "name": "Persist Lead to Urban Growth D1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://urban-growth-hq-api.maazxhasan.workers.dev/api/leads",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({name: $json.lead.name, email: $json.lead.email, phone: $json.lead.phone, interest: $json.lead.interest, source: $json.lead.source, contactConsent: $json.lead.contact_consent}) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "respond-persisted",
+      "name": "Return Persisted Lead Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        540,
-        0
+        1040,
+        -100
       ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
         "options": {
-          "responseCode": "={{ $json.ok ? 200 : 400 }}"
+          "responseCode": "={{ $json.ok ? 200 : 503 }}"
+        }
+      }
+    },
+    {
+      "id": "respond-invalid",
+      "name": "Return Validation Errors",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        760,
+        160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    },
+    {
+      "id": "respond-storage-error",
+      "name": "Return Storage Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1040,
+        100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {ok:false,status:'storage_failed',storage_status:'not_persisted',follow_up_status:'not_sent',notice:'Lead validation succeeded but permanent storage failed. Retry later; no outreach was sent.'} }}",
+        "options": {
+          "responseCode": 503
         }
       }
     }
@@ -67,7 +156,43 @@
       "main": [
         [
           {
-            "node": "Return Intake Result",
+            "node": "Is Lead Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Lead Valid": {
+      "main": [
+        [
+          {
+            "node": "Persist Lead to Urban Growth D1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist Lead to Urban Growth D1": {
+      "main": [
+        [
+          {
+            "node": "Return Persisted Lead Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Storage Error",
             "type": "main",
             "index": 0
           }
