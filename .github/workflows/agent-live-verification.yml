@@ -5,6 +5,8 @@ on:
     paths:
       - "tests/harvey_agent_live_smoke.py"
       - "tests/test_harvey_agent_live_smoke.py"
+      - "harvey-worker/app.py"
+      - "harvey-worker/tests/test_agent_prompt_mandates.py"
       - ".github/workflows/agent-live-verification.yml"
   push:
     branches: [main]
