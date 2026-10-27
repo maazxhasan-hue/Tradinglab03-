@@ -685,12 +685,10 @@ def _verify_github_actions_smoke_identity(token: str) -> dict:
         # Never return JWT parsing details or key material to the caller.
         raise HTTPException(status_code=401, detail="GitHub Actions identity is invalid.") from None
 
-    expected_subject = (
-        "repo:" + GITHUB_ACTIONS_SMOKE_REPOSITORY
-        + ":ref:" + GITHUB_ACTIONS_SMOKE_REF
-    )
+    # Some GitHub repositories customize the signed "sub" template. Do not
+    # depend on its default string when the separately signed repository/ref/workflow
+    # claims can bind this identity more precisely and compatibly.
     checks = {
-        "subject": claims.get("sub") == expected_subject,
         "repository": claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY,
         "ref": claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF,
         "workflow_ref": claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF,

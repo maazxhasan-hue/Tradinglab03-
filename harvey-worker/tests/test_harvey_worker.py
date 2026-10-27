@@ -196,7 +196,7 @@ class HarveyWorkerTests(unittest.TestCase):
         signing_key = MagicMock()
         signing_key.key = object()
         allowed_claims = {
-            "sub": "repo:maazxhasan-hue/Tradinglab03-:ref:refs/heads/main",
+            "sub": "repo:maazxhasan-hue/Tradinglab03-:environment:internal-smoke",
             "repository": "maazxhasan-hue/Tradinglab03-",
             "ref": "refs/heads/main",
             "workflow_ref": "maazxhasan-hue/Tradinglab03-/.github/workflows/agent-live-verification.yml@refs/heads/main",
