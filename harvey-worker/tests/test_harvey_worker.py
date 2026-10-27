@@ -182,6 +182,64 @@ class HarveyWorkerTests(unittest.TestCase):
                 os.environ["LLM_MODEL"] = old_model
 
 
+    def test_shared_brain_proxy_rejects_missing_or_wrong_secret(self):
+        with patch.object(worker, "SHARED_BRAIN_PROXY_KEY", "proxy-test-secret"):
+            missing = self.client.post(
+                "/internal/shared-brain-proxy",
+                json={"action": "recall", "project_key": "nexora", "namespace": "company"},
+            )
+            wrong = self.client.post(
+                "/internal/shared-brain-proxy",
+                headers={"X-Brain-Proxy-Key": "wrong", "X-Agent-Id": "tradinglab03"},
+                json={"action": "recall", "project_key": "nexora", "namespace": "company"},
+            )
+        self.assertEqual(missing.status_code, 401)
+        self.assertEqual(wrong.status_code, 401)
+
+    def test_shared_brain_proxy_limits_scope_and_forwards_authenticated_recall(self):
+        expected = {"memories": [{"memory_key": "smoke"}], "count": 1, "scope": "shared-agent"}
+        with patch.object(worker, "SHARED_BRAIN_PROXY_KEY", "proxy-test-secret"), patch.object(
+            worker, "shared_brain_request", return_value=expected
+        ) as call:
+            denied = self.client.post(
+                "/internal/shared-brain-proxy",
+                headers={"X-Brain-Proxy-Key": "proxy-test-secret", "X-Agent-Id": "tradinglab03"},
+                json={"action": "recall", "project_key": "other", "namespace": "company"},
+            )
+            allowed = self.client.post(
+                "/internal/shared-brain-proxy",
+                headers={"X-Brain-Proxy-Key": "proxy-test-secret", "X-Agent-Id": "tradinglab03"},
+                json={"action": "recall", "project_key": "nexora", "namespace": "company", "query": "agent test", "limit": 2},
+            )
+        self.assertEqual(denied.status_code, 403)
+        self.assertEqual(allowed.status_code, 200, allowed.text)
+        self.assertEqual(allowed.json(), expected)
+        call.assert_called_once_with(
+            {"action": "recall", "project_key": "nexora", "namespace": "company", "query": "agent test", "limit": 2},
+            agent_id="tradinglab03",
+        )
+
+    def test_shared_brain_proxy_remember_uses_authenticated_agent_identity(self):
+        expected = {"saved": True, "scope": "shared-agent"}
+        payload = {
+            "action": "remember", "project_key": "nexora", "namespace": "company",
+            "memory_key": "test-run-1", "source_agent": "spoofed-agent",
+            "summary": "internal smoke", "content": {"status": "completed"}, "tags": ["smoke"],
+        }
+        with patch.object(worker, "SHARED_BRAIN_PROXY_KEY", "proxy-test-secret"), patch.object(
+            worker, "shared_brain_request", return_value=expected
+        ) as call:
+            response = self.client.post(
+                "/internal/shared-brain-proxy",
+                headers={"X-Brain-Proxy-Key": "proxy-test-secret", "X-Agent-Id": "tradinglab03"},
+                json=payload,
+            )
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json(), expected)
+        forwarded = call.call_args.args[0]
+        self.assertEqual(forwarded["source_agent"], "tradinglab03")
+        self.assertNotEqual(forwarded["source_agent"], "spoofed-agent")
+
     def test_internal_agent_smoke_rejects_missing_or_wrong_auth(self):
         missing = self.client.post("/internal/agent-smoke")
         self.assertEqual(missing.status_code, 401, missing.text)

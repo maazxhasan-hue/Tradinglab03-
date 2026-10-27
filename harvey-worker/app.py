@@ -15,34 +15,63 @@ from pydantic import BaseModel, Field
 import httpx
 import json
 import logging
-import urllib.request
-import urllib.error
+from urllib.parse import urlsplit
 
 logger = logging.getLogger("nexora.harvey")
 
 SHARED_BRAIN_URL = os.getenv("SHARED_BRAIN_URL", "https://ydstbryiwiigzlqbrcpo.supabase.co/functions/v1/shared-brain").rstrip("/")
 SHARED_BRAIN_AGENT_KEY = os.getenv("SHARED_BRAIN_AGENT_KEY", "")
 SHARED_BRAIN_AGENT_ID = os.getenv("SHARED_BRAIN_AGENT_ID", "harvey-render-worker")
+SHARED_BRAIN_PROXY_URL = os.getenv("SHARED_BRAIN_PROXY_URL", "").rstrip("/")
+SHARED_BRAIN_PROXY_KEY = os.getenv("SHARED_BRAIN_PROXY_KEY", "")
+
+def _shared_brain_configured() -> bool:
+    return bool(SHARED_BRAIN_AGENT_KEY or (SHARED_BRAIN_PROXY_URL and SHARED_BRAIN_PROXY_KEY))
 
 def shared_brain_request(payload: dict, agent_id: str | None = None) -> dict:
     """Authenticated shared-memory client. Never logs secrets or stored content."""
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise RuntimeError("Shared brain is not configured")
     safe_agent_id = re.sub(r"[^a-zA-Z0-9._:-]", "-", (agent_id or SHARED_BRAIN_AGENT_ID))[:100]
-    request = urllib.request.Request(
-        SHARED_BRAIN_URL,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        method="POST",
-        headers={
+    if SHARED_BRAIN_PROXY_URL:
+        if not SHARED_BRAIN_PROXY_KEY:
+            raise RuntimeError("Shared brain proxy is not configured")
+        target_url = SHARED_BRAIN_PROXY_URL
+        headers = {
+            "Content-Type": "application/json",
+            "x-brain-proxy-key": SHARED_BRAIN_PROXY_KEY,
+            "x-agent-id": safe_agent_id,
+        }
+    else:
+        if not SHARED_BRAIN_AGENT_KEY:
+            raise RuntimeError("Shared brain is not configured")
+        target_url = SHARED_BRAIN_URL
+        headers = {
             "Content-Type": "application/json",
             "x-agent-key": SHARED_BRAIN_AGENT_KEY,
             "x-agent-id": safe_agent_id,
-        },
-    )
+        }
+    parsed = urlsplit(target_url)
+    allowed_hosts = {"ydstbryiwiigzlqbrcpo.supabase.co", "nexora-harvey-worker.onrender.com"}
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname not in allowed_hosts
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.fragment
+    ):
+        raise RuntimeError("Shared brain target is not an approved HTTPS endpoint")
+    if SHARED_BRAIN_PROXY_URL and parsed.path != "/internal/shared-brain-proxy":
+        raise RuntimeError("Shared brain proxy path is not approved")
     try:
-        with urllib.request.urlopen(request, timeout=5) as response:
-            result = json.loads(response.read(128_000).decode("utf-8"))
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        response = httpx.post(
+            target_url,
+            content=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers=headers,
+            timeout=8.0,
+            follow_redirects=False,
+        )
+        response.raise_for_status()
+        result = response.json()
+    except (httpx.HTTPError, ValueError):
         raise RuntimeError("Shared brain request failed") from None
     if not isinstance(result, dict):
         raise RuntimeError("Shared brain returned an invalid response")
@@ -57,7 +86,7 @@ def shared_brain_recall(query: str, limit: int = 5, agent_id: str | None = None)
     return memories if isinstance(memories, list) else []
 
 def shared_brain_remember(memory_key: str, summary: str, content: dict, tags: list[str], agent_id: str | None = None) -> bool:
-    if not SHARED_BRAIN_AGENT_KEY:
+    if not _shared_brain_configured():
         return False
     try:
         result = shared_brain_request({
@@ -265,7 +294,7 @@ def public_status():
         recent_jobs = c.execute(
             "SELECT role, status, created_at, updated_at FROM company_jobs ORDER BY id DESC LIMIT 8"
         ).fetchall()
-        brain_configured = bool(SHARED_BRAIN_AGENT_KEY)
+        brain_configured = _shared_brain_configured()
         brain_connection = "not_configured"
         if brain_configured:
             try:
@@ -488,11 +517,67 @@ AGENT_ROLES = {
     "Trading Systems Monitor", "Reverse Writing Agent", "Studio Agent"
 }
 
+@app.post("/internal/shared-brain-proxy")
+def internal_shared_brain_proxy(
+    req: dict,
+    x_brain_proxy_key: Optional[str] = Header(default=None),
+    x_agent_id: Optional[str] = Header(default=None),
+):
+    """Authenticated, tightly scoped proxy for the companion Render service."""
+    if SHARED_BRAIN_PROXY_URL:
+        raise HTTPException(404, "This service is configured as a Shared Brain proxy client.")
+    if not SHARED_BRAIN_PROXY_KEY or not x_brain_proxy_key or not secrets.compare_digest(
+        x_brain_proxy_key, SHARED_BRAIN_PROXY_KEY
+    ):
+        raise HTTPException(401, "Shared Brain proxy authentication required.")
+    action = req.get("action")
+    if action not in {"recall", "remember"}:
+        raise HTTPException(400, "Unsupported Shared Brain action.")
+    if req.get("project_key", "nexora") != "nexora" or req.get("namespace", "company") != "company":
+        raise HTTPException(403, "Proxy access is limited to the Nexora company namespace.")
+    source_agent = re.sub(r"[^a-zA-Z0-9._:-]", "-", x_agent_id or "")[:100]
+    if not source_agent:
+        raise HTTPException(400, "A valid agent ID is required.")
+    if action == "recall":
+        forwarded = {
+            "action": "recall",
+            "project_key": "nexora",
+            "namespace": "company",
+            "query": str(req.get("query", ""))[:120],
+            "limit": min(10, max(1, int(req.get("limit", 5)))),
+        }
+    else:
+        content = req.get("content")
+        if not isinstance(content, dict) or len(json.dumps(content, ensure_ascii=False)) > 20_000:
+            raise HTTPException(413, "Shared Brain content must be a JSON object under 20 KB.")
+        memory_key = str(req.get("memory_key", ""))[:160]
+        if not memory_key or not re.fullmatch(r"[a-zA-Z0-9._:/ -]{1,160}", memory_key):
+            raise HTTPException(400, "A valid memory key is required.")
+        tags = req.get("tags", [])
+        if not isinstance(tags, list):
+            tags = []
+        forwarded = {
+            "action": "remember",
+            "project_key": "nexora",
+            "namespace": "company",
+            "memory_key": memory_key,
+            "source_agent": source_agent,
+            "summary": str(req.get("summary", ""))[:2000],
+            "content": content,
+            "tags": [str(tag)[:60] for tag in tags[:10] if isinstance(tag, str)],
+            "confidence": req.get("confidence", 0.75),
+        }
+    try:
+        return shared_brain_request(forwarded, agent_id=source_agent)
+    except Exception:
+        raise HTTPException(502, "Shared Brain proxy request failed.") from None
+
+
 @app.get("/brain/status")
 def brain_status(x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
     return {
-        "configured": bool(SHARED_BRAIN_AGENT_KEY),
+        "configured": _shared_brain_configured(),
         "agent_id": SHARED_BRAIN_AGENT_ID,
         "project_key": "nexora",
         "namespace": "company",
@@ -505,7 +590,7 @@ def brain_recall_endpoint(req: dict, x_api_key: Optional[str] = Header(default=N
     query = str(req.get("query", "")).strip()[:500]
     if not query:
         raise HTTPException(400, "A non-empty query is required.")
-    if not SHARED_BRAIN_AGENT_KEY:
+    if not _shared_brain_configured():
         raise HTTPException(503, "Shared Brain is not configured for this worker.")
     try:
         memories = shared_brain_recall(query, limit=min(10, max(1, int(req.get("limit", 5)))))
@@ -579,8 +664,8 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY in the server environment; LLM_MODEL or OPENAI_MODEL is optional.")
     if req.role not in AGENT_ROLES:
         raise HTTPException(400, "Unknown role. Use a role returned by /agents/status.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503, "Shared Brain is required for every specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
+    if not _shared_brain_configured():
+        raise HTTPException(503, "Shared Brain is required for every specialist run. Configure agent credentials or the authenticated proxy.")
     agent_id = "nexora-" + re.sub(r"[^a-zA-Z0-9._:-]", "-", req.role.lower())[:80]
     try:
         memories = shared_brain_recall(req.role + " " + req.goal, limit=5, agent_id=agent_id)
@@ -1128,8 +1213,8 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
     base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY server-side; LLM_MODEL or OPENAI_MODEL is optional.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503,"Shared Brain is required for every company specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
+    if not _shared_brain_configured():
+        raise HTTPException(503,"Shared Brain is required for every company specialist run. Configure agent credentials or the authenticated proxy.")
     with db() as c:
         row=c.execute("SELECT * FROM company_jobs WHERE id=?", (job_id,)).fetchone()
         if not row: raise HTTPException(404,"Company job not found.")
@@ -1273,8 +1358,8 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
     base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503, "Shared Brain is required for project-builder execution. Configure SHARED_BRAIN_AGENT_KEY.")
+    if not _shared_brain_configured():
+        raise HTTPException(503, "Shared Brain is required for project-builder execution. Configure agent credentials or the authenticated proxy.")
     with db() as c:
         project_id = c.execute(
             "INSERT INTO projects(name,brief,status,model,created_at,updated_at) VALUES(?,?,?,?,?,?)",
