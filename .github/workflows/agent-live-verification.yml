@@ -67,6 +67,7 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import os
           import time
           import urllib.request
 
