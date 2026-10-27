@@ -17,7 +17,9 @@
         "httpMethod": "POST",
         "path": "urban-growth-hq-lead-intake",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "allowedOrigins": "https://urban-growth-hq.onrender.com"
+        }
       }
     },
     {
