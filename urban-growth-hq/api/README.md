@@ -1,15 +1,15 @@
 # Urban Growth HQ API
 
-This is the dedicated API intended to persist leads in a separate Cloudflare D1 database. It is **not live until a new D1 database is provisioned, the schema is applied, the Worker is deployed, and the API is tested**.
+This is the dedicated API for Urban Growth HQ using its separate Cloudflare D1 database. The Worker is deployed at https://urban-growth-hq-api.maazxhasan.workers.dev and the database connection, lead persistence, duplicate detection, invalid-input rejection, and unauthorized-read rejection were verified on 2026-10-27. The n8n webhook integration is deploying separately and still requires an end-to-end verification after Render finishes deploying.
 
 ## Required setup
 
-1. Create a separate Cloudflare D1 database named `urban-growth-hq-leads` (do not reuse the TradingLab03 or any other database).
-2. Update `wrangler.toml` with the new database UUID.
-3. Apply `schema.sql` with Wrangler: `npx wrangler d1 execute urban-growth-hq-leads --remote --file=./schema.sql`.
-4. Deploy from this directory: `npx wrangler deploy`.
+1. A separate Cloudflare D1 database named `urban-growth-hq-leads` has been provisioned (UUID `32c6ca74-1f50-4c22-b26d-197a6ef93ccb`). It is separate from the TradingLab03 intake database.
+2. `wrangler.toml` is configured with the dedicated database UUID.
+3. The schema is applied and verified against the live database.
+4. The Worker is deployed and `GET /health` returns `database: connected`.
 5. Set a strong random admin token as a Worker secret: `npx wrangler secret put ADMIN_TOKEN`.
-6. Test `GET /health`, valid/invalid `POST /api/leads`, duplicate submission, and authorized/unauthorized `GET /api/leads`.
+6. Live tests: `GET /health` HTTP 200; valid `POST /api/leads` persisted; repeated email returned duplicate; invalid lead HTTP 400; unauthenticated `GET /api/leads` HTTP 401. A smoke-test lead is present in the dedicated database.
 
 ## Routes
 
