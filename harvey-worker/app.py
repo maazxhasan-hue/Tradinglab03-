@@ -645,6 +645,90 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
 
 
 
+GITHUB_ACTIONS_OIDC_ISSUER = "https://token.actions.githubusercontent.com"
+GITHUB_ACTIONS_OIDC_JWKS_URL = GITHUB_ACTIONS_OIDC_ISSUER + "/.well-known/jwks"
+GITHUB_ACTIONS_SMOKE_AUDIENCE = "nexora-harvey-agent-smoke"
+GITHUB_ACTIONS_SMOKE_REPOSITORY = "maazxhasan-hue/Tradinglab03-"
+GITHUB_ACTIONS_SMOKE_REF = "refs/heads/main"
+GITHUB_ACTIONS_SMOKE_WORKFLOW_REF = (
+    GITHUB_ACTIONS_SMOKE_REPOSITORY
+    + "/.github/workflows/agent-live-verification.yml@"
+    + GITHUB_ACTIONS_SMOKE_REF
+)
+
+
+def _verify_github_actions_smoke_identity(token: str) -> dict:
+    """Fail-closed verification for one synthetic smoke task from the main-branch workflow."""
+    if not token:
+        raise HTTPException(status_code=401, detail="GitHub Actions identity is required.")
+    try:
+        import jwt
+
+        jwks = jwt.PyJWKClient(
+            GITHUB_ACTIONS_OIDC_JWKS_URL,
+            cache_jwk_set=True,
+            lifespan=300,
+            timeout=5,
+        )
+        signing_key = jwks.get_signing_key_from_jwt(token)
+        claims = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience=GITHUB_ACTIONS_SMOKE_AUDIENCE,
+            issuer=GITHUB_ACTIONS_OIDC_ISSUER,
+            leeway=30,
+            options={"require": ["exp", "iat", "nbf", "iss", "aud", "sub"]},
+        )
+    except Exception:
+        # Never return JWT parsing details or key material to the caller.
+        raise HTTPException(status_code=401, detail="GitHub Actions identity is invalid.") from None
+
+    expected_subject = (
+        "repo:" + GITHUB_ACTIONS_SMOKE_REPOSITORY
+        + ":ref:" + GITHUB_ACTIONS_SMOKE_REF
+    )
+    allowed = (
+        claims.get("sub") == expected_subject
+        and claims.get("repository") == GITHUB_ACTIONS_SMOKE_REPOSITORY
+        and claims.get("ref") == GITHUB_ACTIONS_SMOKE_REF
+        and claims.get("workflow_ref") == GITHUB_ACTIONS_SMOKE_WORKFLOW_REF
+        and claims.get("event_name") in {"push", "workflow_dispatch"}
+    )
+    if not allowed:
+        raise HTTPException(status_code=403, detail="GitHub Actions workflow is not authorized.")
+    return claims
+
+
+@app.post("/internal/agent-smoke")
+async def internal_agent_smoke(authorization: Optional[str] = Header(default=None)):
+    """Run exactly one synthetic specialist task, authenticated by tightly scoped GitHub OIDC."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="GitHub Actions identity is required.")
+    token = authorization[len("Bearer "):].strip()
+    _verify_github_actions_smoke_identity(token)
+    if not API_KEY:
+        raise HTTPException(status_code=503, detail="Worker API authentication is not configured.")
+
+    request = AgentRunRequest(
+        role="Knowledge & Memory",
+        goal=(
+            "Synthetic internal connectivity test only. Include the exact marker "
+            "NEXORA_AGENT_EXECUTION_OK in the deliverable. Do not use external tools "
+            "or perform any external action."
+        ),
+        context=(
+            "Automated smoke test only; no client data. Do not contact anyone, publish "
+            "content, send messages, trade, purchase anything, or change settings."
+        ),
+        constraints=(
+            "Return a brief structured result. The deliverable must include "
+            "NEXORA_AGENT_EXECUTION_OK. Do not perform external actions."
+        ),
+    )
+    return await run_agent(request, x_api_key=API_KEY)
+
+
 # Company operations: distinct mandates and persistent, auditable work items for each specialist role.
 AGENT_MANDATES = {
  "CEO Strategy":"Set company priorities, measurable goals, decision rules, and cross-team alignment.",
