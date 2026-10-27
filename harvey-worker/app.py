@@ -240,6 +240,7 @@ def health():
         pending = c.execute("SELECT COUNT(*) n FROM approvals WHERE status='pending'").fetchone()["n"]
         tasks = c.execute("SELECT COUNT(*) n FROM tasks").fetchone()["n"]
     return {"service": APP_NAME, "status": "ready", "time": now(),
+            "build_commit": os.getenv("RENDER_GIT_COMMIT", "unknown"),
             "database": "postgresql" if DATABASE_URL else "sqlite",
             "prospects": prospects, "pending_approvals": pending,
             "tasks_recorded": tasks, "email_sending": ("enabled" if os.getenv("EMAIL_SENDING_ENABLED", "").lower() == "true" else "disabled"),
