@@ -3,6 +3,8 @@ import os
 import tempfile
 import unittest
 import sys
+from unittest.mock import AsyncMock, MagicMock, patch
+from fastapi import HTTPException
 
 # Isolate the SQLite database before importing the app (which initializes tables).
 _TEST_DIR = tempfile.TemporaryDirectory(prefix="harvey-tests-")
@@ -178,6 +180,69 @@ class HarveyWorkerTests(unittest.TestCase):
                 os.environ["LLM_API_KEY"] = old_key
             if old_model is not None:
                 os.environ["LLM_MODEL"] = old_model
+
+
+    def test_internal_agent_smoke_rejects_missing_or_wrong_auth(self):
+        missing = self.client.post("/internal/agent-smoke")
+        self.assertEqual(missing.status_code, 401, missing.text)
+        wrong_scheme = self.client.post(
+            "/internal/agent-smoke", headers={"Authorization": "Basic not-a-token"}
+        )
+        self.assertEqual(wrong_scheme.status_code, 401, wrong_scheme.text)
+
+    def test_github_oidc_smoke_identity_is_locked_to_the_main_workflow(self):
+        import jwt
+
+        signing_key = MagicMock()
+        signing_key.key = object()
+        allowed_claims = {
+            "sub": "repo:maazxhasan-hue/Tradinglab03-:ref:refs/heads/main",
+            "repository": "maazxhasan-hue/Tradinglab03-",
+            "ref": "refs/heads/main",
+            "workflow_ref": "maazxhasan-hue/Tradinglab03-/.github/workflows/agent-live-verification.yml@refs/heads/main",
+            "event_name": "push",
+        }
+        with patch("jwt.PyJWKClient") as jwks_factory, patch(
+            "jwt.decode", return_value=allowed_claims
+        ) as decode:
+            jwks_factory.return_value.get_signing_key_from_jwt.return_value = signing_key
+            result = worker._verify_github_actions_smoke_identity("synthetic-signed-token")
+        self.assertEqual(result, allowed_claims)
+        self.assertEqual(decode.call_args.kwargs["audience"], "nexora-harvey-agent-smoke")
+        self.assertEqual(decode.call_args.kwargs["issuer"], "https://token.actions.githubusercontent.com")
+
+        denied_claims = dict(allowed_claims, workflow_ref="attacker/workflow.yml@refs/heads/main")
+        with patch("jwt.PyJWKClient") as jwks_factory, patch(
+            "jwt.decode", return_value=denied_claims
+        ):
+            jwks_factory.return_value.get_signing_key_from_jwt.return_value = signing_key
+            with self.assertRaises(HTTPException) as error:
+                worker._verify_github_actions_smoke_identity("synthetic-signed-token")
+        self.assertEqual(error.exception.status_code, 403)
+
+    def test_internal_agent_smoke_invokes_only_fixed_safe_specialist_task(self):
+        expected = {
+            "task_id": 123,
+            "role": "Knowledge & Memory",
+            "status": "completed",
+            "output": "NEXORA_AGENT_EXECUTION_OK",
+            "shared_brain": {"recall_count": 1, "remembered": True},
+        }
+        with patch.object(worker, "_verify_github_actions_smoke_identity") as verify, patch.object(
+            worker, "run_agent", new_callable=AsyncMock, return_value=expected
+        ) as run_agent:
+            response = self.client.post(
+                "/internal/agent-smoke",
+                headers={"Authorization": "Bearer synthetic-oidc-token"},
+            )
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json(), expected)
+        verify.assert_called_once_with("synthetic-oidc-token")
+        request = run_agent.await_args.args[0]
+        self.assertEqual(request.role, "Knowledge & Memory")
+        self.assertIn("NEXORA_AGENT_EXECUTION_OK", request.goal)
+        self.assertIn("Do not perform external actions", request.constraints)
+        self.assertEqual(run_agent.await_args.kwargs["x_api_key"], "test-only-secret")
 
 
 if __name__ == "__main__":

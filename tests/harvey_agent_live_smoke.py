@@ -12,36 +12,19 @@ import urllib.request
 
 
 def main() -> int:
-    api_key = os.getenv("HARVEY_API_KEY")
-    if not api_key:
-        print("FAIL: HARVEY_API_KEY GitHub secret is missing; live execution was not tested.")
+    oidc_token = os.getenv("HARVEY_GITHUB_OIDC_TOKEN")
+    if not oidc_token:
+        print("FAIL: HARVEY_GITHUB_OIDC_TOKEN is missing; live execution was not tested.")
         return 1
 
     base = os.getenv("HARVEY_WORKER_URL", "https://nexora-harvey-worker.onrender.com").rstrip("/")
-    payload = {
-        "role": "Knowledge & Memory",
-        "goal": (
-            "Synthetic internal connectivity test only. Include the exact marker "
-            "NEXORA_AGENT_EXECUTION_OK in the deliverable. Do not use external tools "
-            "or perform any external action."
-        ),
-        "context": (
-            "Automated smoke test only; no client data. Do not contact anyone, publish "
-            "content, send messages, trade, purchase anything, or change settings."
-        ),
-        "constraints": (
-            "Return a brief structured result. The deliverable must include "
-            "NEXORA_AGENT_EXECUTION_OK. Do not perform external actions."
-        ),
-    }
     request = urllib.request.Request(
-        base + "/agents/run",
-        data=json.dumps(payload).encode("utf-8"),
+        base + "/internal/agent-smoke",
+        data=b"{}",
         method="POST",
         headers={
-            "Content-Type": "application/json",
             "Accept": "application/json",
-            "X-API-Key": api_key,
+            "Authorization": "Bearer " + oidc_token,
             "User-Agent": "Nexora-Agent-Live-Smoke/1.0",
         },
     )
