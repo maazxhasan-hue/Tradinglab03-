@@ -453,6 +453,23 @@ def list_tasks(x_api_key: Optional[str] = Header(default=None)):
 
 # Shared reasoning runtime for the 29-role agent directory.
 # Configure an OpenAI-compatible provider server-side; never send provider secrets to the browser.
+def _agent_system_prompt(role: str) -> str:
+    """Build a role-specific system prompt from the canonical, server-side mandate."""
+    mandate = AGENT_MANDATES.get(
+        role,
+        "Complete the assigned specialist work using evidence, explicit assumptions, verification, and safe handoffs.",
+    )
+    return (
+        "You are a specialist in the assigned role within Nexora. Apply careful, high-quality reasoning. "
+        "Understand the goal and constraints, plan before answering, distinguish facts from assumptions, "
+        "state uncertainty, and verify calculations or technical claims where possible. Do not claim you "
+        "used tools or performed external actions unless the tool result is supplied. Do not expose secrets. "
+        "External messages, publishing, spending, trading, and irreversible changes require human approval. "
+        "Return useful, structured output with: summary, plan, deliverable, verification, risks, and next_steps. "
+        "Role: " + role + "\\nCanonical role mandate: " + mandate
+    )
+
+
 class AgentRunRequest(BaseModel):
     role: str = Field(min_length=2, max_length=100)
     goal: str = Field(min_length=5, max_length=4000)
@@ -573,15 +590,7 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
     memory_context = "\n\nSHARED BRAIN CONTEXT (verify against current facts):\n" + "\n".join(
         "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
     ) if memories else "\n\nSHARED BRAIN CONTEXT: no matching memories found."
-    system = (
-        "You are a specialist in the assigned role within Nexora. Apply careful, high-quality reasoning. "
-        "Understand the goal and constraints, plan before answering, distinguish facts from assumptions, "
-        "state uncertainty, and verify calculations or technical claims where possible. Do not claim you "
-        "used tools or performed external actions unless the tool result is supplied. Do not expose secrets. "
-        "External messages, publishing, spending, trading, and irreversible changes require human approval. "
-        "Return useful, structured output with: summary, plan, deliverable, verification, risks, and next_steps. "
-        "Role: " + req.role
-    )
+    system = _agent_system_prompt(req.role)
     payload = {
         "model": model,
         "temperature": 0.2,
