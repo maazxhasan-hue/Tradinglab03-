@@ -524,6 +524,8 @@ def internal_shared_brain_proxy(
     x_agent_id: Optional[str] = Header(default=None),
 ):
     """Authenticated, tightly scoped proxy for the companion Render service."""
+    if SHARED_BRAIN_PROXY_URL:
+        raise HTTPException(404, "This service is configured as a Shared Brain proxy client.")
     if not SHARED_BRAIN_PROXY_KEY or not x_brain_proxy_key or not secrets.compare_digest(
         x_brain_proxy_key, SHARED_BRAIN_PROXY_KEY
     ):
@@ -662,8 +664,8 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY in the server environment; LLM_MODEL or OPENAI_MODEL is optional.")
     if req.role not in AGENT_ROLES:
         raise HTTPException(400, "Unknown role. Use a role returned by /agents/status.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503, "Shared Brain is required for every specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
+    if not _shared_brain_configured():
+        raise HTTPException(503, "Shared Brain is required for every specialist run. Configure agent credentials or the authenticated proxy.")
     agent_id = "nexora-" + re.sub(r"[^a-zA-Z0-9._:-]", "-", req.role.lower())[:80]
     try:
         memories = shared_brain_recall(req.role + " " + req.goal, limit=5, agent_id=agent_id)
@@ -1211,8 +1213,8 @@ async def run_company_job(job_id: int, x_api_key: Optional[str] = Header(default
     base_url=(os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503,"Model runtime is not configured. Set LLM_API_KEY or OPENAI_API_KEY server-side; LLM_MODEL or OPENAI_MODEL is optional.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503,"Shared Brain is required for every company specialist run. Configure SHARED_BRAIN_AGENT_KEY on the worker.")
+    if not _shared_brain_configured():
+        raise HTTPException(503,"Shared Brain is required for every company specialist run. Configure agent credentials or the authenticated proxy.")
     with db() as c:
         row=c.execute("SELECT * FROM company_jobs WHERE id=?", (job_id,)).fetchone()
         if not row: raise HTTPException(404,"Company job not found.")
@@ -1356,8 +1358,8 @@ async def build_project(req: ProjectBuildRequest, x_api_key: Optional[str] = Hea
     base_url = (os.getenv("LLM_BASE_URL", "") or os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1" if os.getenv("OPENROUTER_API_KEY", "") else "https://api.openai.com/v1")).rstrip("/")
     if not api_key or not model:
         raise HTTPException(503, "Model runtime is not configured. Set LLM_API_KEY and LLM_MODEL server-side.")
-    if not SHARED_BRAIN_AGENT_KEY:
-        raise HTTPException(503, "Shared Brain is required for project-builder execution. Configure SHARED_BRAIN_AGENT_KEY.")
+    if not _shared_brain_configured():
+        raise HTTPException(503, "Shared Brain is required for project-builder execution. Configure agent credentials or the authenticated proxy.")
     with db() as c:
         project_id = c.execute(
             "INSERT INTO projects(name,brief,status,model,created_at,updated_at) VALUES(?,?,?,?,?,?)",
