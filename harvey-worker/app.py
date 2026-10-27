@@ -667,11 +667,23 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
     if not _shared_brain_configured():
         raise HTTPException(503, "Shared Brain is required for every specialist run. Configure agent credentials or the authenticated proxy.")
     agent_id = "nexora-" + re.sub(r"[^a-zA-Z0-9._:-]", "-", req.role.lower())[:80]
+    # Persist the task before any Shared Brain or model call so every attempt has
+    # a terminal, inspectable status even when recall fails before model execution.
+    with db() as c:
+        task_id = c.execute(
+            "INSERT INTO tasks(kind,status,input_json,created_at,updated_at) VALUES(?,?,?,?,?)",
+            ("agent:" + req.role, "running", __import__("json").dumps({"role":req.role,"goal":req.goal}), now(), now())
+        ).lastrowid
     try:
         memories = shared_brain_recall(req.role + " " + req.goal, limit=5, agent_id=agent_id)
         record_brain_event(agent_id, "recall", "completed", len(memories))
     except Exception:
         record_brain_event(agent_id, "recall", "failed", 0)
+        with db() as c:
+            c.execute(
+                "UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
+                ("Shared Brain recall failed; disconnected execution blocked.", now(), task_id)
+            )
         raise HTTPException(503, "Shared Brain recall failed; agent run stopped to prevent disconnected execution.")
     memory_context = "\n\nSHARED BRAIN CONTEXT (verify against current facts):\n" + "\n".join(
         "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
@@ -685,12 +697,6 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
             {"role": "user", "content": "GOAL:\n" + req.goal + "\n\nCONTEXT:\n" + (req.context or "(none)") + memory_context + "\n\nCONSTRAINTS:\n" + req.constraints}
         ]
     }
-    task_id = None
-    with db() as c:
-        task_id = c.execute(
-            "INSERT INTO tasks(kind,status,input_json,created_at,updated_at) VALUES(?,?,?,?,?)",
-            ("agent:" + req.role, "running", __import__("json").dumps({"role":req.role,"goal":req.goal}), now(), now())
-        ).lastrowid
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             response = await client.post(
