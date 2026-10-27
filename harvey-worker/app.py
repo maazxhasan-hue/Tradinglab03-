@@ -15,8 +15,7 @@ from pydantic import BaseModel, Field
 import httpx
 import json
 import logging
-import urllib.request
-import urllib.error
+from urllib.parse import urlsplit
 
 logger = logging.getLogger("nexora.harvey")
 
@@ -50,16 +49,29 @@ def shared_brain_request(payload: dict, agent_id: str | None = None) -> dict:
             "x-agent-key": SHARED_BRAIN_AGENT_KEY,
             "x-agent-id": safe_agent_id,
         }
-    request = urllib.request.Request(
-        target_url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        method="POST",
-        headers=headers,
-    )
+    parsed = urlsplit(target_url)
+    allowed_hosts = {"ydstbryiwiigzlqbrcpo.supabase.co", "nexora-harvey-worker.onrender.com"}
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname not in allowed_hosts
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.fragment
+    ):
+        raise RuntimeError("Shared brain target is not an approved HTTPS endpoint")
+    if SHARED_BRAIN_PROXY_URL and parsed.path != "/internal/shared-brain-proxy":
+        raise RuntimeError("Shared brain proxy path is not approved")
     try:
-        with urllib.request.urlopen(request, timeout=8) as response:
-            result = json.loads(response.read(128_000).decode("utf-8"))
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        response = httpx.post(
+            target_url,
+            content=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers=headers,
+            timeout=8.0,
+            follow_redirects=False,
+        )
+        response.raise_for_status()
+        result = response.json()
+    except (httpx.HTTPError, ValueError):
         raise RuntimeError("Shared brain request failed") from None
     if not isinstance(result, dict):
         raise RuntimeError("Shared brain returned an invalid response")
