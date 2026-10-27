@@ -45,4 +45,4 @@ jobs:
       - name: Verify pinned Ruflo release is published
         run: test "$(npm view ruflo@3.59.1 version)" = "3.59.1"
       - name: Run Harvey regression tests
-        run: python -m unittest discover -s harvey-worker/tests -p 'test_harvey_worker.py' -v
+        run: python -m unittest discover -s harvey-worker/tests -p 'test_*.py' -v
