@@ -18,28 +18,11 @@ def main() -> int:
         return 1
 
     base = os.getenv("HARVEY_WORKER_URL", "https://nexora-harvey-worker.onrender.com").rstrip("/")
-    payload = {
-        "role": "Knowledge & Memory",
-        "goal": (
-            "Synthetic internal connectivity test only. Include the exact marker "
-            "NEXORA_AGENT_EXECUTION_OK in the deliverable. Do not use external tools "
-            "or perform any external action."
-        ),
-        "context": (
-            "Automated smoke test only; no client data. Do not contact anyone, publish "
-            "content, send messages, trade, purchase anything, or change settings."
-        ),
-        "constraints": (
-            "Return a brief structured result. The deliverable must include "
-            "NEXORA_AGENT_EXECUTION_OK. Do not perform external actions."
-        ),
-    }
     request = urllib.request.Request(
         base + "/internal/agent-smoke",
-        data=json.dumps(payload).encode("utf-8"),
+        data=b"{}",
         method="POST",
         headers={
-            "Content-Type": "application/json",
             "Accept": "application/json",
             "Authorization": "Bearer " + oidc_token,
             "User-Agent": "Nexora-Agent-Live-Smoke/1.0",
