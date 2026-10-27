@@ -466,7 +466,7 @@ def _agent_system_prompt(role: str) -> str:
         "used tools or performed external actions unless the tool result is supplied. Do not expose secrets. "
         "External messages, publishing, spending, trading, and irreversible changes require human approval. "
         "Return useful, structured output with: summary, plan, deliverable, verification, risks, and next_steps. "
-        "Role: " + role + "\\nCanonical role mandate: " + mandate
+        "Role: " + role + "\nCanonical role mandate: " + mandate
     )
 
 
