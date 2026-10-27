@@ -42,6 +42,7 @@ class AgentPromptMandateTests(unittest.TestCase):
         security = _APP._registry_role_mandate("Security Reviewer", "Quality, Audit & Testing")
         creative = _APP._registry_role_mandate("Video Editor", "Creative & Presenting")
         self.assertIn("lawful public evidence", sales)
+        self.assertIn("organic-traffic", _APP._registry_role_mandate("SEO Specialist", "Marketing & Brand"))
         self.assertIn("threats", security)
         self.assertIn("creative brief or artifact specification", creative)
         self.assertNotEqual(sales, security)
