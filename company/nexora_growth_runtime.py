@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from company.database import connect_database, database_target, is_postgres_target
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -85,18 +86,28 @@ def now() -> str:
 
 class GrowthStore:
     def __init__(self, db_path: str | Path = DEFAULT_DB):
-        self.db_path = str(db_path)
-        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        self.db_path = database_target(db_path)
+        if not is_postgres_target(self.db_path):
+            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._init()
 
     def connect(self):
-        con = sqlite3.connect(self.db_path, timeout=10)
-        con.row_factory = sqlite3.Row
-        con.execute("PRAGMA foreign_keys=ON")
+        con = connect_database(self.db_path, timeout=10)
+        if not is_postgres_target(self.db_path):
+            con.row_factory = sqlite3.Row
+            con.execute("PRAGMA foreign_keys=ON")
         return con
 
     def _init(self):
         with self.connect() as con:
+            # PostgreSQL requires the referenced approvals table to exist before tasks.
+            if is_postgres_target(self.db_path):
+                con.execute("""CREATE TABLE IF NOT EXISTS approvals (
+                  approval_id TEXT PRIMARY KEY, action TEXT NOT NULL, resource_id TEXT NOT NULL,
+                  requester TEXT NOT NULL, approver TEXT, approved INTEGER NOT NULL DEFAULT 0,
+                  decision TEXT NOT NULL DEFAULT 'pending', reason TEXT NOT NULL DEFAULT '',
+                  created_at TEXT NOT NULL, decided_at TEXT
+                )""")
             con.executescript("""
             PRAGMA journal_mode=WAL;
             CREATE TABLE IF NOT EXISTS tasks (
