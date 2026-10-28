@@ -1,6 +1,7 @@
 """Owner-managed service pricing with persistent SQLite storage and a strict INR 499 cap."""
 from __future__ import annotations
 import sqlite3
+from company.database import connect_database, database_target, is_postgres_target
 from pathlib import Path
 
 MAX_SERVICE_PRICE = 499
@@ -27,8 +28,9 @@ def _validate_price(price: object) -> int:
 
 class PricingStore:
     def __init__(self, path: str | Path):
-        self.path = str(path)
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+        self.path = database_target(path)
+        if not is_postgres_target(self.path):
+            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as db:
             db.execute("""CREATE TABLE IF NOT EXISTS service_prices (
                 service_id TEXT PRIMARY KEY, name TEXT NOT NULL,
@@ -39,9 +41,7 @@ class PricingStore:
                            (service_id, name, MAX_SERVICE_PRICE))
 
     def _connect(self):
-        db = sqlite3.connect(self.path, timeout=10)
-        db.row_factory = sqlite3.Row
-        return db
+        return connect_database(self.path, timeout=10)
 
     def list_services(self) -> list[dict]:
         with self._connect() as db:
