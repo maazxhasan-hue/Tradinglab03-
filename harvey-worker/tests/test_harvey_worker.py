@@ -303,6 +303,70 @@ class HarveyWorkerTests(unittest.TestCase):
         self.assertEqual(run_agent.await_args.kwargs["x_api_key"], "test-only-secret")
 
 
+    def test_agent_run_recall_model_writeback_and_completion_are_one_chain(self):
+        class FakeResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"choices": [{"message": {"content": "Verified synthetic agent output."}}]}
+
+        class FakeClient:
+            def __init__(self, *args, **kwargs):
+                self.post_args = None
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, **kwargs):
+                self.post_args = (url, kwargs)
+                return FakeResponse()
+
+        names = ("OPENROUTER_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY")
+        previous = {name: os.environ.pop(name, None) for name in names}
+        os.environ["OPENAI_API_KEY"] = "test-provider-key"
+        try:
+            with (
+                patch.object(worker, "_shared_brain_configured", return_value=True),
+                patch.object(worker, "shared_brain_recall", return_value=[{"summary": "recalled test memory"}]) as recall,
+                patch.object(worker, "shared_brain_remember", return_value=True) as remember,
+                patch.object(worker, "record_brain_event"),
+                patch.object(worker.httpx, "AsyncClient", FakeClient),
+            ):
+                response = self.client.post(
+                    "/agents/run",
+                    headers={"X-API-Key": "test-only-secret"},
+                    json={"role": "Knowledge & Memory", "goal": "Verify the complete agent execution chain."},
+                )
+            self.assertEqual(response.status_code, 200, response.text)
+            body = response.json()
+            self.assertEqual(body["status"], "completed")
+            self.assertTrue(body["shared_brain"]["remembered"])
+            self.assertEqual(body["shared_brain"]["recall_count"], 1)
+            self.assertEqual(body["output"], "Verified synthetic agent output.")
+            recall.assert_called_once()
+            remember.assert_called_once()
+            with worker.db() as conn:
+                row = conn.execute(
+                    "SELECT status,output_json,error FROM tasks WHERE id=?",
+                    (body["task_id"],),
+                ).fetchone()
+            self.assertEqual(row["status"], "completed")
+            self.assertIn("Verified synthetic agent output.", row["output_json"])
+            self.assertIsNone(row["error"])
+        finally:
+            for name in names:
+                os.environ.pop(name, None)
+            for name, value in previous.items():
+                if value is not None:
+                    os.environ[name] = value
+
+
     def test_agent_recall_failure_records_terminal_failed_task(self):
         names = ("OPENROUTER_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY")
         previous = {name: os.environ.pop(name, None) for name in names}
