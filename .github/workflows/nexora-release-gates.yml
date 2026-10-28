@@ -8,7 +8,9 @@ on:
       - "private_hq_server.py"
       - "private-hq/**"
       - "dashboard/**"
-      - "netlify.toml"
+      - "public-site/**"
+      - "Dockerfile.private-hq"
+      - "render.yaml"
       - "tests/**"
       - ".github/workflows/nexora-release-gates.yml"
   push:
@@ -18,7 +20,9 @@ on:
       - "private_hq_server.py"
       - "private-hq/**"
       - "dashboard/**"
-      - "netlify.toml"
+      - "public-site/**"
+      - "Dockerfile.private-hq"
+      - "render.yaml"
       - "tests/**"
       - ".github/workflows/nexora-release-gates.yml"
   workflow_dispatch:
@@ -69,42 +73,67 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
-      - name: Build the allowlisted public artifact
+      - name: Copy the exact Render public-site artifact
         run: |
           set -eu
-          rm -rf public-site
-          mkdir -p public-site/dashboard
-          cp index.html og-image.svg privacy.html robots.txt sitemap.xml 404.html public-site/
-          cp -R about blog pricing portfolio-sample public-site/
-          cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html dashboard/mythos.html dashboard/referrals.html public-site/dashboard/
-      - name: Verify artifact allowlist and reject private source paths
+          test -d public-site
+          test -f public-site/index.html
+          rm -rf public-site-reviewed
+          mkdir -p public-site-reviewed
+          cp -a public-site/. public-site-reviewed/
+      - name: Audit deployed public artifact for private source and credentials
         run: |
           python - <<'PY'
           from pathlib import Path
-          root = Path("public-site")
-          assert (root / "index.html").is_file()
-          assert (root / "dashboard/website.html").is_file()
-          forbidden = (
-              "private-hq", "owner-console", "company", "config", "data",
-              "worker", "harvey-worker", "botlab", "tests",
-              "private_hq_server.py", ".env",
-          )
-          bad = []
+          import re
+
+          root = Path("public-site-reviewed")
+          assert (root / "index.html").is_file(), "Public homepage is missing."
+          assert (root / "dashboard/analytics-consent.js").is_file(), "Homepage-referenced analytics asset is missing."
+
+          forbidden = {
+              ".git", ".github", "private-hq", "owner-console", "company",
+              "config", "data", "worker", "harvey-worker", "botlab",
+              "tests", "node_modules", "venv", ".venv",
+          }
+          path_errors = []
+          content_errors = []
+          secret_patterns = [
+              re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+              re.compile(r"\bsk-or-v1-[A-Za-z0-9]{24,}\b"),
+              re.compile(r"\bsb_secret_[A-Za-z0-9_-]{20,}\b"),
+              re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+              re.compile(r"(?i)SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*['\"]?[^\s'\"]{20,}"),
+          ]
+          scanned = 0
           for item in root.rglob("*"):
               if not item.is_file():
                   continue
               rel = item.relative_to(root).as_posix()
               parts = set(Path(rel).parts)
-              if any(part in forbidden for part in parts) or item.name == "private_hq_server.py" or item.name.startswith(".env"):
-                  bad.append(rel)
-          if bad:
-              raise SystemExit("Forbidden paths in public artifact: " + ", ".join(bad))
-          print(f"PASS: allowlisted public artifact contains {sum(p.is_file() for p in root.rglob('*'))} files and no forbidden private-source paths.")
+              if parts & forbidden or item.name == "private_hq_server.py" or item.name.startswith(".env"):
+                  path_errors.append(rel)
+                  continue
+              try:
+                  text = item.read_text(encoding="utf-8")
+              except (UnicodeDecodeError, OSError):
+                  continue
+              scanned += 1
+              for pattern in secret_patterns:
+                  if pattern.search(text):
+                      content_errors.append(rel)
+                      break
+          if path_errors:
+              raise SystemExit("Private paths in deployed public artifact: " + ", ".join(path_errors))
+          if content_errors:
+              raise SystemExit("Credential-like material in public artifact: " + ", ".join(content_errors))
+          files = sum(1 for p in root.rglob("*") if p.is_file())
+          print(f"PASS: audited the actual Render publish directory ({files} files; {scanned} text files); no forbidden private paths or credential patterns found.")
           PY
-      - name: Upload reviewed public artifact for inspection
+      - name: Upload exact reviewed public artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: nexora-reviewed-public-site-${{ github.sha }}
-          path: public-site/
+          path: public-site-reviewed/
           if-no-files-found: error
           retention-days: 7
