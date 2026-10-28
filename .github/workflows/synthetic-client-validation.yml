@@ -56,7 +56,7 @@ jobs:
           PY
       - name: Upload synthetic review bundle
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-synthetic-client-review-${{ github.run_id }}
           path: data/client_executions/synthetic-validation/

@@ -57,7 +57,7 @@ jobs:
           python -m company.website_pipeline --brief data/website_brief.json --output data/website_drafts/client
       - name: Upload website draft and QA report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: website-draft-${{ github.run_id }}
           path: data/website_drafts/client/

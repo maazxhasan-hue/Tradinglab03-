@@ -61,7 +61,7 @@ jobs:
             --audience "$AUDIENCE" \
             --cta "$CTA"
       - name: Upload drafts for review
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: instagram-content-pack-${{ github.run_id }}
           path: data/instagram_content_packs/
