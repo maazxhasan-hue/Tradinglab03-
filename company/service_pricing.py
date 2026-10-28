@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 from company.database import connect_database, database_target, is_postgres_target
 from pathlib import Path
+from company.database import connect_database, database_target, is_postgres_target
 
 MAX_SERVICE_PRICE = 499
 DEFAULT_SERVICES = (
