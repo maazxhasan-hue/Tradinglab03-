@@ -38,15 +38,16 @@ def main() -> int:
         }
         preferred_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
         models = [preferred_model]
-        # Provider capacity errors are transient. Try the configured model twice,
-        # then a known function-calling-capable fallback without changing production config.
+        # A timed-out request has already exhausted run_tool_agent's internal retries;
+        # switch models immediately instead of wasting another full timeout window.
         fallback_model = os.getenv("GEMINI_SMOKE_FALLBACK_MODEL", "gemini-3.6-flash")
         if fallback_model and fallback_model != preferred_model:
             models.append(fallback_model)
         result = None
         last_error = None
-        for model_name in models:
-            for attempt in range(2):
+        for model_index, model_name in enumerate(models):
+            attempts = 2 if model_index == 0 else 1
+            for attempt in range(attempts):
                 try:
                     result = run_tool_agent(brief=brief, workspace=root, max_rounds=8, model=model_name)
                     last_error = None
@@ -54,13 +55,22 @@ def main() -> int:
                 except Exception as exc:
                     last_error = exc
                     message = str(exc)
-                    transient = "HTTP 503" in message or "HTTP 429" in message or "high demand" in message.lower()
+                    is_timeout = "TimeoutError" in message or "timed out" in message.lower()
+                    transient = (
+                        "HTTP 503" in message
+                        or "HTTP 429" in message
+                        or "high demand" in message.lower()
+                        or is_timeout
+                    )
                     if not transient:
                         safe_detail = str(exc).replace("\r", " ").replace("\n", " ")[:220]
                         # run_tool_agent sanitizes provider errors; redact the key defensively.
                         safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
                         print(f"FAIL: Gemini tool-agent request failed ({type(exc).__name__}): {safe_detail}")
                         return 1
+                    if is_timeout:
+                        print(f"RETRY: {model_name} timed out after internal retries; trying the next configured model if available.")
+                        break
                     if attempt == 0:
                         time.sleep(2)
             if last_error is None:
@@ -69,7 +79,7 @@ def main() -> int:
             safe_detail = str(last_error).replace("\r", " ").replace("\n", " ")[:220]
             if os.getenv("GEMINI_API_KEY"):
                 safe_detail = safe_detail.replace(os.environ["GEMINI_API_KEY"], "[redacted]")
-            print(f"FAIL: Gemini native tool calling unavailable after transient retries and fallback model: {safe_detail}")
+            print(f"FAIL: Gemini native tool calling unavailable after bounded retries and fallback model: {safe_detail}")
             return 1
         artifact = root / relative
         if int(result.get("tool_calls", 0) or 0) < 1:
