@@ -24,6 +24,7 @@ from company.nexora_batch_executor import start_all_agents, start_company_workfo
 from company.role_contracts import all_role_contracts, role_contract
 from company.production_health import check_shared_brain
 from company.service_pricing import PricingStore, PricingValidationError
+from company.observability import build_monitoring_snapshot
 PRICING_DB = os.environ.get("NEXORA_PRICING_DB", str(APP_ROOT / "data" / "nexora_pricing.sqlite3"))
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
@@ -46,6 +47,7 @@ ALLOWED = {
     "visitor-analytics.html",
     "visitor-analytics-ui.js",
     "pricing-admin.html",
+    "monitoring.html",
 }
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -173,6 +175,9 @@ class Handler(BaseHTTPRequestHandler):
                 }), "application/json; charset=utf-8"); return
             if parsed.path == "/api/company/batch":
                 self.body(200, json.dumps(batch_status()), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/company/monitoring":
+                snapshot = build_monitoring_snapshot(store, limit=250)
+                self.body(200, json.dumps(snapshot), "application/json; charset=utf-8"); return
             if parsed.path == "/api/company/tasks":
                 self.body(200, json.dumps({"tasks": store.list_tasks(limit=250)}), "application/json; charset=utf-8"); return
             self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
