@@ -678,12 +678,17 @@ async def run_agent(req: AgentRunRequest, x_api_key: Optional[str] = Header(defa
         memories = shared_brain_recall(req.role + " " + req.goal, limit=5, agent_id=agent_id)
         record_brain_event(agent_id, "recall", "completed", len(memories))
     except Exception:
-        record_brain_event(agent_id, "recall", "failed", 0)
+        # Task state is the source of truth; telemetry must never prevent a
+        # terminal status from being persisted.
         with db() as c:
             c.execute(
                 "UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?",
                 ("Shared Brain recall failed; disconnected execution blocked.", now(), task_id)
             )
+        try:
+            record_brain_event(agent_id, "recall", "failed", 0)
+        except Exception:
+            pass
         raise HTTPException(503, "Shared Brain recall failed; agent run stopped to prevent disconnected execution.")
     memory_context = "\n\nSHARED BRAIN CONTEXT (verify against current facts):\n" + "\n".join(
         "- " + str(m.get("summary") or "")[:700] for m in memories if isinstance(m, dict)
