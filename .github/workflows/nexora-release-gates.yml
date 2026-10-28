@@ -1,0 +1,110 @@
+name: Nexora Agent and Public Artifact Release Gates
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "private_hq_server.py"
+      - "private-hq/**"
+      - "dashboard/**"
+      - "netlify.toml"
+      - "tests/**"
+      - ".github/workflows/nexora-release-gates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "company/**"
+      - "private_hq_server.py"
+      - "private-hq/**"
+      - "dashboard/**"
+      - "netlify.toml"
+      - "tests/**"
+      - ".github/workflows/nexora-release-gates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-release-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+      - name: Run complete regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Verify provider-free agent queue fails closed
+        run: |
+          python - <<'PY'
+          import tempfile
+          from pathlib import Path
+          from company.nexora_growth_runtime import GrowthStore
+          from company.nexora_agent_executor import ProviderNotConfigured
+          from company.nexora_batch_executor import start_all_agents
+          with tempfile.TemporaryDirectory() as tmp:
+              store = GrowthStore(Path(tmp) / "growth.sqlite3")
+              try:
+                  start_all_agents(store, {})
+              except ProviderNotConfigured:
+                  pass
+              else:
+                  raise SystemExit("Agent launch must fail closed without a configured provider.")
+              assert store.list_tasks() == [], "No tasks should be queued without a provider."
+          print("PASS: provider-free agent launch fails closed without creating tasks.")
+          PY
+
+  public-artifact-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+      - name: Build the allowlisted public artifact
+        run: |
+          set -eu
+          rm -rf public-site
+          mkdir -p public-site/dashboard
+          cp index.html og-image.svg privacy.html robots.txt sitemap.xml 404.html public-site/
+          cp -R about blog pricing portfolio-sample public-site/
+          cp dashboard/website.html dashboard/chat-widget.js dashboard/login.html dashboard/privacy.html dashboard/mythos.html dashboard/referrals.html public-site/dashboard/
+      - name: Verify artifact allowlist and reject private source paths
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root = Path("public-site")
+          assert (root / "index.html").is_file()
+          assert (root / "dashboard/website.html").is_file()
+          forbidden = (
+              "private-hq", "owner-console", "company", "config", "data",
+              "worker", "harvey-worker", "botlab", "tests",
+              "private_hq_server.py", ".env",
+          )
+          bad = []
+          for item in root.rglob("*"):
+              if not item.is_file():
+                  continue
+              rel = item.relative_to(root).as_posix()
+              parts = set(Path(rel).parts)
+              if any(part in forbidden for part in parts) or item.name == "private_hq_server.py" or item.name.startswith(".env"):
+                  bad.append(rel)
+          if bad:
+              raise SystemExit("Forbidden paths in public artifact: " + ", ".join(bad))
+          print(f"PASS: allowlisted public artifact contains {sum(p.is_file() for p in root.rglob('*'))} files and no forbidden private-source paths.")
+          PY
+      - name: Upload reviewed public artifact for inspection
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nexora-reviewed-public-site-${{ github.sha }}
+          path: public-site/
+          if-no-files-found: error
+          retention-days: 7
