@@ -8,10 +8,17 @@ on:
       - "tests/gemini_tool_agent_live_smoke.py"
       - "tests/shared_brain_role_matrix.py"
       - ".github/workflows/shared-brain-live-smoke.yml"
+      - ".github/workflows/nexora-release-gates.yml"
       - "company/shared_brain.py"
       - "company/shared_brain_sync.py"
       - "company/agent_runtime.py"
       - "company/tool_agent.py"
+      - "company/nexora_agent_executor.py"
+      - "company/nexora_batch_executor.py"
+      - "company/nexora_growth_runtime.py"
+      - "company/production_health.py"
+      - "private_hq_server.py"
+      - "Dockerfile.private-hq"
       - "supabase/functions/shared-brain/**"
   workflow_dispatch:
 
@@ -65,5 +72,4 @@ jobs:
           if [ "$smoke_status" -ne 0 ] || [ "$matrix_status" -ne 0 ]; then
             exit 1
           fi
-# Keep this workflow path-triggered so live integration checks can be re-run on workflow changes.
-# Live verification trigger: keep this workflow testable on production configuration changes.
+# Re-run live model and Shared Brain checks whenever private runtime or release-gate code changes.
