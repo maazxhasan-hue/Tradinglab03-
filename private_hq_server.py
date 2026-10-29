@@ -357,6 +357,29 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     if len(PASSWORD) < 16 or len(SESSION_SECRET) < 32:
         raise SystemExit("HQ_ACCESS_PASSWORD/HQ_ADMIN_PASSWORD must be at least 16 chars and HQ_SESSION_SECRET at least 32 chars.")
+    # Emit a sanitized startup readiness record so operators can verify the selected backend.
+    try:
+        growth_target = database_target(GROWTH_DB)
+        pricing_target = database_target(PRICING_DB)
+        growth_store = GrowthStore(GROWTH_DB)
+        pricing_store = PricingStore(PRICING_DB)
+        with connect_database(growth_target, timeout=5) as db:
+            db.execute("SELECT 1").fetchone()
+        with connect_database(pricing_target, timeout=5) as db:
+            db.execute("SELECT 1").fetchone()
+        print(json.dumps({
+            "event": "database_readiness",
+            "status": "ok",
+            "backend": "postgres" if is_postgres_target(growth_target) and is_postgres_target(pricing_target) else "sqlite",
+            "task_records_readable": len(growth_store.list_tasks(limit=1)),
+            "pricing_services_readable": len(pricing_store.list_services()),
+        }), flush=True)
+    except Exception as exc:
+        print(json.dumps({
+            "event": "database_readiness",
+            "status": "failed",
+            "error_type": type(exc).__name__,
+        }), flush=True)
     # Recover any durable queued drafts after a process restart; no new tasks are fabricated.
     try:
         recovered = resume_queued_tasks(GrowthStore(GROWTH_DB))
