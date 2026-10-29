@@ -373,6 +373,9 @@ if __name__ == "__main__":
             "backend": "postgres" if is_postgres_target(growth_target) and is_postgres_target(pricing_target) else "sqlite",
             "task_records_readable": len(growth_store.list_tasks(limit=1)),
             "pricing_services_readable": len(pricing_store.list_services()),
+            "ai_provider": provider_status(),
+            "shared_brain": brain_status(),
+            "growth_execution_enabled": GROWTH_ENABLED,
         }), flush=True)
     except Exception as exc:
         print(json.dumps({
