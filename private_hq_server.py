@@ -25,6 +25,7 @@ from company.role_contracts import all_role_contracts, role_contract
 from company.production_health import check_shared_brain
 from company.service_pricing import PricingStore, PricingValidationError
 from company.observability import build_monitoring_snapshot
+from company.database import database_target, is_postgres_target, connect_database
 PRICING_DB = os.environ.get("NEXORA_PRICING_DB", str(APP_ROOT / "data" / "nexora_pricing.sqlite3"))
 GROWTH_DB = os.environ.get("NEXORA_GROWTH_DB", str(APP_ROOT / "data" / "nexora_growth.sqlite3"))
 GROWTH_ENABLED = os.environ.get("NEXORA_GROWTH_ENABLED", "false").lower() == "true"
@@ -199,7 +200,26 @@ class Handler(BaseHTTPRequestHandler):
             self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
         path = parsed.path
         if path == "/healthz":
-            self.body(200, '{"status":"ok"}', "application/json; charset=utf-8")
+            # Safe, credential-free readiness check: never return or log the database URL.
+            try:
+                growth_target = database_target(GROWTH_DB)
+                pricing_target = database_target(PRICING_DB)
+                with connect_database(growth_target, timeout=5) as db:
+                    db.execute("SELECT 1").fetchone()
+                with connect_database(pricing_target, timeout=5) as db:
+                    db.execute("SELECT 1").fetchone()
+                payload = {
+                    "status": "ok",
+                    "database": "postgres" if is_postgres_target(growth_target) and is_postgres_target(pricing_target) else "sqlite",
+                    "database_connection": "ok",
+                }
+                self.body(200, json.dumps(payload), "application/json; charset=utf-8")
+            except Exception as exc:
+                self.body(503, json.dumps({
+                    "status": "degraded",
+                    "database_connection": "failed",
+                    "error_type": type(exc).__name__,
+                }), "application/json; charset=utf-8")
             return
         if path in ("/", "/login"):
             if self.authenticated():
