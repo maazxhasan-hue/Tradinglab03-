@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f5f7">
+<meta name="description" content="Internal Nexora AI agent workspace for planning, building, validating, and delivering creative projects. Not a customer page.">
+<meta name="robots" content="noindex,nofollow,noarchive"><title>Nexora HQ — Internal Creative Agent</title>
+<style>
+:root{color-scheme:light;--bg:#f5f5f7;--panel:#fff;--line:#dedee3;--text:#1d1d1f;--muted:#6e6e73;--blue:#0071e3;--soft:#edf5ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fbfbfd,#f5f5f7 60%,#fbfbfd);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em}a{color:var(--blue)}.wrap{width:min(1180px,calc(100% - 32px));margin:auto}.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fbfbf7ed;backdrop-filter:blur(16px);z-index:5}.brand{font-weight:800;text-decoration:none;color:var(--text)}.brand span{color:var(--blue)}.nav a{font-size:.9rem}.hero{padding:42px 0 26px}.eyebrow{color:var(--blue);font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.hero h1{font-size:clamp(2.4rem,5vw,4.6rem);line-height:1;letter-spacing:-.065em;margin:12px 0}.muted{color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:18px;align-items:start}.panel{background:#fff;border:1px solid #e2e2e7;border-radius:22px;padding:22px;box-shadow:0 8px 28px #1d1d1f08}.panel h2{font-size:1.2rem;margin:0 0 14px;letter-spacing:-.03em}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}.field label{display:block;font-size:.83rem;color:#515154;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;font:inherit;padding:11px 12px;border:1px solid #d2d2d7;border-radius:11px;background:white;color:#1d1d1f}.field textarea{min-height:90px;resize:vertical}.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #0071e3;outline-offset:3px}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.btn{border:1px solid var(--blue);background:var(--blue);color:white;border-radius:999px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.btn.secondary{background:white;color:var(--blue);border-color:#bfd5ee}.btn:disabled{opacity:.55;cursor:not-allowed}.preview{overflow:hidden}.canvas-wrap{position:relative;background:#080d16;border-radius:16px;overflow:hidden;aspect-ratio:16/9}.canvas-wrap canvas{display:block;width:100%;height:100%}.overlay{position:absolute;bottom:12px;left:13px;color:#dbeafe;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;pointer-events:none}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}.stat{padding:11px;border:1px solid #e5e5ea;border-radius:12px;background:#fafafa}.stat strong{display:block;font-size:1.05rem}.stat span{color:var(--muted);font-size:.75rem}.status{padding:12px 14px;border:1px solid #e1e5ec;border-radius:12px;background:#f8fafc;color:#515154;margin-top:12px;overflow-wrap:anywhere}.status.ok{background:#edf8f1;border-color:#b8dfc5;color:#176b37}.status.warn{background:#fff8e9;border-color:#eed9a9;color:#795614}.checklist{padding:0;list-style:none;display:grid;gap:8px}.checklist li{padding:9px 11px;border-radius:10px;background:#f5f5f7;font-size:.87rem}.checklist .pass{background:#edf8f1;color:#176b37}.checklist .pending{background:#fff8e9;color:#795614}.small{font-size:.8rem;color:var(--muted)}.footer{margin:30px auto 42px;padding-top:20px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}@media(max-width:850px){.layout{grid-template-columns:1fr}.hero{padding-top:30px}}@media(max-width:520px){.fields{grid-template-columns:1fr}.field.full{grid-column:auto}.panel{padding:16px;border-radius:18px}.wrap{width:calc(100% - 24px)}.nav{align-items:flex-start;flex-wrap:wrap}.stats{gap:6px}.stat{padding:8px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="wrap nav"><a class="brand" href="/">NEXORA<span> AI</span> / STUDIO AGENT</a><nav><a href="/video-studio.html">Internal agent brief</a> &nbsp;·&nbsp; <a href="/">Main website</a></nav></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">Creative agent · motion concept builder</div><h1>Brief in.<br>Visual draft out.</h1><p class="muted">Create a branded motion concept from your brief, preview it, run basic checks, and export a standalone HTML animation or a browser-recorded WebM draft. This local creative agent uses procedural Canvas graphics; it does not call a cloud AI model or claim to reproduce a reference exactly.</p></section>
+<div class="layout">
+<section class="panel">
+<h2>1. Give the agent a clear brief</h2>
+<form id="briefForm"><div class="fields">
+<div class="field full"><label for="brand">Brand / project name *</label><input id="brand" maxlength="80" required value="NEXORA AI"></div>
+<div class="field full"><label for="headline">Exact headline / on-screen copy *</label><input id="headline" maxlength="100" required value="Ideas into impact."></div>
+<div class="field"><label for="style">Visual direction</label><select id="style"><option value="cinematic">Cinematic 3D-inspired</option><option value="product">Premium product reveal</option><option value="tech">Futuristic technology</option><option value="editorial">Editorial typography</option><option value="explainer">Explainer / orbit diagram</option></select></div>
+<div class="field"><label for="duration">Duration</label><select id="duration"><option value="15">15 seconds</option><option value="18" selected>18 seconds</option><option value="20">20 seconds</option></select></div>
+<div class="field"><label for="ratio">Aspect ratio</label><select id="ratio"><option value="16:9">16:9 landscape</option><option value="9:16">9:16 vertical</option><option value="1:1">1:1 square</option><option value="4:5">4:5 portrait feed</option></select></div>
+<div class="field"><label for="accent">Accent colour</label><input id="accent" type="color" value="#0071e3"></div>
+<div class="field full"><label for="description">Scene, pacing and motion notes</label><textarea id="description" maxlength="1500" placeholder="Describe the opening, subject, camera movement, materials, lighting, transition and ending.">Slow camera push, elegant floating geometry, crisp type, soft light and a confident closing frame.</textarea></div>
+<div class="field full"><label for="cta">Closing line / call to action</label><input id="cta" maxlength="120" value="Make your next move."></div>
+</div><div class="btns"><button class="btn" type="submit">Generate visual draft</button><button class="btn secondary" id="reset" type="button">Reset preview</button></div></form>
+<div id="agentStatus" class="status" role="status" aria-live="polite">Ready. Complete the required fields and generate a draft.</div>
+<p class="small">Safety and fidelity rule: treat reference links as inspiration, preserve supplied copy verbatim, do not fabricate brand facts, and flag any missing requirements for human review.</p>
+</section>
+<section class="panel preview">
+<h2>2. Preview & export</h2><div class="canvas-wrap"><canvas id="scene" width="1280" height="720" aria-label="Generated motion design preview"></canvas><div class="overlay" id="overlay">NEXORA AI · MOTION CONCEPT</div></div>
+<div class="stats"><div class="stat"><strong id="statDuration">18s</strong><span>Target duration</span></div><div class="stat"><strong id="statRatio">16:9</strong><span>Frame ratio</span></div><div class="stat"><strong id="statMode">Draft</strong><span>Output state</span></div></div>
+<div class="btns"><button class="btn" id="play">Play preview</button><button class="btn secondary" id="record">Record WebM</button><button class="btn secondary" id="downloadHtml">Download HTML</button></div>
+<div id="exportStatus" class="status">Generate a draft first. WebM recording depends on browser MediaRecorder support.</div>
+<h2 style="margin-top:22px">3. Quality gate</h2><ul class="checklist" id="qa"><li class="pending">Waiting for a generated draft.</li></ul>
+<p class="small">Automated checks only cover basic brief completeness and export settings. A human must still inspect spelling, reference fidelity, continuity, visual artifacts, audio, and final playback. This preview exports silent video.</p>
+</section>
+</div>
+<section class="panel" style="margin-top:18px"><h2>Creative reference library</h2><p class="muted">Inspired by techniques in <a href="https://github.com/yihui-dev/awesome-opus5-5-videos" target="_blank" rel="noopener noreferrer">awesome-opus5-5-videos</a>, a curated collection of prompts and examples using HTML, Canvas, SVG, Three.js, GLSL and Web Audio. The collection is a reference source, not a rendering engine; creator-specific prompts and assets remain attributed to their owners. This Studio implements its own procedural Canvas draft workflow rather than copying the entire upstream repository.</p></section>
+</main>
+
+
+<section class="panel" style="margin-top:18px" aria-labelledby="projectBuilderTitle">
+<h2 id="projectBuilderTitle">AI Project Builder</h2>
+<p class="muted">Send a real project brief to Nexora’s server-side model worker. It generates a multi-file source project and a ZIP archive. Generated code is not executed automatically; inspect it and run it in a sandbox.</p>
+<form id="projectBuildForm"><div class="fields">
+<div class="field full"><label for="workerUrl">AI worker API base URL *</label><input id="workerUrl" type="url" value="https://tradinglab03.onrender.com" placeholder="https://your-worker.onrender.com" autocomplete="url" required></div>
+<div class="field full"><label for="workerKey">Worker API key *</label><input id="workerKey" type="password" placeholder="Enter your HARVEY_API_KEY" autocomplete="off" required><p class="small">Used for this request only. Not saved to local storage or included in the generated ZIP. Only enter a key for a worker you control.</p></div>
+<div class="field full"><label for="projectName">Project name *</label><input id="projectName" maxlength="100" required value="Nexora generated project"></div>
+<div class="field full"><label for="projectBrief">What should it build? *</label><textarea id="projectBrief" maxlength="8000" required style="min-height:150px" placeholder="Describe the product, target users, screens, behavior, data model, integrations, design system, edge cases, and acceptance criteria."></textarea></div>
+<div class="field full"><label for="projectConstraints">Quality and technical constraints</label><textarea id="projectConstraints" maxlength="3000">Use maintainable architecture, accessible responsive UI, input validation, clear error states, README setup instructions, practical tests, and no hard-coded secrets. List assumptions and unresolved dependencies. Do not claim tests were run unless they were actually executed.</textarea></div>
+</div><div class="btns"><button id="testWorkerConnection" class="btn secondary" type="button">Test worker connection</button><button id="testBrainConnection" class="btn secondary" type="button">Check Brain connection</button><button id="buildProjectBtn" class="btn" type="submit">Build project ZIP</button><button id="clearWorkerKey" class="btn secondary" type="button">Clear API key</button></div></form>
+<div id="projectBuildStatus" class="status" role="status">Worker connection has not been tested yet.</div>
+<div id="projectBuildResult" hidden><h3>Build report</h3><p id="projectBuildSummary"></p><ul id="projectBuildFiles" class="checklist"></ul><div class="btns"><button id="downloadProjectZip" class="btn" type="button">Download source ZIP</button></div><p class="small">The report distinguishes generated files from executed tests. No code is run by the generator service.</p></div>
+</section>
+
+<section class="panel" style="margin-top:18px" aria-labelledby="agentOpsTitle">
+<h2 id="agentOpsTitle">Internal agent operations</h2>
+<p class="muted">This workspace is for Nexora’s internal agents, not customers. Agents should use approved references privately, plan the work, generate files, run checks, repair failures, and report only the deliverable and verified status. Do not expose internal repositories, prompts, credentials, logs, or agent orchestration to customers.</p>
+<div class="stats"><div class="stat"><strong>Plan</strong><span>Convert brief into tasks</span></div><div class="stat"><strong>Build</strong><span>Generate project files</span></div><div class="stat"><strong>Verify</strong><span>Test and repair</span></div></div>
+<div class="status" role="status">Internal workspace. Customer-facing pages should link to the service brief, never this agent workspace.</div>
+</section>
+
+
+<footer class="wrap footer">Nexora AI Studio · Local-first draft generation · No brief is uploaded automatically.</footer>
+<script>
+(()=> {
+const $=id=>document.getElementById(id), canvas=$('scene'),ctx=canvas.getContext('2d');
+let running=false,raf=0,start=0,elapsed=0,generated=false,latestConfig=null,recording=false;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function config(){return {brand:$('brand').value.trim(),headline:$('headline').value.trim(),style:$('style').value,duration:+$('duration').value,ratio:$('ratio').value,accent:$('accent').value,description:$('description').value.trim(),cta:$('cta').value.trim()};}
+function dims(r){return r==='9:16'?[720,1280]:r==='1:1'?[900,900]:r==='4:5'?[800,1000]:[1280,720]}
+function resize(){const c=latestConfig||config();const [w,h]=dims(c.ratio);canvas.width=w;canvas.height=h;draw(0)}
+function draw(t){if(!ctx)return;const c=latestConfig||config(),w=canvas.width,h=canvas.height,accent=c.accent||'#0071e3';
+ctx.clearRect(0,0,w,h);const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#07111f');bg.addColorStop(.55,'#101e33');bg.addColorStop(1,'#03070d');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+const cx=w*.69,cy=h*.47,scale=Math.min(w,h),phase=t/Math.max(1,c.duration);
+const glow=ctx.createRadialGradient(cx,cy,2,cx,cy,scale*.45);glow.addColorStop(0,accent+'55');glow.addColorStop(1,accent+'00');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.12);
+for(let i=0;i<7;i++){const a=i*Math.PI/7,rx=scale*(.12+i*.025),ry=scale*(.04+i*.012);ctx.save();ctx.rotate(a);ctx.strokeStyle=accent+(i%2?'66':'aa');ctx.lineWidth=Math.max(1,scale*.0017);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
+const sphere=ctx.createRadialGradient(-scale*.045,-scale*.055,scale*.008,0,0,scale*.15);sphere.addColorStop(0,'#ffffff');sphere.addColorStop(.12,'#cfe7ff');sphere.addColorStop(.48,accent);sphere.addColorStop(1,'#08111f');ctx.fillStyle=sphere;ctx.beginPath();ctx.arc(0,0,scale*.12,0,Math.PI*2);ctx.fill();
+ctx.restore();
+for(let i=0;i<70;i++){const x=((i*197.3+t*(8+i%5))%(w+30))-15,y=(i*89.7%h);ctx.globalAlpha=.15+(i%5)*.08;ctx.fillStyle='#dceaff';ctx.fillRect(x,y,Math.max(1,scale*.0015),Math.max(1,scale*.0015))}ctx.globalAlpha=1;
+const pad=w*.075, left=pad, maxText=w*.49, top=h*(c.ratio==='9:16'?.32:.39);
+ctx.fillStyle=accent;ctx.font='700 '+Math.round(scale*.018)+'px system-ui';ctx.fillText(c.brand.toUpperCase().slice(0,36),left,top-scale*.105);
+ctx.fillStyle='#f5f8ff';let fontSize=Math.round(scale*(c.ratio==='9:16'?.075:.068));ctx.font='750 '+fontSize+'px system-ui';const words=c.headline.split(/\s+/);let lines=[],line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxText&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);lines.slice(0,4).forEach((ln,i)=>ctx.fillText(ln,left,top+i*fontSize*1.12));
+ctx.fillStyle='#c8d5e8';ctx.font='400 '+Math.round(scale*.018)+'px system-ui';const desc=(c.description||'Original motion concept').replace(/\s+/g,' ');ctx.fillText(desc.slice(0,Math.floor(maxText/(scale*.009))),left,top+Math.min(lines.length,4)*fontSize*1.12+scale*.035);
+ctx.fillStyle=accent;ctx.fillRect(left,top+Math.min(lines.length,4)*fontSize*1.12+scale*.07,scale*.07,Math.max(3,scale*.004));
+ctx.fillStyle='#f4f7fb';ctx.font='650 '+Math.round(scale*.02)+'px system-ui';ctx.fillText((c.cta||'').slice(0,42),left,Math.min(h-pad,top+Math.min(lines.length,4)*fontSize*1.12+scale*.14));
+ctx.fillStyle='#a8b9d0';ctx.font='500 '+Math.round(scale*.012)+'px system-ui';ctx.fillText('CONCEPT PREVIEW  ·  '+Math.min(c.duration,Math.floor(t)).toString().padStart(2,'0')+'s',pad,h-pad*.45);
+}
+function frame(now){if(!running)return;elapsed=(now-start)/1000;draw(elapsed);if(elapsed>=((latestConfig||config()).duration)){running=false;elapsed=0;$('play').textContent='Play preview';draw(0);return}raf=requestAnimationFrame(frame)}
+function play(){if(running){running=false;cancelAnimationFrame(raf);$('play').textContent='Play preview';return}if(!generated)generate();running=true;start=performance.now();$('play').textContent='Pause preview';raf=requestAnimationFrame(frame)}
+function generate(){if(!$('briefForm').reportValidity())return;latestConfig=config();generated=true;elapsed=0;running=false;cancelAnimationFrame(raf);const [w,h]=dims(latestConfig.ratio);canvas.width=w;canvas.height=h;draw(0);$('overlay').textContent=latestConfig.brand+' · '+latestConfig.style.toUpperCase()+' CONCEPT';$('statDuration').textContent=latestConfig.duration+'s';$('statRatio').textContent=latestConfig.ratio;$('statMode').textContent='Ready';$('agentStatus').textContent='Draft generated locally. Preview it and review the QA checklist before exporting.';$('agentStatus').className='status ok';qa();$('exportStatus').textContent='Draft ready. HTML export contains a standalone procedural Canvas animation; WebM is a silent browser recording.';}
+function qa(){const c=latestConfig||config(),items=[['Required brand and headline',!!c.brand&&!!c.headline],['Duration within 15–20 seconds',c.duration>=15&&c.duration<=20],['Supported aspect ratio',dims(c.ratio).length===2],['Scene notes supplied',c.description.length>10],['Closing line supplied',!!c.cta],['Resolution/frame dimensions set',canvas.width>0&&canvas.height>0],['Reference/brand fidelity reviewed by human',false],['Final playback and visual artifacts checked by human',false]];$('qa').innerHTML=items.map(([label,pass])=>'<li class="'+(pass?'pass':'pending')+'">'+(pass?'✓ ':'◷ ')+label+(pass?' — passed':' — pending review')+'</li>').join('');}
+function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function htmlExport(){if(!generated)generate();const c=latestConfig;if(!c)return;const encoded=JSON.stringify(c).replace(/</g,'\\u003c');const html='<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+c.brand.replace(/[<>]/g,'')+' — Motion Concept</title><style>html,body{margin:0;background:#050a12;color:white;font-family:system-ui}canvas{display:block;width:100vw;height:100vh;object-fit:contain}</style><canvas id="c" width="'+dims(c.ratio)[0]+'" height="'+dims(c.ratio)[1]+'"></canvas><script>const C='+encoded+';const cv=document.getElementById("c"),x=cv.getContext("2d");function draw(t){const w=cv.width,h=cv.height,s=Math.min(w,h),a=C.accent;x.fillStyle="#07111f";x.fillRect(0,0,w,h);const g=x.createRadialGradient(w*.68,h*.46,1,w*.68,h*.46,s*.46);g.addColorStop(0,a+"88");g.addColorStop(1,"#03070d");x.fillStyle=g;x.fillRect(0,0,w,h);x.save();x.translate(w*.68,h*.46);x.rotate(t*.12);for(let i=0;i<7;i++){x.save();x.rotate(i*Math.PI/7);x.strokeStyle=a+"aa";x.beginPath();x.ellipse(0,0,s*(.12+i*.025),s*(.04+i*.012),0,0,Math.PI*2);x.stroke();x.restore()}const q=x.createRadialGradient(-s*.04,-s*.05,1,0,0,s*.12);q.addColorStop(0,"white");q.addColorStop(.4,a);q.addColorStop(1,"#08111f");x.fillStyle=q;x.beginPath();x.arc(0,0,s*.12,0,7);x.fill();x.restore();x.fillStyle=a;x.font="700 "+s*.02+"px system-ui";x.fillText(C.brand.toUpperCase(),w*.07,h*.32);x.fillStyle="white";x.font="750 "+s*.065+"px system-ui";x.fillText(C.headline.slice(0,34),w*.07,h*.42);x.font="600 "+s*.02+"px system-ui";x.fillText(C.cta.slice(0,42),w*.07,h*.55);requestAnimationFrame(n=>draw(n/1000))}requestAnimationFrame(n=>draw(n/1000));</scr'+'ipt></html>';download('nexora-motion-concept.html',new Blob([html],{type:'text/html;charset=utf-8'}));$('exportStatus').textContent='Standalone HTML downloaded. Open it in a modern browser to play the animation.';}function record(){if(!generated)generate();if(!canvas.captureStream||!window.MediaRecorder){$('exportStatus').textContent='This browser does not support canvas recording. Use Download HTML instead.';$('exportStatus').className='status warn';return}if(recording)return;const stream=canvas.captureStream(30);let mime='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';let recorder;try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch(e){$('exportStatus').textContent='Recording could not start in this browser. Download the HTML animation instead.';return}const chunks=[];recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};recorder.onstop=()=>{recording=false;stream.getTracks().forEach(t=>t.stop());if(chunks.length){download('nexora-motion-draft.webm',new Blob(chunks,{type:recorder.mimeType||'video/webm'}));$('exportStatus').textContent='WebM draft exported. It is silent and must be reviewed; the recording is browser-generated, not a cloud AI render.';$('exportStatus').className='status ok'}$('record').disabled=false;$('record').textContent='Record WebM'};recording=true;$('record').disabled=true;$('record').textContent='Recording…';$('exportStatus').textContent='Recording '+latestConfig.duration+' seconds. Keep this tab open.';const old=running;running=false;cancelAnimationFrame(raf);let t0=performance.now();const tick=now=>{const sec=(now-t0)/1000;draw(sec);if(sec<latestConfig.duration&&recording){requestAnimationFrame(tick)}else if(recording){recorder.stop()}};recorder.start();requestAnimationFrame(tick);}
+$('briefForm').addEventListener('submit',e=>{e.preventDefault();generate()});$('play').addEventListener('click',play);$('reset').addEventListener('click',()=>{running=false;cancelAnimationFrame(raf);elapsed=0;draw(0);$('play').textContent='Play preview';$('agentStatus').textContent='Preview reset. Your brief values are unchanged.'});$('downloadHtml').addEventListener('click',htmlExport);$('record').addEventListener('click',record);
+['brand','headline','style','duration','ratio','accent','description','cta'].forEach(id=>$(id).addEventListener('change',()=>{if(generated)generate()}));
+
+
+const projectForm=$('projectBuildForm'),workerUrl=$('workerUrl'),workerKey=$('workerKey'),buildBtn=$('buildProjectBtn'),buildStatus=$('projectBuildStatus'),buildResult=$('projectBuildResult');
+let builtProject=null;
+function apiBase(){return workerUrl.value.trim().replace(/\/+$/,'')}
+function showBuildStatus(message,kind=''){buildStatus.textContent=message;buildStatus.className='status'+(kind?' '+kind:'')}
+$('testWorkerConnection').addEventListener('click',async()=>{
+ const base=apiBase(),btn=$('testWorkerConnection');
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ btn.disabled=true;btn.textContent='Checking…';showBuildStatus('Checking worker health and configuration…');
+ try{
+  const response=await fetch(base+'/health',{method:'GET',headers:{'Accept':'application/json'}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data.status!=='ready')throw new Error('Health check returned HTTP '+response.status);
+  const model=data.model_configured?'model credentials configured':'model credentials MISSING';
+  const auth=data.api_auth_configured?'API authentication configured':'API authentication MISSING';
+  const database=data.database||'database status unknown';
+  showBuildStatus('Worker reachable. '+model+'. '+auth+'. Database: '+database+'. '+(data.model_configured&&data.api_auth_configured?'Ready for authenticated build requests.':'Fix the missing server-side configuration before building.'),data.model_configured&&data.api_auth_configured?'ok':'warn');
+ }catch(err){showBuildStatus('Connection test failed: '+(err&&err.message?err.message:'Unknown error')+'. Check service URL, deployment health and CORS allowlist.','warn')}
+ finally{btn.disabled=false;btn.textContent='Test worker connection'}
+});
+$('testBrainConnection').addEventListener('click',async()=>{
+ const base=apiBase(),btn=$('testBrainConnection'),key=workerKey.value;
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ if(!key){showBuildStatus('Enter the worker API key for this authenticated Brain check.','warn');return}
+ btn.disabled=true;btn.textContent='Checking Brain…';showBuildStatus('Checking shared Brain connection…');
+ try{
+  const response=await fetch(base+'/brain/status',{headers:{'X-API-Key':key,'Accept':'application/json'}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.detail||('HTTP '+response.status));
+  showBuildStatus(data.configured?'Brain connected at worker configuration level. Agent: '+data.agent_id+'. Memory will be recalled for builds and build summaries saved back when the Brain accepts writes.':'Worker reachable, but shared Brain credentials are not configured server-side. Add SHARED_BRAIN_AGENT_KEY to the worker environment.',''+(data.configured?'ok':'warn'));
+ }catch(err){showBuildStatus('Brain check failed: '+(err&&err.message?err.message:'Unknown error')+'. Check worker deployment and SHARED_BRAIN_AGENT_KEY.','warn')}
+ finally{btn.disabled=false;btn.textContent='Check Brain connection'}
+});
+$('clearWorkerKey').addEventListener('click',()=>{workerKey.value='';showBuildStatus('API key cleared from this page.');});
+projectForm.addEventListener('submit',async e=>{
+ e.preventDefault(); if(!projectForm.reportValidity())return;
+ const base=apiBase(),key=workerKey.value;
+ if(!/^https?:\/\//i.test(base)){showBuildStatus('Enter a valid HTTP(S) worker URL.','warn');return}
+ buildBtn.disabled=true;buildBtn.textContent='Building…';buildResult.hidden=true;builtProject=null;
+ showBuildStatus('Sending brief to the worker. Generation may take up to two minutes.');
+ try{
+  const response=await fetch(base+'/projects/build',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':key},body:JSON.stringify({name:$('projectName').value.trim(),brief:$('projectBrief').value.trim(),constraints:$('projectConstraints').value.trim()})});
+  const data=await response.json().catch(()=>({detail:'Worker returned a non-JSON response.'}));
+  if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'Worker request failed with HTTP '+response.status);
+  if(data.status!=='completed'||!Number.isInteger(data.project_id))throw new Error('Worker response did not contain a completed project ID.');
+  builtProject={base,key,id:data.project_id,data};
+  $('projectBuildSummary').textContent=(data.summary||'Project files generated.')+' Model: '+(data.model||'reported by worker')+'. Brain: '+(data.brain?(data.brain.status+'; recalled '+data.brain.memories_recalled+' memories; saved '+(data.brain.build_saved?'yes':'no')):'status not returned')+'. Tests executed: '+(data.tests_executed===true?'yes':'no — source only; not run by the worker')+'.';
+  $('projectBuildFiles').innerHTML=(data.files||[]).map(file=>'<li>'+String(file.path).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+' · '+Number(file.bytes||0)+' bytes</li>').join('');
+  buildResult.hidden=false;showBuildStatus('Project generated and packaged. Review the report; the source has not been executed.','ok');
+ }catch(err){showBuildStatus('Build failed: '+(err&&err.message?err.message:'Unknown error')+'. Check worker URL, CORS, API key, provider configuration and server logs.','warn')}
+ finally{buildBtn.disabled=false;buildBtn.textContent='Build project ZIP'}
+});
+$('downloadProjectZip').addEventListener('click',async()=>{
+ if(!builtProject)return;
+ const btn=$('downloadProjectZip');btn.disabled=true;
+ try{
+  const response=await fetch(builtProject.base+'/projects/'+builtProject.id+'/download',{headers:{'X-API-Key':builtProject.key}});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.detail||'Download failed with HTTP '+response.status)}
+  const blob=await response.blob();if(!blob.size)throw new Error('The returned ZIP was empty.');
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nexora-project-'+builtProject.id+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  showBuildStatus('Source ZIP downloaded. It has not been executed or independently tested.','ok');
+ }catch(err){showBuildStatus('Download failed: '+(err&&err.message?err.message:'Unknown error'),'warn')}
+ finally{btn.disabled=false}
+});
+
+latestConfig=config();resize();draw(0);
+})();
+</script>
+</body></html>

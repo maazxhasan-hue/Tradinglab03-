@@ -1,0 +1,228 @@
+name: AI Worker Smoke Test
+on:
+  push:
+    branches: [main]
+    paths:
+      - "harvey-worker/**"
+      - "public-site/studio-agent.html"
+      - "public-site/video-studio.html"
+      - ".github/workflows/ai-worker-smoke-test.yml"
+  pull_request:
+    paths:
+      - "harvey-worker/**"
+      - "public-site/studio-agent.html"
+      - "public-site/video-studio.html"
+      - ".github/workflows/ai-worker-smoke-test.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  worker-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: harvey-worker/requirements.txt
+      - name: Install worker and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r harvey-worker/requirements.txt pytest
+      - name: Compile Python sources
+        run: python -m compileall -q harvey-worker
+      - name: Validate Studio Agent inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          source = Path("public-site/studio-agent.html").read_text(encoding="utf-8")
+          source += "\\n" + Path("public-site/video-studio.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", source, flags=re.I | re.S)
+          if not scripts:
+              raise SystemExit("No inline scripts found in Studio Agent")
+          out = Path("/tmp/nexora-inline-scripts")
+          out.mkdir(exist_ok=True)
+          for index, script in enumerate(scripts):
+              target = out / f"script-{index}.js"
+              target.write_text(script, encoding="utf-8")
+              print(target)
+          print(f"Extracted {len(scripts)} inline scripts")
+          PY
+          for script in /tmp/nexora-inline-scripts/*.js; do node --check "$script"; done
+      - name: Run worker regression tests
+        working-directory: harvey-worker
+        run: python -m pytest -q tests
+      - name: Verify live worker health endpoint
+        env:
+          WORKER_URL: https://tradinglab03.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.error, urllib.request
+          url = os.environ["WORKER_URL"].rstrip("/") + "/health"
+          last_error = None
+          # Render free instances can cold-start; retry transient startup/timeouts.
+          for attempt in range(1, 5):
+              try:
+                  request = urllib.request.Request(url, headers={"User-Agent": "Nexora-Worker-Smoke-Test/1.0"})
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      if response.status != 200:
+                          raise RuntimeError(f"Health endpoint returned HTTP {response.status}")
+                      body = json.loads(response.read().decode("utf-8"))
+                  if body.get("status") != "ready":
+                      raise RuntimeError(f"Worker not ready: {body!r}")
+                  print("Live worker health OK; database:", body.get("database", "unknown"))
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Health attempt {attempt}/4 failed: {type(exc).__name__}: {exc}")
+                  if attempt < 4:
+                      time.sleep(10)
+          else:
+              raise SystemExit(f"Live worker health failed after 4 attempts: {last_error}")
+          PY
+      - name: Verify production model, shared brain, and Studio Agent readiness
+        env:
+          WORKER_URL: https://tradinglab03.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          base = os.environ["WORKER_URL"].rstrip("/")
+          def get(path):
+              request = urllib.request.Request(base + path, headers={"User-Agent": "Nexora-Worker-Smoke-Test/1.0", "Accept": "application/json"})
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  if response.status != 200:
+                      raise SystemExit(f"{path} returned HTTP {response.status}")
+                  return json.loads(response.read().decode("utf-8"))
+          health = get("/health")
+          if health.get("status") != "ready":
+              raise SystemExit("Production worker is not ready.")
+          if health.get("api_auth_configured") is not True:
+              raise SystemExit("Production worker API authentication is not configured.")
+          status = get("/public-status")
+          if status.get("shared_brain") != "configured" or status.get("shared_brain_connection") != "connected":
+              raise SystemExit("Production Render worker cannot verify its own Shared Brain connection.")
+          if status.get("model_configured") is not True:
+              raise SystemExit("Production model runtime is not configured; live agent generation cannot be considered ready.")
+          roles = status.get("agents", {}).get("roles", [])
+          names = {role.get("name") for role in roles if isinstance(role, dict)}
+          if "Studio Agent" not in names:
+              raise SystemExit("Studio Agent is missing from the live worker role registry.")
+          print("PASS: production API auth configured, Shared Brain connected, model runtime configured, and Studio Agent registered.")
+          PY
+
+      - name: Optional provider smoke test
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          set +x
+          if [ -n "$GEMINI_API_KEY" ]; then
+            # Use Google's native REST API here so this test verifies the Gemini key
+            # independently of OpenAI-compatible routing and model alias support.
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          Path("request.json").write_text(json.dumps({
+              "contents": [{"parts": [{"text": "Reply with exactly: Nexora worker test OK"}]}],
+              "generationConfig": {"maxOutputTokens": 20, "temperature": 0}
+          }))
+          PY
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+              --connect-timeout 10 --max-time 45 --retry 2 --retry-all-errors --retry-delay 2 \
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
+              -H "x-goog-api-key: $GEMINI_API_KEY" \
+              -H "Content-Type: application/json" --data-binary @request.json); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
+          elif [ -n "$LLM_API_KEY" ] && [ -n "$LLM_BASE_URL" ]; then
+            BASE_URL="${LLM_BASE_URL%/}"
+            MODEL="${LLM_MODEL:-gpt-4.1-mini}"
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+              --max-time 45 "$BASE_URL/chat/completions" \
+              -H "Authorization: Bearer $LLM_API_KEY" -H "Content-Type: application/json" \
+              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}"); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
+          elif [ -n "$OPENAI_API_KEY" ] && [ -n "$OPENAI_BASE_URL" ]; then
+            BASE_URL="${OPENAI_BASE_URL%/}"
+            MODEL="${OPENAI_MODEL:-gpt-4.1-mini}"
+            if ! code=$(curl --silent --show-error --output response.json --write-out "%{http_code}" \
+              --max-time 45 "$BASE_URL/chat/completions" \
+              -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" \
+              -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: Nexora worker test OK\"}],\"max_tokens\":20,\"temperature\":0}"); then
+              echo "::warning::Optional provider smoke test inconclusive: provider endpoint timed out or could not be reached. Mandatory worker regression and live-readiness checks already passed."
+              exit 0
+            fi
+          else
+            echo "::error::No usable provider configuration. Add GEMINI_API_KEY or LLM_API_KEY with LLM_BASE_URL."
+            exit 1
+          fi
+          echo "Provider API HTTP status: $code"
+          if [ "$code" = "429" ]; then
+            provider_status=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              data = json.loads(Path("response.json").read_text())
+              err = data.get("error", {})
+              print(err.get("status", err.get("code", "")))
+          except Exception:
+              print("")
+          PY
+            )
+            if [ "$provider_status" = "RESOURCE_EXHAUSTED" ]; then
+              echo "::warning::Optional provider smoke test skipped: the configured provider quota is exhausted. Live worker health, configuration, and regression checks still run independently."
+              exit 0
+            fi
+          fi
+          if [ "$code" != "200" ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              data = json.loads(Path("response.json").read_text())
+              err = data.get("error", {})
+              status = err.get("status", err.get("code", "unknown"))
+              message = err.get("message", "No details returned")
+              print("Provider error status:", status)
+              print("Provider error message:", message)
+              # Quota exhaustion is external provider availability, not a code regression.
+              # Mandatory worker readiness checks above remain blocking.
+              if status in ("RESOURCE_EXHAUSTED", "TOO_MANY_REQUESTS", 429) or "quota exceeded" in message.lower():
+                  print("::warning::Optional provider smoke test inconclusive: provider quota/rate limit exhausted.")
+                  raise SystemExit(0)
+          except SystemExit:
+              raise
+          except Exception:
+              print("Could not parse provider error response.")
+          PY
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("response.json").read_text())
+          if "candidates" in data:
+              parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+              text = "".join(part.get("text", "") for part in parts)
+              if not text.strip():
+                  raise SystemExit("Gemini returned no assistant text.")
+              print("Gemini native REST smoke test OK.")
+          else:
+              choices = data.get("choices", [])
+              if not choices or not choices[0].get("message", {}).get("content", "").strip():
+                  raise SystemExit("Provider returned no assistant text.")
+              print("Provider smoke test OK; model:", data.get("model", "unspecified"))
+          PY

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Nexora AI — Agent Town HQ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{--ink:#091321;--panel:#122237;--line:#38516a;--cyan:#62f4db;--gold:#ffc778;--text:#eaf5ff;--muted:#a7bdd1;--green:#65f6a4}
+*{box-sizing:border-box}body{margin:0;background:#07101d;color:var(--text);font:19px 'VT323',monospace}button,a{font:10px 'Press Start 2P',monospace;color:var(--text)}button{cursor:pointer;background:#183b4b;border:2px solid #64859a;padding:10px}button:hover{filter:brightness(1.3)}header{height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;background:#091421;border-bottom:3px solid #344a60;position:sticky;top:0;z-index:10}.brand{font:18px 'Press Start 2P';color:var(--cyan);text-shadow:3px 3px #17405b}.health{border:2px solid #3e8b70;padding:7px 10px;color:var(--green);font-size:10px}.shell{display:grid;grid-template-columns:190px 1fr;min-height:calc(100vh - 58px)}aside{padding:14px;background:#0a1624;border-right:3px solid #344a60}aside button{display:block;width:100%;text-align:left;margin:7px 0;background:transparent;border-color:transparent;line-height:1.8}aside button.active{background:#173b58;border-color:#4d809d;color:var(--cyan)}.activity{margin-top:22px;border:2px solid #344a60;padding:10px;background:#101e2d}.activity h3,.label{font:9px 'Press Start 2P';color:var(--gold);line-height:1.8}.activity p{margin:8px 0;font-size:17px}.green{color:var(--green)}main{padding:20px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.top h1{font:clamp(16px,2vw,25px) 'Press Start 2P';line-height:1.8;margin:0}.sub{color:var(--muted);margin:6px 0 16px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}.stat{padding:12px;background:#122237;border:2px solid #38516a;box-shadow:4px 4px #030811}.stat b{display:block;font:14px 'Press Start 2P';color:var(--cyan);margin:8px 0}.scene{position:relative;overflow:hidden;border:5px solid #5d473b;box-shadow:7px 7px #030811;background:#9a6748}.wall{height:140px;padding:12px;background:repeating-linear-gradient(0deg,#9a563e 0 20px,#653c35 20px 24px,#b8754d 24px 27px);border-bottom:7px solid #51392f;position:relative}.windows{position:absolute;left:20%;top:10px;width:37%;height:112px;border:7px solid #624a40;background:linear-gradient(180deg,#728fc0,#f8b77d 65%,#38546d);display:grid;grid-template-columns:1fr 1fr}.windows i{border-right:5px solid #624a40}.sign{position:absolute;left:10px;top:22px;padding:12px;background:#172a3b;border:4px solid #73533d;color:#f8d59b;font:11px 'Press Start 2P';line-height:1.7}.server{position:absolute;right:12px;top:10px;width:15%;height:120px;background:#1a2b3b;border:5px solid #5a6670;display:flex;gap:5px;padding:6px}.server i{flex:1;background:repeating-linear-gradient(0deg,#203d4b 0 9px,#60f4d9 9px 11px,#101923 11px 18px);border:2px solid #4b6675}.floor{padding:18px 12px 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;background:repeating-linear-gradient(0deg,#bb8454 0 24px,#82533e 24px 28px,#d39b62 28px 32px),#bb8454}.station{position:relative;min-height:148px;padding:7px;background:linear-gradient(180deg,#d49a60 0 8%,#8a5a40 8% 13%,#654433 13% 100%);border:4px solid #583e32;box-shadow:5px 6px #4a302b;cursor:pointer}.station h3{margin:0;padding:5px;background:#20384a;border:2px solid #78909b;font:7px 'Press Start 2P';line-height:1.8;min-height:42px}.monitor{margin:9px auto 3px;width:62px;height:43px;background:repeating-linear-gradient(0deg,#0b2c39 0 6px,#175b60 6px 9px);border:5px solid #647b86;box-shadow:4px 4px #433128;position:relative}.monitor:after{content:' ';position:absolute;left:9px;right:9px;bottom:-10px;height:6px;background:#657783}.worker{position:absolute;top:76px;left:calc(50% - 9px);width:18px;height:18px;background:#e5b17b;box-shadow:0 -8px #53382f, -6px 8px #4989bd,6px 8px #4989bd,0 18px #264760,0 26px #1c2e3e;animation:type .45s steps(2) infinite alternate}.worker.walk{animation:walk 2s steps(4) infinite alternate}.worker.read{animation:read 1.5s steps(2) infinite alternate}.bubble{position:absolute;top:63px;right:8px;background:#eff8ff;color:#15283a;border:3px solid #253d50;padding:5px;font-size:15px;box-shadow:3px 3px #3b3028}.station p{margin:7px 0 3px;color:#fff0d8;text-shadow:1px 1px #432d23;font-size:14px}.state{font-size:15px;color:#b9ffe0}.station.busy{outline:3px solid var(--green);animation:glow 1.5s steps(2) infinite}.facility-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;background:#0c1928;border-top:3px solid #344c63}.facility{display:flex;align-items:center;gap:12px;padding:12px;background:#102034;border:2px solid #38516a;min-width:0}.facility-name{font:8px "Press Start 2P";color:var(--gold);line-height:1.8}.mihrab{position:relative;flex:0 0 60px;height:70px;border:4px solid #c4a36e;border-radius:30px 30px 0 0;background:linear-gradient(180deg,#183f50,#0b1b2a)}.rug{position:absolute;bottom:0;left:7px;right:7px;height:16px;background:repeating-linear-gradient(90deg,#65c8bb 0 3px,#193c49 3px 6px);border:2px solid #d4b77d}.lower{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:16px}.panel{background:#102034;border:3px solid #344c63;padding:14px}.panel h2{font:11px 'Press Start 2P';color:var(--gold);line-height:1.8}.log{padding:7px 0;border-bottom:1px solid #2a4055}.log:last-child{border:0}.dot{color:var(--green)}.small{color:var(--muted);font-size:16px}.toast{position:fixed;bottom:12px;right:12px;background:#102d2c;border:2px solid var(--cyan);padding:12px;display:none;z-index:30}.cat{position:absolute;bottom:6px;right:10px;color:#fff;font-size:16px}.hidden{display:none!important}
+@keyframes type{to{transform:translateY(3px)}}@keyframes walk{to{transform:translateX(12px)}}@keyframes read{50%{filter:brightness(1.7)}}@keyframes glow{50%{outline-color:#2c715f}}
+@media(max-width:1100px){.floor{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.station{min-height:145px}}@media(max-width:850px){.shell{grid-template-columns:1fr}aside{display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:3px solid #344a60;padding:6px}aside button{width:auto;white-space:nowrap;font-size:8px;margin:0}.activity{display:none}.stats{grid-template-columns:repeat(2,1fr)}.floor{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 9px}.wall{height:120px}.windows{left:28%;width:35%}.lower{grid-template-columns:1fr}}@media(max-width:480px){.facility-strip{grid-template-columns:1fr}.facility-name{font-size:7px}header{padding:8px 10px;height:auto;min-height:58px;flex-wrap:wrap}.brand{font-size:12px}.health{font-size:8px}main{padding:10px}.floor{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.station{min-height:142px;padding:5px}.station h3{font-size:6px;overflow-wrap:anywhere}.server{width:22%}.windows{width:34%;left:30%}.top h1{font-size:15px}}
+@media(prefers-reduced-motion:reduce){.worker,.station.busy{animation:none}}
+
+/* UNIFIED HQ SKIN: midnight pixel workstation, cyan + warm gold */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{color-scheme:dark;--ink:#070b14;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--gold:#ffc778;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--green:#65f6a4;--pixel-shadow:4px 4px 0 #02050b}
+html{background:#070b14;scroll-behavior:smooth}
+body{background-color:#070b14!important;background-image:linear-gradient(#14213744 1px,transparent 1px),linear-gradient(90deg,#14213744 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%)!important;background-size:16px 16px,16px 16px,100% 100%!important;color:var(--text)!important;font-family:'VT323',monospace!important;font-size:21px;line-height:1.35}
+header{background:#080e1bf5!important;border-bottom:3px solid var(--line)!important;box-shadow:0 4px 0 #03060d!important;backdrop-filter:none!important}
+h1,h2,h3,.brand,.logo,.eyebrow,.label,.facility-name,.station h3,.button,button,.health,.pill{font-family:'Press Start 2P','VT323',monospace!important;letter-spacing:0;line-height:1.65}
+h1{font-size:clamp(17px,2.6vw,27px)!important;text-transform:uppercase;text-shadow:3px 3px #10284a}
+h2{font-size:clamp(11px,1.4vw,16px)!important;color:#b9d2ff}
+h3{font-size:11px!important;color:var(--gold)}
+p,label,.muted,.small,.status, input,select,textarea,pre{font-family:'VT323',monospace!important;font-size:21px!important}
+p,.muted,.small,label{color:var(--muted)}
+.panel,.card,.facility,.activity,.stat,.station,.scene,.toast,.status,.notice,.metric-card,.agent-card,.office,.workstation,.list-card{border-radius:0!important;box-shadow:var(--pixel-shadow)!important}
+.panel,.card,.facility,.activity,.stat,.facility-strip,.lower .panel{background:#0c1524!important;border-color:var(--line)!important}
+button,.button,a.button,input[type=submit]{border:2px solid var(--cyan)!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font-size:9px!important;padding:10px 12px!important}
+button:hover,.button:hover,a.button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #02050b!important;filter:brightness(1.15)}
+button.secondary,.button.secondary{background:#15253a!important;border-color:#516b8e!important;color:var(--text)!important}
+input,select,textarea,pre{background:#070e19!important;border:2px solid var(--line)!important;border-radius:0!important;color:var(--text)!important}
+a{color:#8dc3ff}a:hover{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--gold)!important;outline-offset:3px}
+::selection{background:var(--cyan);color:#061018}
+@media(max-width:700px){header{padding:10px!important;gap:10px}.brand,.logo{font-size:10px!important}main{padding:12px!important}.grid,.stats,.facility-strip,.lower{grid-template-columns:1fr!important}.floor{grid-template-columns:repeat(2,minmax(0,1fr))!important}.facility-name{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Match the agent simulation's room to the same HQ palette */
+.scene{background:#0c1828!important;border:4px solid #b78c55!important;box-shadow:6px 6px 0 #02050b!important}
+.wall{background:repeating-linear-gradient(0deg,#17334a 0 20px,#0e2538 20px 24px,#1d3e55 24px 27px)!important;border-bottom-color:#b78c55!important}
+.windows{border-color:#b78c55!important;background:linear-gradient(180deg,#102c48,#63b9c6 65%,#162a43)!important}
+.windows i{border-color:#b78c55!important}
+.sign{background:#122238!important;border-color:#b78c55!important;color:var(--gold)!important}
+.server{background:#102034!important;border-color:#70869a!important}
+.server i{background:repeating-linear-gradient(0deg,#203d4b 0 9px,#63f5dc 9px 11px,#101923 11px 18px)!important}
+.floor{background:repeating-linear-gradient(0deg,#183047 0 24px,#10263a 24px 28px,#1b3650 28px 32px)!important}
+.station{background:linear-gradient(180deg,#243d53 0 8%,#183047 8% 13%,#0c1828 13% 100%)!important;border-color:#b78c55!important;box-shadow:4px 5px 0 #02050b!important}
+.station h3{background:#122238!important;border-color:#536b83!important;color:var(--gold)!important}
+.monitor{background:repeating-linear-gradient(0deg,#0b2c39 0 6px,#175b60 6px 9px)!important;border-color:#70869a!important}
+.bubble{border-color:#536b83!important}
+.station p{color:#d9e9f8!important;text-shadow:none!important}
+.facility-name,.activity h3,.label{color:var(--gold)!important}
+.mihrab{border-color:var(--gold)!important;background:linear-gradient(180deg,#183f50,#0b1b2a)!important}
+.rug{background:repeating-linear-gradient(90deg,#65c8bb 0 3px,#193c49 3px 6px)!important;border-color:var(--gold)!important}
+
+</style>
+<style id="nexora-reference-scene">
+/* Reference-matched warm pixel office skin: private HQ only */
+:root{--ink:#211a20;--panel:#3a2928;--line:#80533e;--cyan:#5de7ff;--gold:#ffc56f;--text:#fff2d9;--muted:#e2c8a6;--green:#8af5a2}
+body{background:#171723;color:#fff1d7}
+header{background:#211b28;border-bottom:4px solid #9b603f;box-shadow:0 4px 0 #100e17}
+.brand{color:#f5d28a;text-shadow:3px 3px #6c392d}
+.shell{grid-template-columns:174px minmax(0,1fr)}
+aside{background:#281e25;border-color:#895239}
+aside button.active{background:#533328;border-color:#d68d4e;color:#ffe2a1}
+.activity,.stat,.panel{background:#392824;border-color:#9b6243}
+.activity h3,.label,.panel h2{color:#ffd27d}
+main{padding:18px}
+.stats{gap:8px}
+.stat{box-shadow:4px 4px #171018}
+.stat b{color:#63eaff}
+.scene{border:5px solid #704632;box-shadow:8px 8px #120e16;background:#b77a4c}
+.wall{height:clamp(155px,18vw,220px);background:repeating-linear-gradient(0deg,#a9583d 0 20px,#63362f 20px 24px,#c1744d 24px 28px);border-bottom:8px solid #513329}
+.windows{height:calc(100% - 24px);background:linear-gradient(180deg,#6d78a6 0%,#d77d8a 38%,#ffb66e 70%,#65465b 100%);border-color:#694632;box-shadow:inset 0 0 0 3px #d6a06c}
+.windows:after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(90deg,transparent 0 4%,#39405b 4% 10%,transparent 10% 18%,#34374e 18% 24%,transparent 24% 34%,#3e3a51 34% 43%,transparent 43% 52%,#31334a 52% 60%,transparent 60% 70%,#34354b 70% 79%,transparent 79%);opacity:.8}
+.sign{background:#172331;border-color:#8d5d3e;color:#f7e6c5;box-shadow:4px 4px #442c27}
+.server{background:#1b2837;border-color:#9a7258}
+.server i{background:repeating-linear-gradient(0deg,#203b4a 0 9px,#59e8dc 9px 11px,#101923 11px 18px)}
+.floor{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;padding:20px 16px 24px;background:repeating-linear-gradient(0deg,#bd8754 0 24px,#81503b 24px 28px,#d39b62 28px 32px),#bb8454}
+.station{min-height:155px;background:linear-gradient(180deg,#e0a66b 0 8%,#9b6241 8% 13%,#6f4937 13% 100%);border-color:#684331;box-shadow:5px 6px #51352e}
+.station h3{background:#1d3344;border-color:#a07a5b;color:#fff0d5}
+.monitor{background:repeating-linear-gradient(0deg,#0b2c39 0 6px,#175b60 6px 9px);border-color:#7b9299}
+.station p{color:#ffedcf}
+.state{color:#a8ffd0}
+.station.busy{outline-color:#6dffad}
+.facility-strip{background:#39261f;border-color:#704632}
+.facility{background:#4a3026;border-color:#9a6745}
+.facility-name{color:#ffcf79}
+.mihrab{border-color:#d8b77c;background:linear-gradient(180deg,#184452,#0b1b2a)}
+.lower{gap:12px}
+.toast{background:#30221f;border-color:#63eaff;color:#fff1d7}
+@media(max-width:1300px){.floor{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.floor{grid-template-columns:repeat(3,minmax(0,1fr))}.wall{height:150px}}
+@media(max-width:560px){main{padding:10px}.floor{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 8px}.station{min-height:148px}.wall{height:125px}.windows{left:28%;width:36%}.sign{font-size:8px;max-width:34%;overflow-wrap:anywhere}.server{width:22%}}
+</style>
+</head><body>
+<header><div class="brand">NEXORA AI</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="./harvey.html" style="text-decoration:none;border:2px solid #64859a;background:#183b4b;padding:8px">HARVEY</a><button id="voiceToggle" type="button" aria-pressed="false">🎙 VOICE CONTROL</button><div class="health">● WORKFLOW EVIDENCE</div></div></header>
+<div class="shell"><aside><button class="active" data-tab="HQ">⌂ HQ</button><button data-tab="Agents">♟ AGENTS</button><button data-tab="Tasks">▣ TASKS</button><button data-tab="Clients">♙ CLIENTS</button><button data-tab="Projects">▤ PROJECTS</button><button data-tab="Opportunities">⌕ OPPORTUNITIES</button><button data-tab="Analytics">▥ ANALYTICS</button><button data-tab="Settings">⚙ SETTINGS</button><div class="activity"><h3>LIVE ACTIVITY</h3><p><span class="green">●</span> Pixel office loaded</p><p id="sideStatus">● Connecting to workflow feed…</p></div></aside>
+<main><div class="top"><div><div class="label">COMPANY / AGENT TOWN</div><h1 id="pageTitle">YOUR TEAM, AT WORK</h1><p class="sub" id="pageSub">Pixel-art company HQ · Select a workstation to inspect its activity.</p></div><button id="refresh">↻ REFRESH WORKFLOWS</button></div>
+<div class="stats"><div class="stat">AGENT ROLES<b id="agentCount">31</b><span class="small">30 core roles + Instagram</span></div><div class="stat">WORKFLOWS RUNNING<b id="runningCount">—</b><span class="small">GitHub Actions</span></div><div class="stat">SUCCESSFUL RUNS<b id="successCount">—</b><span class="small">Recent workflow history</span></div><div class="stat">LAST CHECK<b id="lastCheck">Not checked</b><span class="small">Workflow API</span></div></div>
+<section class="scene" aria-label="Pixel art office"><div class="wall"><div class="sign">NEXORA AI<br>AGENT TOWN HQ</div><div class="windows"><i></i><i></i></div><div class="server"><i></i><i></i><i></i></div></div><div class="floor" id="agentFloor" aria-label="30 specialist agent workstations"></div><div class="facility-strip" aria-label="HQ facilities"><div class="facility"><div class="mihrab" aria-hidden="true"><div class="rug"></div></div><div><div class="facility-name">NAMAZ ROOM</div><div class="small">Quiet prayer space · mihrab and prayer rug</div></div></div><div class="facility"><div class="server" style="position:relative;inset:auto;width:60px;height:70px;flex:0 0 60px"><i></i><i></i><i></i></div><div><div class="facility-name">SERVER ROOM</div><div class="small">Infrastructure health is reported by actual workflow checks</div></div></div></div></section><div class="lower"><section class="panel"><h2 id="panelTitle">LIVE WORKFLOW ACTIVITY</h2><div id="activityFeed"><div class="log">Connecting to GitHub Actions…</div></div><p class="small">Workflow status is real GitHub Actions data. Character animations are visual and do not claim independent agent execution.</p></section><section class="panel"><h2>WORKSTREAM CONTROL</h2><p class="small">Open the actual workflow to inspect logs or start an approved run.</p><p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml">↗ Opportunity Scout</a></p><p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/autonomous-client-execution.yml">↗ Client Delivery</a></p><p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml">↗ Quality Gate</a></p><p class="small">Client messages, external outreach, payments and deployments require their configured integrations and approvals.</p></section></div></main></div><div class="toast" id="toast"></div>
+<script>
+"use strict";
+const API='https://api.github.com/repos/maazxhasan-hue/Tradinglab03-/actions/runs?per_page=100';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const roles=[
+["CEO Strategy Agent","Leadership","company|daily|operations"],
+["Market Intelligence Agent","Research","opportunity|scout|research"],
+["Lead Discovery Agent","Sales","opportunity|scout|lead"],
+["Sales Qualification Agent","Sales","lead|sales|client"],
+["Proposal & Pricing Agent","Sales","proposal|pricing|client"],
+["Client Success Agent","Client Success","client|intake|support"],
+["Brand & Positioning Agent","Marketing","marketing|content|website"],
+["Content Strategy Agent","Marketing","content|instagram|draft"],
+["Copywriting Agent","Marketing","content|copy|draft"],
+["Social & Community Agent","Marketing","instagram|content|social|draft"],
+["SEO & Website Growth Agent","Marketing","website|seo|growth"],
+["Growth Analytics Agent","Analytics","analytics|health|operations"],
+["Product Manager Agent","Product","project|delivery|builder"],
+["UX/UI Design Agent","Design","website|design|builder"],
+["Frontend Development Agent","Engineering","website|deploy|build"],
+["Backend & Integrations Agent","Engineering","worker|intake|integration|smoke"],
+["Testing & QA Agent","Quality","test|quality|acceptance|smoke"],
+["Security & Privacy Agent","Security","security|privacy|quality|audit"],
+["Release & DevOps Agent","Engineering","deploy|release|pages"],
+["Documentation Agent","Operations","documentation|proposal|delivery"],
+["Project Operations Agent","Operations","operations|delivery|company"],
+["Finance & Revenue Agent","Finance","revenue|finance|payment|billing"],
+["Policy & Compliance Agent","Compliance","policy|compliance|quality|security"],
+["Knowledge & Memory Agent","Knowledge","knowledge|memory|documentation"],
+["Workflow Automation Agent","Automation","automation|agent-worker|workflow"],
+["Customer Support Agent","Client Success","support|intake|client"],
+["Experiment & Learning Agent","Analytics","experiment|quality|tests"],
+["Trading Systems Monitor","Isolated","NEVER_MATCH_PRIVATE_TRADING_INFRA"],
+["Reverse Writing Agent","Creative","reverse|omnireverse|writing"],
+["Cinematic Video Production Agent","Video Studio","video|animation|render|creative-studio"],
+["Instagram Growth Agent","Instagram","instagram|content-pack|draft"]
+];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const taskByDept={Leadership:"Priorities & coordination",Research:"Research & evidence",Sales:"Lead qualification & proposals","Client Success":"Client support workflow",Marketing:"Brand, copy & campaigns",Analytics:"Measure verified results",Product:"Scope & acceptance criteria",Design:"UX/UI review",Engineering:"Build, integrate & deploy",Quality:"Run tests & inspect outputs",Security:"Security & privacy checks",Operations:"Plan & deliver work",Finance:"Revenue analysis only",Compliance:"Policy and approval gates",Knowledge:"Maintain verified knowledge",Automation:"Automate approved workflows",Isolated:"No private trading-system access",Creative:"Review and improve written work","Video Studio":"15–20s 3D/motion video workflow",Instagram:"Instagram content & analytics"};
+const icons={Leadership:"♛",Research:"⌕",Sales:"$", "Client Success":"♡",Marketing:"✎",Analytics:"▥",Product:"▣",Design:"◇",Engineering:"⌘",Quality:"✓",Security:"◆",Operations:"◷",Finance:"₹",Compliance:"⚖",Knowledge:"▤",Automation:"⚙",Isolated:"⊘",Creative:"✍","Video Studio":"▶",Instagram:"◎"};
+$('#agentFloor').innerHTML=roles.map((r,i)=>'<article class="station" tabindex="0" data-agent="'+esc(r[0])+'" data-dept="'+esc(r[1])+'" data-pattern="'+esc(r[2])+'"><h3>'+String(i+1).padStart(2,'0')+'. '+esc(r[0])+'</h3><div class="monitor"></div><div class="worker '+(i%4===1?'read':i%7===0?'walk':'')+'"></div><span class="bubble">'+(icons[r[1]]||'•')+'</span><p>'+esc(taskByDept[r[1]]||'Specialist workflow')+'</p><span class="state">● Checking workflow evidence</span></article>').join('');
+const mapping=[['Research & Intelligence',/opportunity|scout|research|lead/i],['Engineering & QA',/build|test|deploy|website|engineering|worker/i],['Creative Studio',/content|social|creative|marketing|instagram|draft/i],['Video Production',/video|animation|render|creative-studio/i],['Sales & Client Success',/client|intake|sales|reply|proposal/i],['Delivery & Project Ops',/delivery|execution|project|package|company/i],['Security & Quality',/quality|security|audit|gate|smoke/i]];
+let latestRuns=[];
+function render(runs){
+ latestRuns=runs;
+ const active=runs.filter(r=>r.status==='in_progress').length,success=runs.filter(r=>r.status==='completed'&&r.conclusion==='success').length;
+ $('#runningCount').textContent=active;$('#successCount').textContent=success;
+ $('#lastCheck').textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+ $('#agentCount').textContent=roles.length;
+ $('#sideStatus').innerHTML='<span class="green">●</span> '+active+' workflow(s) running';
+ $$('.station').forEach(st=>{
+   const pattern=new RegExp(st.dataset.pattern,'i');
+   const match=st.dataset.dept==='Isolated'?null:runs.find(r=>pattern.test(r.name));
+   const state=st.querySelector('.state');
+   st.classList.toggle('busy',!!match&&match.status==='in_progress');
+   if(match){
+     const status=match.status==='in_progress'?'● WORKFLOW RUNNING':match.conclusion==='success'?'● LAST MATCH SUCCESS':match.status==='completed'?'● '+String(match.conclusion||'COMPLETED').toUpperCase():'● '+match.status.toUpperCase();
+     state.textContent=status;state.title='Workflow evidence: '+match.name+'; this is not proof of an individual agent runtime.';
+     st.dataset.url=match.html_url;
+   }else{
+     state.textContent=st.dataset.dept==='Isolated'?'● ISOLATED BY POLICY':'● NO MATCHING RUN';
+     state.title=st.dataset.dept==='Isolated'?'No connection to private trading infrastructure.':'No matching workflow was found in the recent run window.';
+     delete st.dataset.url;
+   }
+ });
+ $('#activityFeed').innerHTML=runs.slice(0,10).map(r=>'<div class="log"><span class="dot">●</span> <a href="'+esc(r.html_url)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a><br><span class="small">'+esc(r.status)+(r.conclusion?' · '+esc(r.conclusion):'')+' · '+new Date(r.updated_at).toLocaleString()+'</span></div>').join('')||'<div class="log">No workflow runs returned.</div>';
+ $('#panelTitle').textContent='LIVE WORKFLOW ACTIVITY · '+runs.length+' RECORDS';
+ $('#sideStatus').title='Updated '+new Date().toLocaleString();
+}
+async function refresh(){
+ $('#refresh').textContent='↻ CHECKING…';
+ try{
+  const r=await fetch(API,{headers:{Accept:'application/vnd.github+json'},cache:'no-store'});
+  if(!r.ok)throw Error('GitHub API '+r.status);
+  const data=await r.json();
+  if(!Array.isArray(data.workflow_runs))throw Error('No workflow data');
+  render(data.workflow_runs);
+  $('#toast').textContent='Workflow feed updated from GitHub Actions';
+  $('#toast').style.display='block';setTimeout(()=>$('#toast').style.display='none',1800);
+ }catch(e){
+  $('#activityFeed').innerHTML='<div class="log">Workflow feed unavailable: '+esc(e.message)+'. Open a workflow link to check status.</div>';
+  $('#sideStatus').textContent='● Feed unavailable';$('#lastCheck').textContent='Error';
+ }finally{$('#refresh').textContent='↻ REFRESH WORKFLOWS'}
+}
+function toast(msg){$('#toast').textContent=msg;$('#toast').style.display='block';setTimeout(()=>$('#toast').style.display='none',2800)}
+$$('.station').forEach(st=>{
+ const activate=()=>{if(st.dataset.agent==='Cinematic Video Production Agent'){window.open('./video-agent.html','_blank','noopener');return}const u=st.dataset.url;if(u)window.open(u,'_blank','noopener');else toast(st.dataset.agent+': '+(taskByDept[st.dataset.dept]||'Specialist workflow')+' — no matching live workflow found in the recent run window.')};
+ st.addEventListener('click',activate);
+ st.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}});
+});
+const pages={HQ:['YOUR TEAM, AT WORK','31 specialist roles · 30 core roles plus the Instagram Growth Agent. Station status is based on recent matching GitHub Actions runs, not simulated agent execution.'],Agents:['SPECIALIST AGENTS','31 role cards. A matching workflow is evidence of workflow activity, not proof that an individual AI agent is continuously running.'],Tasks:['TASK BOARD','This view reports recent workflow evidence; it does not invent task completion.'],Clients:['CLIENT SUCCESS','Client outreach and replies require configured integrations and approval.'],Projects:['PROJECT DELIVERY','Inspect real delivery workflows and their run logs.'],Opportunities:['OPPORTUNITY SCOUT','Open the scout workflow to inspect public opportunity research.'],Analytics:['WORKFLOW ANALYTICS','Recent run totals from GitHub Actions, refreshed on request.'],Settings:['HQ SETTINGS','Voice control uses your browser speech APIs; agent execution still requires connected authorized runtimes.']};
+$$('aside button[data-tab]').forEach(b=>b.addEventListener('click',()=>{$$('aside button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const p=pages[b.dataset.tab];$('#pageTitle').textContent=p[0];$('#pageSub').textContent=p[1];$('#panelTitle').textContent=b.dataset.tab.toUpperCase()+' · WORKFLOW VIEW';if(b.dataset.tab!=='HQ')toast(p[0]+' — see the live workflow records and links below.')}));
+$('#refresh').addEventListener('click',refresh);
+const voiceButton=$('#voiceToggle');
+const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null,voiceEnabled=false;
+function speak(text){if(!('speechSynthesis' in window)){toast('Spoken output is not supported in this browser.');return}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=1;window.speechSynthesis.speak(u)}
+function statusReport(){const active=latestRuns.filter(r=>r.status==='in_progress');const success=latestRuns.filter(r=>r.status==='completed'&&r.conclusion==='success');return 'Nexora HQ status. There are '+roles.length+' configured specialist roles, including the Instagram Growth Agent. In the latest '+latestRuns.length+' GitHub workflow records, '+active.length+' workflows are running and '+success.length+' completed successfully. These are workflow counts, not a claim that every agent is running.'}
+function handleVoice(raw){
+ const q=raw.toLowerCase().trim();let reply='';
+ if(/refresh|check workflows|update status/.test(q)){refresh();reply='Refreshing the real GitHub Actions workflow feed.'}
+ else if(/status|report|how.*doing|what.*happening/.test(q)){reply=statusReport()}
+ else if(/instagram/.test(q)){const card=$$('.station').find(x=>x.dataset.agent==='Instagram Growth Agent');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.style.outline='4px solid #62f4db';setTimeout(()=>card.style.outline='',2400)}reply='Showing the Instagram Growth Agent station. Instagram publishing remains approval-gated; current workflow runs are shown in the station.'}
+ else if(/harvey|hervay|sales agent/.test(q)){window.open('./harvey.html','_blank','noopener');reply='Opening the Harvey sales-agent workspace.'}
+ else if(/agent|team|roster/.test(q)){document.querySelector('aside button[data-tab="Agents"]').click();reply='The HQ has 31 configured role cards: 30 core roles plus Instagram.'}
+ else if(/opportunit|lead/.test(q)){document.querySelector('aside button[data-tab="Opportunities"]').click();reply='Opening the opportunity scout workflow view.'}
+ else if(/task|project|delivery/.test(q)){document.querySelector('aside button[data-tab="Tasks"]').click();reply='Opening the task workflow view.'}
+ else if(/stop|quiet|cancel voice/.test(q)){if(recognition)recognition.stop();voiceEnabled=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙 VOICE CONTROL';reply='Voice control stopped.'}
+ else{reply='I can refresh workflow status, read the status report, show the agent roster, find the Instagram station, or open Harvey. I cannot dispatch private agent jobs from the browser without a secured command API.'}
+ toast('Voice heard: '+raw);speak(reply);
+}
+voiceButton.addEventListener('click',()=>{
+ if(!Recognition){toast('Speech recognition is not supported in this browser. Spoken status reports may still work on supported browsers.');speak('Voice input is not supported by this browser.');return}
+ if(voiceEnabled){recognition?.stop();voiceEnabled=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙 VOICE CONTROL';return}
+ recognition=new Recognition();recognition.lang='en-IN';recognition.interimResults=false;recognition.maxAlternatives=1;
+ recognition.onresult=e=>handleVoice(e.results[0][0].transcript);
+ recognition.onerror=e=>toast('Voice input error: '+e.error);
+ recognition.onend=()=>{voiceEnabled=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙 VOICE CONTROL'};
+ voiceEnabled=true;voiceButton.setAttribute('aria-pressed','true');voiceButton.textContent='● LISTENING…';
+ try{recognition.start()}catch(e){voiceEnabled=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙 VOICE CONTROL';toast('Could not start microphone: '+e.message)}
+});
+refresh();setInterval(refresh,60000);
+</script></body></html>

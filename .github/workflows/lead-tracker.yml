@@ -1,0 +1,151 @@
+name: Lead Tracker
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Add a lead or update an existing lead
+        required: true
+        type: choice
+        options:
+          - add
+          - update
+      business_name:
+        description: Business name (required when adding)
+        required: false
+        type: string
+      service:
+        description: Service (required when adding)
+        required: false
+        type: string
+      need:
+        description: Specific observed need (required when adding)
+        required: false
+        type: string
+      website_url:
+        description: Public website URL if known
+        required: false
+        type: string
+      source_url:
+        description: Where the lead was discovered
+        required: false
+        type: string
+      evidence:
+        description: Human-verified evidence
+        required: false
+        type: string
+      lead_id:
+        description: Existing lead ID (required when updating)
+        required: false
+        type: string
+      status:
+        description: New status when updating
+        required: false
+        type: choice
+        options:
+          - new
+          - researching
+          - qualified
+          - proposal_draft
+          - proposal_sent_human
+          - negotiation
+          - won_pending_payment
+          - paid_verified
+          - lost
+          - do_not_contact
+      note:
+        description: Reason for status change
+        required: false
+        type: string
+      quote_inr:
+        description: Optional operator-entered quote in INR
+        required: false
+        type: string
+      revenue_inr:
+        description: Verified revenue in INR (only for paid_verified)
+        required: false
+        type: string
+      revenue_evidence:
+        description: Evidence supporting paid revenue
+        required: false
+        type: string
+      next_action:
+        description: Next manual action
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tradinglab03-lead-tracker
+  cancel-in-progress: false
+
+jobs:
+  update-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Add or update a lead
+        env:
+          OPERATION: ${{ inputs.operation }}
+          BUSINESS_NAME: ${{ inputs.business_name }}
+          SERVICE: ${{ inputs.service }}
+          NEED: ${{ inputs.need }}
+          WEBSITE_URL: ${{ inputs.website_url }}
+          SOURCE_URL: ${{ inputs.source_url }}
+          EVIDENCE: ${{ inputs.evidence }}
+          LEAD_ID: ${{ inputs.lead_id }}
+          LEAD_STATUS: ${{ inputs.status }}
+          NOTE: ${{ inputs.note }}
+          QUOTE_INR: ${{ inputs.quote_inr }}
+          REVENUE_INR: ${{ inputs.revenue_inr }}
+          REVENUE_EVIDENCE: ${{ inputs.revenue_evidence }}
+          NEXT_ACTION: ${{ inputs.next_action }}
+        run: |
+          python - <<'PY'
+          import os
+          from company.lead_tracker import load_store, save_store, add_lead, update_lead, summary
+          path = "data/leads.json"
+          store = load_store(path)
+          op = os.environ["OPERATION"]
+          if op == "add":
+              required = [os.environ.get("BUSINESS_NAME", "").strip(),
+                          os.environ.get("SERVICE", "").strip(),
+                          os.environ.get("NEED", "").strip()]
+              if not all(required):
+                  raise SystemExit("Adding a lead requires business name, service, and observed need.")
+              lead = add_lead(store, business_name=required[0], service=required[1], need=required[2],
+                  website_url=os.environ.get("WEBSITE_URL", ""),
+                  source_url=os.environ.get("SOURCE_URL", ""),
+                  evidence=os.environ.get("EVIDENCE", ""))
+          else:
+              lead_id = os.environ.get("LEAD_ID", "").strip()
+              if not lead_id:
+                  raise SystemExit("Updating a lead requires lead_id.")
+              def optional_float(key):
+                  value = os.environ.get(key, "").strip()
+                  return None if not value else float(value)
+              status = os.environ.get("LEAD_STATUS", "").strip() or None
+              lead = update_lead(store, lead_id, status=status, note=os.environ.get("NOTE", ""),
+                  quote_inr=optional_float("QUOTE_INR"), revenue_inr=optional_float("REVENUE_INR"),
+                  revenue_evidence=os.environ.get("REVENUE_EVIDENCE", ""),
+                  next_action=os.environ.get("NEXT_ACTION", "").strip() or None)
+          save_store(store, path)
+          print("Lead operation complete:", lead["id"], lead["status"])
+          print(summary(store))
+          PY
+      - name: Commit updated lead tracker
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/leads.json
+          git diff --cached --quiet && { echo "No lead changes to commit"; exit 0; }
+          git commit -m "Update company lead tracker"
+          git push origin HEAD:main

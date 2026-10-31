@@ -1,0 +1,19 @@
+{
+  "name": "Urban Growth HQ",
+  "short_name": "Urban HQ",
+  "description": "The Urban Builders real-estate growth workspace",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f6fa",
+  "theme_color": "#101827",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

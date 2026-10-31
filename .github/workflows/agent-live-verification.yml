@@ -1,0 +1,99 @@
+name: Nexora agent live verification
+
+on:
+  pull_request:
+    paths:
+      - "tests/harvey_agent_live_smoke.py"
+      - "tests/test_harvey_agent_live_smoke.py"
+      - "harvey-worker/app.py"
+      - "harvey-worker/tests/test_agent_prompt_mandates.py"
+      - ".github/workflows/agent-live-verification.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tests/harvey_agent_live_smoke.py"
+      - "tests/test_harvey_agent_live_smoke.py"
+      - "harvey-worker/app.py"
+      - "harvey-worker/requirements.txt"
+      - ".github/workflows/agent-live-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Test live-smoke safety and result validation
+        run: python tests/test_harvey_agent_live_smoke.py -v
+
+  live-agent:
+    permissions:
+      contents: read
+      id-token: write
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Request short-lived GitHub OIDC token
+        shell: bash
+        run: |
+          set +x
+          OIDC_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=nexora-harvey-agent-smoke"
+          OIDC_RESPONSE="$(curl --fail --silent --show-error --max-time 15 -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "$OIDC_URL")"
+          TOKEN="$(printf '%s' "$OIDC_RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')"
+          if [ -z "$TOKEN" ]; then
+            echo "::error::GitHub OIDC token request returned an empty token."
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          printf 'HARVEY_GITHUB_OIDC_TOKEN=%s\n' "$TOKEN" >> "$GITHUB_ENV"
+      - name: Wait for the deployed smoke endpoint
+        shell: bash
+        env:
+          HARVEY_WORKER_URL: https://nexora-harvey-worker.onrender.com
+          EXPECTED_WORKER_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+
+          base = "https://nexora-harvey-worker.onrender.com"
+          expected_commit = os.environ["EXPECTED_WORKER_COMMIT"]
+          for attempt in range(1, 25):
+              try:
+                  health_request = urllib.request.Request(base + "/health", headers={"Accept": "application/json"})
+                  with urllib.request.urlopen(health_request, timeout=10) as response:
+                      health = json.loads(response.read().decode("utf-8"))
+                  spec_request = urllib.request.Request(base + "/openapi.json", headers={"Accept": "application/json"})
+                  with urllib.request.urlopen(spec_request, timeout=10) as response:
+                      spec = json.loads(response.read().decode("utf-8"))
+                  if health.get("build_commit") == expected_commit and "/internal/agent-smoke" in spec.get("paths", {}):
+                      print("The exact expected Harvey worker commit is live and exposes the OIDC-protected smoke endpoint.")
+                      break
+                  print(f"Waiting for worker commit: expected={expected_commit[:12]}, live={str(health.get('build_commit', 'unknown'))[:12]}")
+              except Exception as exc:
+                  print(f"Deployment readiness attempt {attempt}/24 failed: {type(exc).__name__}")
+              if attempt == 24:
+                  raise SystemExit("The exact expected worker commit was not ready after 4 minutes.")
+              time.sleep(10)
+          PY
+      - name: Run one bounded production specialist task
+        env:
+          HARVEY_WORKER_URL: https://nexora-harvey-worker.onrender.com
+        run: |
+          set +x
+          python tests/harvey_agent_live_smoke.py

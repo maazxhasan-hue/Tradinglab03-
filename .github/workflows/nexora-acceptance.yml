@@ -1,0 +1,45 @@
+name: Nexora AI Acceptance Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "dashboard/**"
+      - "company/**"
+      - "tests/**"
+      - ".github/workflows/nexora-acceptance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify public entry points and brand
+        run: |
+          test -s index.html
+          test -s dashboard/website.html
+          test -s dashboard/index.html
+          grep -q "Nexora" index.html
+          grep -q "NEXORA" dashboard/website.html
+          grep -q "NEXORA" dashboard/index.html
+          echo "Required Nexora AI pages and brand strings are present."
+      - name: Verify internal site links resolve to files
+        run: |
+          test -s dashboard/privacy.html
+          test -s dashboard/inbox.html
+          echo "Core site pages exist."
+
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run regression tests
+        run: python -m unittest discover -s tests -v

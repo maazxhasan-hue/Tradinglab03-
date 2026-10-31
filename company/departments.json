@@ -1,0 +1,27 @@
+{
+  "company_name": "TradingLab03 AI Services",
+  "operating_principles": [
+    "Customer outcomes before agent activity metrics",
+    "Evidence before claims",
+    "Human approval for commitments, payments, publication, and customer contact",
+    "Least-privilege access and separation of duties",
+    "Test, measure, learn, document, improve"
+  ],
+  "departments": [
+    {"name":"Executive & Strategy","owner_role":"CEO / Strategy Lead","mission":"Set strategy, goals, budgets, risk appetite, and quarterly priorities.","teams":["Executive Office","Business Planning","Risk Committee"]},
+    {"name":"Marketing & Brand","owner_role":"Marketing Director","mission":"Build demand through honest, measurable marketing.","teams":["Content Marketing","SEO","Social Media","Brand & Creative","Campaign Operations","Marketing Analytics"]},
+    {"name":"Sales & Partnerships","owner_role":"Sales Director","mission":"Qualify opportunities and convert suitable prospects into approved, profitable contracts.","teams":["Lead Research","Qualification","Proposal Desk","Partnerships","Sales Operations","Customer Relationship Management"]},
+    {"name":"Customer Success & CA","owner_role":"Customer Success Lead","mission":"Onboard clients, coordinate communication, and protect customer outcomes.","teams":["Client Account Management (CA)","Onboarding","Customer Support","Customer Education","Retention & Feedback"]},
+    {"name":"Product & Service Design","owner_role":"Product Lead","mission":"Turn customer needs into clear, valuable service packages.","teams":["Product Discovery","Service Design","Roadmapping","Pricing Research","User Research"]},
+    {"name":"Research & Analysis","owner_role":"Research Director","mission":"Research markets, competitors, customer needs, and evidence for decisions.","teams":["Market Research","Business Intelligence","Data Analysis","Competitive Analysis","Experiment Design"]},
+    {"name":"Builders & Engineering","owner_role":"Engineering Director","mission":"Build secure, accessible, maintainable customer deliverables.","teams":["Website Builders","Frontend Development","Backend Development","Full-Stack Development","Automation Engineering","AI Engineering","Integrations","Infrastructure & DevOps"]},
+    {"name":"Creative & Presenting","owner_role":"Creative Director","mission":"Create polished visual, video, written, and presentation deliverables.","teams":["Graphic Design","UX/UI Design","Video Editing","Copywriting","Presentation Design","Demo & Pitch Team","Voice Production"]},
+    {"name":"Quality, Audit & Testing","owner_role":"Quality Director","mission":"Independently verify work, processes, security, accessibility, and claims.","teams":["QA Testing","Code Review","Website Audit","Accessibility Audit","Security Review","Red Team","Release Acceptance","Process Audit"]},
+    {"name":"Delivery & Project Management","owner_role":"Delivery Director","mission":"Plan work, coordinate agents, manage deadlines, and ensure accepted delivery.","teams":["Project Management","Resource Planning","Delivery Operations","Documentation","Change Control","Release Management"]},
+    {"name":"Finance, Legal & Procurement","owner_role":"Finance & Compliance Lead","mission":"Control cash, pricing, invoices, contracts, taxes, subscriptions, and vendor risks.","teams":["Bookkeeping","Invoicing & Collections","Cash Flow","Budget & Forecast","Procurement","Contract Review","Compliance Coordination"]},
+    {"name":"People & Agent Operations","owner_role":"People Operations Lead","mission":"Recruit, test, evaluate, train, promote, and retire human or AI workers fairly.","teams":["Recruitment","Capability Testing","Training","Performance Review","Compensation Recommendations","Access Provisioning"]},
+    {"name":"IT, Security & Data","owner_role":"Security Lead","mission":"Protect credentials, client data, devices, systems, backups, and availability.","teams":["Identity & Access","Secrets Management","Monitoring","Incident Response","Backups & Recovery","Privacy & Data Retention"]},
+    {"name":"Partnerships & Ecosystem","owner_role":"Partnerships Lead","mission":"Develop trusted referrals, subcontractors, vendors, and platform relationships.","teams":["Referral Partnerships","Subcontractor Network","Vendor Management","Platform Relations"]},
+    {"name":"Continuous Improvement","owner_role":"Operations Excellence Lead","mission":"Review metrics, learn from failures, reduce waste, and improve the operating system.","teams":["Retrospectives","Process Improvement","Automation Opportunities","KPI Review","Customer Feedback Analysis"]}
+  ]
+}

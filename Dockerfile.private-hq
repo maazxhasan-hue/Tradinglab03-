@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+# PostgreSQL is the production persistence backend; SQLite remains the local-dev fallback.
+RUN pip install --no-cache-dir 'psycopg[binary]>=3.2,<4'
+RUN pip install --no-cache-dir "psycopg[binary]==3.2.6"
+COPY private_hq_server.py /app/private_hq_server.py
+COPY company /app/company
+COPY private-hq /app/private-hq
+EXPOSE 10000
+CMD ["python", "/app/private_hq_server.py"]

@@ -1,0 +1,128 @@
+name: Delivery Pipeline Smoke Test
+on:
+  push:
+    paths:
+      - "company/**"
+      - "tests/test_delivery_pipeline.py"
+      - "data/leads.json"
+      - ".github/workflows/delivery-smoke.yml"
+      - ".github/workflows/client-delivery.yml"
+      - ".github/workflows/end-to-end-delivery.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-test-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create clearly labeled synthetic test brief
+        run: |
+          mkdir -p data
+          python - <<'PY'
+          import json
+          brief = {
+              "business_name": "TradingLab03 Smoke Test Cafe",
+              "tagline": "A sample website for pipeline validation",
+              "services": ["Sample menu page", "Contact details"],
+              "contact_email": "test@example.invalid",
+              "service": "business_website",
+              "observed_need": "Synthetic test request; not a real client or buyer",
+              "evidence": "Synthetic CI fixture only",
+              "price_quote": ""
+          }
+          with open("data/delivery_smoke_brief.json", "w", encoding="utf-8") as f:
+              json.dump(brief, f, ensure_ascii=False)
+          PY
+      - name: Run all Python tests
+        run: python -m unittest discover -s tests -v
+      - name: Build proposal and website draft
+        run: python -m company.delivery_pipeline --brief data/delivery_smoke_brief.json --output data/delivery_bundles/smoke
+      - name: Assert honest smoke-test report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/delivery_bundles/smoke")
+          report = json.loads((root / "delivery_report.json").read_text(encoding="utf-8"))
+          assert report["status"] == "ready_for_human_review", report
+          assert report["sent"] is False
+          assert report["production_deployment_enabled"] is False
+          assert report["verified_revenue"] == 0
+          required = [
+              "proposal.md", "proposal.json", "project_brief.md",
+              "future_feature_backlog.md", "acceptance_checklist.md",
+              "change_request_template.md", "handover_and_next_steps.md",
+              "website/index.html", "website/quality_report.json",
+          ]
+          for name in required:
+              assert (root / name).is_file(), f"Missing delivery artifact: {name}"
+          assert report["checks"]["client_scope_documents_generated"] is True
+          print("PASS: synthetic proposal + website + scope + future backlog + QA + handover bundle generated; no outreach, deployment, or revenue recorded.")
+          PY
+      - name: Build a review-only draft from a saved client-project lead
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          store = json.loads(Path("data/leads.json").read_text(encoding="utf-8"))
+          service_map = {
+              "business_website": "business_website", "landing_page": "landing_page",
+              "website_audit": "website_audit", "seo_content": "seo_content",
+              "short_video": "short_video", "business_automation": "business_automation",
+              "design_or_website": "business_website", "website_or_digital_service": "business_website",
+          }
+          leads = store.get("leads", [])
+          lead = next((x for x in leads if isinstance(x, dict)
+                       and x.get("opportunity_type") == "client_project" and x.get("client_fit") is True
+                       and x.get("service") in service_map and x.get("id")), None)
+          if lead is None:
+              raise SystemExit("No saved client-project lead with a supported service is available for integration smoke test")
+          brief = {
+              "lead_id": lead["id"],
+              "business_name": lead["business_name"],
+              "tagline": "Draft prepared for human review",
+              "services": ["Scope to be confirmed with the project owner"],
+              "contact_email": "review-only@example.invalid",
+              "service": service_map[lead["service"]],
+              "price_quote": "",
+          }
+          Path("data/saved_lead_delivery_brief.json").write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(f"Using saved lead {lead['id']} ({lead.get('opportunity_type', 'legacy')}); source remains unverified.")
+          PY
+          python -m company.delivery_pipeline --brief data/saved_lead_delivery_brief.json --output data/delivery_bundles/saved-lead-review
+      - name: Assert saved-lead draft remains review-only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/delivery_bundles/saved-lead-review")
+          report = json.loads((root / "delivery_report.json").read_text(encoding="utf-8"))
+          assert report["status"] == "ready_for_human_review", report
+          assert report["sent"] is False
+          assert report["production_deployment_enabled"] is False
+          assert report["verified_revenue"] == 0
+          required = [
+              "proposal.md", "proposal.json", "project_brief.md",
+              "future_feature_backlog.md", "acceptance_checklist.md",
+              "change_request_template.md", "handover_and_next_steps.md",
+              "website/index.html", "website/quality_report.json",
+          ]
+          for name in required:
+              assert (root / name).is_file(), f"Missing saved-lead delivery artifact: {name}"
+          assert report["checks"]["client_scope_documents_generated"] is True
+          print("PASS: saved lead -> proposal + website + scope + future backlog + QA + handover; no outreach, deployment, or revenue recorded.")
+          PY
+      - name: Upload smoke-test bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-delivery-smoke-${{ github.run_id }}
+          path: |
+            data/delivery_bundles/smoke/
+            data/delivery_bundles/saved-lead-review/
+          if-no-files-found: error
+          retention-days: 7

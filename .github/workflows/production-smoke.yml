@@ -1,0 +1,109 @@
+name: Production Smoke Checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "private-hq/**"
+      - "dashboard/**"
+      - "harvey-worker/**"
+      - ".github/workflows/production-smoke.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check public Nexora website
+        env:
+          PUBLIC_URL: https://nexora-ai-public.pages.dev
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$PUBLIC_URL/" -o /tmp/nexora-home.html
+          grep -qi "Nexora" /tmp/nexora-home.html
+          echo "PASS public Nexora website returned HTTP 200."
+
+      - name: Verify Render HQ exposes only privacy-safe operational telemetry
+        env:
+          RENDER_STATIC_URL: https://nexora-internal-hq.onrender.com
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 3 --max-time 25 "$RENDER_STATIC_URL/index.html" -o /tmp/nexora-render-index.html
+          grep -Fq "NEURAL COMMAND" /tmp/nexora-render-index.html
+          grep -Fq "/public-status" /tmp/nexora-render-index.html
+          grep -Eqi 'name="robots" content="noindex,nofollow,noarchive"' /tmp/nexora-render-index.html
+          if grep -Eqi 'HARVEY_API_KEY|SHARED_BRAIN_AGENT_KEY|OPENAI_API_KEY|task inputs|prospect details' /tmp/nexora-render-index.html; then
+            echo "::error::Sensitive operational data or secret-like configuration found in the public HQ document."
+            exit 1
+          fi
+          if grep -Eqi 'vercel\\.app|location\\.replace' /tmp/nexora-render-index.html; then
+            echo "::error::Legacy Vercel redirect remains in Render public index."
+            exit 1
+          fi
+          for path in /private-hq /private-hq/ /private-hq/index.html /private-hq/harvey.html /owner-console/inbox.html; do
+            code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 25 "$RENDER_STATIC_URL$path")"
+            if [ "$code" != "404" ]; then
+              echo "::error::Expected HTTP 404 for private path $path but received $code"
+              exit 1
+            fi
+            echo "PASS $path -> HTTP 404"
+          done
+          for path in /marketing.html /inbox.html; do
+            curl --fail --silent --show-error --max-time 25 "$RENDER_STATIC_URL$path" -o "/tmp/$(basename "$path")"
+            if grep -Eqi 'vercel\\.app|location\\.replace' "/tmp/$(basename "$path")"; then
+              echo "::error::Legacy Vercel redirect remains in $path"
+              exit 1
+            fi
+          done
+          echo "PASS Render HQ exposes only the privacy-safe telemetry interface; private subpaths remain unavailable and no legacy Vercel redirect exists."
+
+      - name: Verify Harvey health and email safety gate
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          url = "https://tradinglab03.onrender.com/health"
+          request = urllib.request.Request(url, headers={"Accept": "application/json", "Cache-Control": "no-cache"})
+          try:
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  if response.status != 200:
+                      raise SystemExit(f"Harvey health returned HTTP {response.status}")
+                  data = json.load(response)
+          except (urllib.error.URLError, TimeoutError) as exc:
+              raise SystemExit(f"Harvey health check failed: {exc}") from exc
+
+          if data.get("status") != "ready":
+              raise SystemExit(f"Harvey is not ready: {data.get('status')!r}")
+          if data.get("email_sending") != "disabled":
+              raise SystemExit("Safety gate failed: production email sending must remain disabled until sender verification and a safe test are complete.")
+          required = ("service", "database", "prospects", "pending_approvals", "tasks_recorded")
+          missing = [key for key in required if key not in data]
+          if missing:
+              raise SystemExit(f"Harvey health response is missing fields: {', '.join(missing)}")
+          print("PASS Harvey health: ready")
+          print(f"Database: {data['database']}; prospects: {data['prospects']}; pending approvals: {data['pending_approvals']}; tasks recorded: {data['tasks_recorded']}")
+          print("PASS production email sending remains disabled")
+          PY
+
+      - name: Publish smoke-check summary
+        if: always()
+        run: |
+          {
+            echo "## Nexora production smoke checks"
+            echo
+            echo "- Checks the current public Cloudflare Pages website, Render static safety boundary, and Harvey backend."
+            echo "- The Render HQ is a noindex operational dashboard. Its public endpoint is limited to aggregate counts, role definitions, and status metadata; secrets and task/prospect content must never be exposed."
+            echo "- This is a smoke check, not proof that every agent role, social integration, or payment flow is autonomous."
+          } >> "$GITHUB_STEP_SUMMARY"

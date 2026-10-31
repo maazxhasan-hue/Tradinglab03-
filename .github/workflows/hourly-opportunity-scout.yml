@@ -1,0 +1,87 @@
+name: Hourly Opportunity Scout
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/hourly-opportunity-scout.yml"
+      - "config/opportunity_sources.json"
+      - "company/opportunity_scout.py"
+      - "company/opportunity_importer.py"
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: tradinglab03-lead-tracker
+      cancel-in-progress: false
+    steps:
+      - name: Check out company repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run opportunity qualification tests
+        run: python -m unittest discover -s tests -p 'test_opportunity_*.py' -v
+      - name: Discover enabled public project listings
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-hourly-opportunity-scout
+        run: python -m company.opportunity_scout
+      - name: Import suitable listings into persistent lead tracker
+        run: python -m company.opportunity_importer
+      - name: Publish scout run summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Hourly opportunity scout"
+            echo
+            echo "- Trigger: \`${{ github.event_name }}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Report files:"
+            if [ -d data/opportunities ]; then
+              find data/opportunities -maxdepth 1 -type f -printf '  - `%f`\n' | sort
+            else
+              echo "  - No report directory was created"
+            fi
+            echo
+            echo "A lead is a research signal, not a verified client or revenue. No outreach is performed by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload opportunity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: tradinglab03-opportunities-${{ github.run_id }}
+          path: data/opportunities/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Sync opportunity scout run to shared brain
+        if: always()
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-hourly-opportunity-scout
+          RUN_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$SHARED_BRAIN_AGENT_KEY" ]; then
+            python -m company.shared_brain_sync --status "${RUN_STATUS,,}"
+          else
+            echo "Shared brain sync skipped: SHARED_BRAIN_AGENT_KEY secret is not configured."
+          fi
+      - name: Commit updated persistent lead tracker
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/leads.json
+          git diff --cached --quiet && { echo "No lead changes to commit"; exit 0; }
+          git commit -m "Import verified-priority opportunities into lead tracker"
+          git push origin HEAD:main

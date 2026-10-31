@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nexora AI | Company HQ</title>
+<style>
+:root{color-scheme:dark;--bg:#080d16;--panel:#101a29;--line:#24344a;--cyan:#54e7d2;--blue:#79aaff;--text:#edf4ff;--muted:#9aabc1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#122b3b 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 2rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:#080d16ef;backdrop-filter:blur(12px)}.logo{font-weight:850;letter-spacing:.06em}.logo span{color:var(--cyan)}.pill{border:1px solid #275f5b;color:var(--cyan);padding:.35rem .7rem;border-radius:99px;font-size:.78rem}.wrap{max-width:1440px;margin:auto;padding:2rem}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.15em;font-size:.75rem;font-weight:800}h1{font-size:clamp(2rem,4vw,3.3rem);line-height:1.05;letter-spacing:-.04em;margin:.5rem 0}p{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.5rem 0}.card{background:linear-gradient(160deg,#142134,#0d1522);border:1px solid var(--line);border-radius:1rem;padding:1.2rem}.metric{font-size:2rem;font-weight:800;margin:.3rem 0}.muted{color:var(--muted);font-size:.86rem}.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:1rem}.row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.status{color:var(--cyan);font-size:.78rem}.button{border:1px solid #27665e;background:#12352f;color:#dffef8;padding:.7rem .9rem;border-radius:.65rem;font-weight:750;cursor:pointer}.button.secondary{background:#121f30;border-color:var(--line);color:var(--text)}input,select,textarea{width:100%;background:#09111e;color:var(--text);border:1px solid var(--line);padding:.7rem;border-radius:.6rem;margin:.3rem 0 .8rem}label{display:block;color:var(--muted);font-size:.85rem}h2{font-size:1.15rem}h3{font-size:1rem;margin:.25rem 0}.notice{border-left:3px solid var(--cyan);padding:.6rem .9rem;background:#102522;color:#cceee9;border-radius:.25rem}.foot{padding:2rem 0;color:var(--muted);font-size:.8rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.wrap{padding:1rem}header{padding:1rem}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr}.metric{font-size:1.5rem}}
+
+/* Pixel-agent HQ */
+.pixel-hq{margin:1rem 0;overflow:hidden}
+.pixel-hq-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.pixel-hq-head p{margin:.35rem 0}
+.pixel-live{display:inline-flex;align-items:center;gap:.45rem;border:1px solid #28594f;border-radius:99px;padding:.35rem .65rem;color:#8af0d8;font-size:.75rem}
+.pixel-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#54e7d2;box-shadow:0 0 12px #54e7d2}
+.pixel-office{position:relative;margin-top:1rem;min-height:340px;border:1px solid #28445b;border-radius:1rem;overflow:hidden;background:linear-gradient(180deg,#102638 0%,#0a1725 100%);padding:1.1rem}
+.pixel-office:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#27425855 1px,transparent 1px),linear-gradient(90deg,#27425855 1px,transparent 1px);background-size:32px 32px;opacity:.45;pointer-events:none}
+.pixel-floor{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;z-index:1}
+.pixel-desk{position:relative;min-height:145px;border:1px solid #29465b;background:#102033e8;border-radius:.75rem;padding:.75rem;overflow:hidden}
+.pixel-desk h3{font-size:.86rem}
+.pixel-desk p{font-size:.75rem;margin:.25rem 0;color:#9aabc1}
+.pixel-screen{height:34px;width:62px;border:3px solid #7892a6;background:#0a101b;box-shadow:inset 0 0 0 3px #193e4a; margin:.55rem auto .35rem;position:relative}
+.pixel-screen:after{content:"";position:absolute;left:8px;right:8px;top:9px;height:3px;background:#54e7d2;box-shadow:0 6px #6487fc}
+.pixel-person{width:16px;height:16px;background:#e8bd8a;position:absolute;left:calc(50% - 8px);top:47px;image-rendering:pixelated;box-shadow:0 -8px 0 -2px #8db3ff, -6px 6px 0 -2px #8db3ff, 6px 6px 0 -2px #8db3ff, 0 14px 0 -2px #54e7d2}
+.pixel-person:after{content:"";position:absolute;left:4px;top:5px;width:3px;height:3px;background:#152131;box-shadow:5px 0 #152131}
+.pixel-person.typing{animation:pixel-type .45s steps(2,end) infinite alternate}
+.pixel-person.walking{animation:pixel-walk 2.6s steps(4,end) infinite alternate}
+.pixel-person.research{animation:pixel-look 2s steps(2,end) infinite alternate}
+.pixel-status{display:inline-block;font-size:.68rem;color:#9af0d9;border:1px solid #28594f;padding:.2rem .45rem;border-radius:99px}
+.pixel-feed{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:1rem}
+.pixel-feed-item{background:#091421dd;border:1px solid #263d52;border-radius:.6rem;padding:.7rem;font-size:.8rem;color:#c7d5e7}
+.pixel-feed-item b{color:#eaf4ff;display:block;margin-bottom:.15rem}
+.pixel-note{font-size:.75rem;color:#91a7be;margin:.75rem 0 0}
+@keyframes pixel-type{from{transform:translateY(0)}to{transform:translateY(2px)}}
+@keyframes pixel-walk{from{transform:translateX(-5px)}to{transform:translateX(5px)}}
+@keyframes pixel-look{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
+@media(max-width:700px){.pixel-floor{grid-template-columns:repeat(2,minmax(0,1fr))}.pixel-office{padding:.65rem}.pixel-feed{grid-template-columns:1fr}}
+@media(max-width:420px){.pixel-floor{grid-template-columns:1fr}.pixel-desk{min-height:125px}}
+@media(prefers-reduced-motion:reduce){.pixel-person{animation:none!important}}
+
+</style><style>
+/* NEXORA PIXEL HQ — full-interface pixel-art skin */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{color-scheme:dark;--bg:#070b14;--panel:#101b2b;--line:#314969;--cyan:#63f5dc;--blue:#72a8ff;--text:#edf7ff;--muted:#a5b8d3;--pixel-shadow:4px 4px 0 #02050b}
+html{background:var(--bg);image-rendering:pixelated;scroll-behavior:smooth}
+body{font-family:'VT323',monospace;font-size:21px;line-height:1.35;background-color:#070b14;background-image:linear-gradient(#14213755 1px,transparent 1px),linear-gradient(90deg,#14213755 1px,transparent 1px),radial-gradient(ellipse at 50% -15%,#193b55 0,transparent 65%);background-size:16px 16px,16px 16px,100% 100%;letter-spacing:.02em}
+header{border-bottom:3px solid #314969;background:#080e1bf2;backdrop-filter:none;box-shadow:0 4px 0 #03060d;z-index:20}
+.logo,.eyebrow,.pill,h1,h2,h3,.metric,.button,button,.section-title,.pixel-label{font-family:'Press Start 2P','VT323',monospace;letter-spacing:0;line-height:1.55}
+.logo{font-size:13px;text-shadow:2px 2px #000}.pill{font-size:9px;border:2px solid #63f5dc;border-radius:0;padding:7px 9px;box-shadow:3px 3px 0 #02050b}
+.wrap{max-width:1500px}
+h1{font-size:clamp(19px,3vw,32px);line-height:1.7;text-transform:uppercase;text-shadow:3px 3px #10284a}
+h2{font-size:clamp(12px,1.6vw,18px);text-transform:uppercase;color:#b9d2ff}
+h3{font-size:11px;text-transform:uppercase}
+.eyebrow{font-size:9px;color:var(--cyan)}
+p,.muted,.row,.status,label,input,select,textarea{font-family:'VT323',monospace;font-size:21px}
+.grid{gap:14px}
+.card,.panel,.metric-card,.agent-card,.office,.workstation,.activity,.list-card{border:2px solid #314969!important;border-radius:0!important;background-color:#0c1524!important;background-image:linear-gradient(135deg,#172840 0%,#0b1321 70%)!important;box-shadow:var(--pixel-shadow);position:relative}
+.card:before,.panel:before{content:"";position:absolute;left:-2px;top:-2px;width:10px;height:10px;background:#63f5dc;box-shadow:calc(100% + var(--unused,0px)) 0 #63f5dc;pointer-events:none}
+.card{padding:16px}
+.metric{font-size:clamp(15px,2vw,24px);color:#63f5dc;text-shadow:2px 2px #10284a}
+button,.button,a.button,input[type=submit]{border:2px solid #63f5dc!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font-size:10px;padding:10px 12px;cursor:pointer}
+button:hover,.button:hover,a.button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #02050b!important;filter:brightness(1.18)}
+input,select,textarea{background:#070e19!important;border:2px solid #314969!important;border-radius:0!important;color:#edf7ff!important;padding:9px}
+a{color:#8dc3ff}a:hover{color:#63f5dc}
+hr,.row{border-color:#253b58!important}
+.status{color:#63f5dc;text-shadow:1px 1px #000}
+::selection{background:#63f5dc;color:#061018}
+:focus-visible{outline:3px solid #ffda7b!important;outline-offset:3px}
+img,canvas,svg{image-rendering:pixelated}
+@media(max-width:900px){.wrap{padding:1rem}.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.layout{grid-template-columns:1fr!important}header{padding:1rem;flex-wrap:wrap}h1{font-size:18px}}
+@media(max-width:480px){.grid{grid-template-columns:1fr!important}.wrap{padding:.8rem}.card{padding:12px}.logo{font-size:10px}}
+</style>
+<style>
+/* Visitor analytics widget, matching the existing cyan/gold pixel HQ without changing global theme. */
+.va-panel{background:#0c1524;border:2px solid var(--line);box-shadow:var(--pixel-shadow);padding:clamp(12px,2vw,18px);margin:1rem 0;position:relative}
+.va-panel h2{margin:.2rem 0 .7rem}
+.va-row{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.va-field{flex:1;min-width:230px}.va-field label{display:block;color:var(--muted);font-size:18px;margin-bottom:4px}
+.va-field input{width:100%;background:#070e19!important;color:var(--text)!important;border:2px solid var(--line)!important;border-radius:0!important;padding:9px;font:20px 'VT323',monospace!important}
+.va-btn{border:2px solid var(--cyan)!important;border-radius:0!important;background:#103b39!important;color:#dffff8!important;box-shadow:3px 3px 0 #02050b!important;text-transform:uppercase;font:9px/1.6 'Press Start 2P','VT323',monospace!important;padding:10px 12px;cursor:pointer}
+.va-btn.secondary{background:#15253a!important;border-color:#516b8e!important;color:var(--text)!important}
+.va-btn:disabled{opacity:.55;cursor:wait}
+.va-status{padding:10px;border:1px solid var(--line);background:#091421;color:var(--muted);overflow-wrap:anywhere;margin:10px 0}
+.va-status.is-ok{border-color:#28665f;color:#9af0d9}.va-status.is-error{border-color:#b85a61;color:#ffb5bb}.va-status.is-warn{border-color:#9d793b;color:#ffda98}
+.va-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.va-metric{background:linear-gradient(135deg,#172840,#0b1321);border:2px solid var(--line);box-shadow:var(--pixel-shadow);padding:12px;min-width:0}
+.va-metric-label{font:7px/1.7 'Press Start 2P',monospace;color:#a5b8d3}.va-metric-value{font:25px/1.3 'VT323',monospace;color:var(--cyan);overflow-wrap:anywhere}
+.va-metric-note,.va-footnote{font:17px/1.35 'VT323',monospace;color:var(--muted)}
+.va-bars{display:flex;align-items:stretch;gap:4px;min-height:110px;padding:8px 4px 0;overflow-x:auto;border-bottom:1px solid var(--line)}
+.va-bar-item{min-width:28px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:3px}
+.va-bar-value,.va-bar-date{font:14px 'VT323',monospace;color:var(--muted)}.va-bar-track{height:72px;width:100%;max-width:30px;display:flex;align-items:end;background:#101d2e;border:1px solid #253b58}
+.va-bar-fill{width:100%;min-height:3px;background:linear-gradient(0deg,#1d8d84,#63f5dc)}
+.va-empty{font:18px 'VT323',monospace;color:var(--muted)}
+@media(max-width:800px){.va-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.va-field{min-width:100%}.va-btn{max-width:100%}.va-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.va-metric{padding:9px}.va-metric-value{font-size:22px}.va-metric-label{font-size:6px}}
+@media(prefers-reduced-motion:reduce){.va-panel *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
+<style>
+/* NEXORA HQ — cinematic interactive neural-network theme based on supplied video */
+:root{color-scheme:dark;--bg:#03050a;--panel:#090c13;--line:#202735;--cyan:#68f3f0;--pink:#ff6db4;--red:#ff4d67;--text:#e9edf7;--muted:#9299aa;--pixel-shadow:0 12px 38px #000b}
+html,body{background:#03050a!important;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:0}
+body{background-image:radial-gradient(ellipse at 50% 0%,#151827 0,transparent 52%)!important;line-height:1.45}
+header{background:#05060be8!important;border-bottom:1px solid #242938!important;box-shadow:0 10px 30px #0008!important;backdrop-filter:blur(18px)!important}
+.logo,.eyebrow,.pill,h1,h2,h3,.metric,.button,button,.section-title,.pixel-label{font-family:Inter,system-ui,sans-serif;letter-spacing:0;line-height:1.35}
+.logo{font-size:14px;letter-spacing:.1em}.logo span{color:var(--pink)}
+.wrap{max-width:1600px;padding:clamp(14px,2.3vw,34px)}
+h1{font-size:clamp(24px,3.2vw,46px);line-height:1.1;letter-spacing:-.045em;text-transform:none;text-shadow:none}
+h2{font-size:clamp(15px,1.5vw,21px);text-transform:none;color:#f1f4ff}
+h3{font-size:13px;text-transform:none}
+p,.muted,.row,.status,label,input,select,textarea{font-family:Inter,system-ui,sans-serif;font-size:13px}
+.eyebrow{font-size:10px;letter-spacing:.17em;color:#b8c0d0}
+.card,.panel,.metric-card,.agent-card,.office,.workstation,.activity,.list-card,.va-panel{border:1px solid #252b3a!important;border-radius:12px!important;background:#090c13!important;background-image:linear-gradient(135deg,#0c101a,#06080e)!important;box-shadow:0 12px 36px #0007!important}
+.card:before,.panel:before{display:none}
+.metric{font-size:clamp(18px,2vw,27px);color:#eff3ff;text-shadow:none}
+button,.button,a.button,input[type=submit],.va-btn{border:1px solid #3a4052!important;border-radius:8px!important;background:linear-gradient(180deg,#171c29,#0c101a)!important;color:#f4f6ff!important;box-shadow:0 4px 14px #0006!important;text-transform:none;font:650 12px/1.35 Inter,system-ui,sans-serif!important;padding:10px 13px}
+button:hover,.button:hover,a.button:hover{transform:translateY(-1px);filter:brightness(1.18)}
+.button:not(.secondary),button:not(.secondary){border-color:#6a3a61!important;background:linear-gradient(135deg,#44223d,#17131f)!important}
+input,select,textarea,.va-field input{background:#05070d!important;border:1px solid #303748!important;border-radius:8px!important;color:#edf1fb!important;padding:10px;font:13px Inter,system-ui,sans-serif!important}
+a{color:#c0c8ff}a:hover{color:#ff8bc2}
+hr,.row{border-color:#242a38!important}
+.status{color:var(--cyan);text-shadow:none}
+::selection{background:#ff6db4;color:#05060b}
+:focus-visible{outline:2px solid #68f3f0!important;outline-offset:3px}
+.pixel-office{background:#05070d!important;border-color:#252b3a!important;border-radius:12px!important}
+.pixel-office:before{opacity:.13}
+.pixel-desk{background:#090c13e8!important;border:1px solid #252b3a!important;border-radius:9px!important}
+.pixel-screen{border-color:#454b60;box-shadow:inset 0 0 0 3px #241a2b}
+.pixel-screen:after{background:#ff6db4;box-shadow:0 6px #68f3f0}
+.pixel-status{border-color:#315a59;color:#8ff4eb}
+.va-panel,.va-metric{box-shadow:none!important}
+.va-metric{background:#070a11!important;border:1px solid #252b3a!important}
+.va-metric-label{font:600 9px/1.6 Inter,system-ui,sans-serif;letter-spacing:.1em}
+.va-metric-value{font:600 25px/1.3 Inter,system-ui,sans-serif;color:var(--cyan)}
+.va-btn{font:600 12px/1.35 Inter,system-ui,sans-serif!important}
+.neural-stage{position:relative;width:100%;height:clamp(340px,47vw,650px);min-height:340px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#11121d 0,#06070c 58%,#03050a 100%);border:1px solid #272a38;border-radius:14px;box-shadow:0 25px 80px #0009;isolation:isolate}
+.neural-stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto;cursor:grab;touch-action:pan-y}
+.neural-stage canvas:active{cursor:grabbing}
+.neural-overlay{position:absolute;z-index:2;inset:0;pointer-events:none;padding:18px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(180deg,#03050a99,transparent 23%,transparent 72%,#03050acc)}
+.neural-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
+.neural-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#e8ebf7;font-weight:750}
+.neural-sub{font-size:11px;color:#8c94a8;margin-top:5px}
+.neural-live{font-size:10px;letter-spacing:.1em;color:#79f5e7;display:flex;gap:7px;align-items:center}
+.neural-live:before{content:"";width:6px;height:6px;background:#68f3f0;border-radius:50%;box-shadow:0 0 12px #68f3f0}
+.neural-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:10px/1.5 ui-monospace,monospace;color:#939bb0;text-transform:uppercase;letter-spacing:.07em}
+.neural-footer b{color:#ff8bc2;font-weight:500}
+.brain-network-wrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(250px,.8fr);gap:14px;margin:18px 0}
+.brain-network-card{padding:12px;border:1px solid #242a38;background:#080b12;border-radius:12px;min-width:0}
+.brain-network-card .neural-stage{height:clamp(260px,27vw,370px);min-height:260px;border:0;border-radius:8px;box-shadow:none}
+.brain-readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.brain-readout div{padding:10px;border:1px solid #202636;background:#06080e;border-radius:8px}
+.brain-readout strong{display:block;font-size:18px;color:#e9edf7;font-weight:650}
+.brain-readout span{display:block;font-size:10px;color:#9299aa;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.neural-note{font-size:11px;color:#7e879a;margin:10px 2px 2px}
+@media(max-width:800px){.brain-network-wrap{grid-template-columns:1fr}.neural-stage{height:420px}.brain-network-card .neural-stage{height:310px}}
+@media(max-width:480px){header{gap:.8rem}header>div:last-child{gap:.35rem!important}.neural-stage{height:390px;min-height:330px}.neural-overlay{padding:12px}.neural-title{font-size:10px}.neural-footer{font-size:9px}.wrap{padding:.75rem}}
+@media(prefers-reduced-motion:reduce){.neural-stage canvas{cursor:default}}
+</style></head><body>
+<header><div class="logo">NEXORA<span> AI</span> / COMPANY HQ</div><div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap"><a class="button secondary" style="text-decoration:none" href="https://nexora-ai-public.onrender.com/">Public website ↗</a><a class="button" style="text-decoration:none" href="./video-agent.html">Video Production Agent ↗</a><a class="button secondary" style="text-decoration:none" href="./creative-agent.html">Internal Creative Agent ↗</a><a class="button" style="text-decoration:none" href="./growth-hq.html">41-Agent Growth HQ ↗</a><a class="button" style="text-decoration:none" href="./company-workforce.html">196-Agent Workforce ↗</a><a class="button secondary" style="text-decoration:none" href="./pricing-admin.html">Service Pricing ₹499 ↗</a><span class="pill">HQ · WORKFLOWS & REPORTS</span></div><a class="button" href="/monitoring.html">LIVE MONITORING</a></header>
+<main class="wrap"><div class="eyebrow">AI services operations / neural command</div><h1>Build. Deliver. Earn.</h1><p>One command center for client projects, specialist agents, quality gates, and verified revenue.</p>
+<section aria-label="Live agent neural network" style="margin:1.2rem 0 1rem">
+<div class="neural-stage" data-neural="agents" aria-label="Interactive 3D-style agent network. Move pointer or drag to rotate.">
+<canvas aria-label="Interactive neural network visualization"></canvas>
+<div class="neural-overlay"><div class="neural-head"><div><div class="neural-title">Nexora / Agent Neural Field</div><div class="neural-sub">Distributed agent topology · live workflow signals</div></div><div class="neural-live">NETWORK VISUALIZER</div></div><div class="neural-footer"><span>Nodes <b data-nodes>—</b> / Links <b data-links>—</b></span><span>Pointer parallax · drag to rotate</span><span>CYAN / MAGENTA / SIGNAL RED</span></div></div>
+</div>
+<div class="brain-network-wrap">
+<div class="brain-network-card"><div class="neural-head"><div><div class="neural-title">Shared Brain / Memory Topology</div><div class="neural-sub">Shared knowledge graph · interactive 3D-style projection</div></div><div class="neural-live">BRAIN FIELD</div></div>
+<div class="neural-stage" data-neural="brain"><canvas aria-label="Interactive Brain memory network visualization"></canvas><div class="neural-overlay"><div></div><div class="neural-footer"><span>Clusters <b data-clusters>—</b></span><span>Move or drag to rotate</span></div></div></div>
+<div class="neural-note">This visualization is an interactive representation. Live memory counts and connections are shown only when confirmed by the Brain API.</div></div>
+<div class="brain-network-card"><div class="neural-title">Neural telemetry</div><div class="neural-sub">Visual state, not fabricated backend metrics</div>
+<div class="brain-readout"><div><strong data-readout="fps">—</strong><span>Render FPS</span></div><div><strong data-readout="nodes">—</strong><span>Visible nodes</span></div><div><strong data-readout="motion">Pointer</strong><span>Interaction</span></div><div><strong data-readout="brain">Checking</strong><span>Brain status</span></div></div>
+<p class="neural-note" id="neuralBrainStatus">Checking shared Brain configuration through Harvey…</p>
+<a class="button secondary" href="./harvey.html" style="text-decoration:none">Open Harvey / Brain workspace ↗</a>
+</div></div>
+</section>
+<div class="notice">Public services website: <a href="https://nexora-ai-public.netlify.app/" style="color:var(--cyan)">open Nexora AI website</a>. Hourly public opportunity discovery and draft workflows run through GitHub Actions. The public project form submits to the configured Cloudflare intake API and saves enquiries to the protected owner inbox when the API confirms receipt. Email alerts depend on the configured Resend sender and delivery status. Instagram is a separate marketing/contact channel: queued posts are not proof of publication, and DMs are not read or sent automatically. No bids, payments, or client deployments are claimed.</div>
+<section class="card" id="liveConnections" style="margin:1rem 0" aria-labelledby="liveConnectionsTitle">
+<h2 id="liveConnectionsTitle">Live connections &amp; workspace shortcuts</h2>
+<p class="muted">This panel checks the real Harvey backend. It does not pretend that every role is an independently running agent.</p>
+<div style="display:flex;flex-wrap:wrap;gap:.6rem;margin:.8rem 0">
+<a class="button" style="display:inline-block;text-decoration:none" href="./agent-town.html">Open Pixel Agent HQ</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="./harvey.html">Open Harvey Workspace</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="./inbox.html">Open Owner Inbox</a>
+<button class="button secondary" id="checkHarveyHealth" type="button">Refresh Harvey health</button>
+</div>
+<p id="harveyHealthStatus" role="status" aria-live="polite">Checking live Harvey API…</p>
+<p id="harveyHealthDetails" class="muted">Waiting for the health endpoint.</p>
+ <p id="sharedBrainStatus" role="status" aria-live="polite">Shared Brain: checking connection…</p>
+ <p class="muted">Shared Brain status confirms worker configuration only; the separate live cross-agent smoke test verifies shared memory read/write.</p>
+ <p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/shared-brain-live-smoke.yml" target="_blank" rel="noopener">Open Shared Brain live verification ↗</a></p>
+<p class="muted">Voice controls use the browser's speech features. Instagram publishing and DM handling are not connected automatically. Production email sending remains disabled until sender verification and a safe test are completed.</p>
+</section>
+
+<section class="va-panel" data-visitor-analytics="compact" id="visitorAnalyticsPanel" aria-labelledby="visitorAnalyticsTitle">
+  <div class="pixel-hq-head">
+    <div><div class="eyebrow">Site intelligence</div><h2 id="visitorAnalyticsTitle">Website visitor tracker</h2></div>
+    <a class="button secondary" style="text-decoration:none" href="./visitor-analytics.html">Open full report ↗</a>
+  </div>
+  <p class="muted">GA4 visitors, sessions, traffic from AI platforms, and top landing pages. This widget displays real synced analytics only—no estimates or fabricated totals.</p>
+  <div class="va-row">
+    <div class="va-field">
+      <label for="visitorWidgetAdminKey">Owner access key</label>
+      <input id="visitorWidgetAdminKey" data-admin-key type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the owner key to load private data">
+    </div>
+    <button class="va-btn" data-load type="button">Load metrics</button>
+    <button class="va-btn secondary" data-sync type="button">Sync GA4</button>
+  </div>
+  <p class="va-footnote">The key is kept in this page's memory only and is not saved to browser storage.</p>
+  <div class="va-status" data-status role="status" aria-live="polite">Enter the owner key to load metrics. GA4 reporting access and a verified website Measurement ID must be configured first.</div>
+  <div class="va-status is-warn" data-config-warning hidden role="status" aria-live="polite"></div>
+  <div class="va-grid">
+    <div class="va-metric"><div class="va-metric-label">TOTAL USERS</div><div class="va-metric-value" data-metric="users">—</div><div class="va-metric-note">Last selected period</div></div>
+    <div class="va-metric"><div class="va-metric-label">SESSIONS</div><div class="va-metric-value" data-metric="sessions">—</div><div class="va-metric-note">Repeat visits included</div></div>
+    <div class="va-metric"><div class="va-metric-label">AI SESSIONS</div><div class="va-metric-value" data-metric="ai_sessions">—</div><div class="va-metric-note">Identified AI referrals</div></div>
+    <div class="va-metric"><div class="va-metric-label">AI SESSION SHARE</div><div class="va-metric-value" data-metric="ai_share">—</div><div class="va-metric-note">AI sessions / all sessions</div></div>
+  </div>
+  <div class="pixel-hq-head"><h3>Daily sessions</h3><span class="va-footnote" data-period-label>Awaiting a report</span></div>
+  <div class="va-bars" data-trend role="img" aria-label="Daily website session trend"><p class="va-empty">Load the report to show the daily trend.</p></div>
+  <p class="va-footnote" data-sync-label>Last sync: not available</p>
+</section>
+<section class="card" style="margin:1rem 0">
+<h2>Free-first buyer lead sources</h2>
+<p class="muted">Browse public buyer requests directly. These links are discovery only: verify the original post, age, eligibility, payment terms, and platform rules before preparing any proposal. Nothing is sent automatically.</p>
+<div style="display:flex;flex-wrap:wrap;gap:.6rem">
+<a class="button" style="display:inline-block;text-decoration:none" href="https://requestsignals.com/leads">Browse RequestSignals leads</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://www.reddit.com/r/forhire/new/">Browse Reddit r/forhire</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://www.projectmela.com/gigs">Browse Project Mela gigs</a>
+</div>
+<p class="muted">RequestSignals and Project Mela are manual-only until a permitted, stable official feed/API is verified. Do not automate scraping or outreach.</p>
+</section>
+<h2>Run HQ workflows</h2>
+<p class="muted">Open a workflow to run a task. Paste a client-approved brief into the delivery workflow. Agents create a downloadable review bundle; check model availability, tests, and acceptance criteria before handover. Instagram inbox is opened for human replies; DMs are not read or sent by these workflows.</p>
+<div style="display:flex;flex-wrap:wrap;gap:.6rem">
+<a class="button" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/client-delivery.yml">Build client delivery pack</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/autonomous-client-execution.yml">Run full delivery agents</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://www.instagram.com/direct/inbox/">Open Instagram inbox</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml">Run opportunity scout</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://maazxhasan-hue.github.io/Tradinglab03-/portfolio-sample/tradinglab03-services.html">View services portfolio</a>
+<a class="button" style="display:inline-block;text-decoration:none" href="marketing.html">Open Marketing Studio</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/free-first-marketing-pack.md">Open marketing pack</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/free-first-acquisition-plan.md">Free-first acquisition plan</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/client-success-playbook.md">Client success playbook</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/website-draft.yml">Build website draft</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/agent-worker.yml">Run AI draft worker</a>
+<a class="button secondary" style="display:inline-block;text-decoration:none" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml">Run quality gate</a>
+</div>
+<p class="muted">No workflow sends outreach, publishes a client site, spends money, or records revenue automatically.</p>
+</section>
+
+<section class="card pixel-hq" id="pixelAgentHQ" aria-labelledby="pixelHQTitle">
+ <div class="pixel-hq-head"><div><div class="eyebrow">Pixel office</div><h2 id="pixelHQTitle">Your AI team, at work</h2><p class="muted">A little living office for the Nexora specialist roles.</p></div><span class="pixel-live">Office visualizer running</span></div>
+ <div class="pixel-office">
+  <div class="pixel-floor">
+   <article class="pixel-desk"><h3>Engineering &amp; QA</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Build, test, review</p><span class="pixel-status">Workflow station</span></article>
+   <article class="pixel-desk"><h3>Research &amp; Intelligence</h3><div class="pixel-screen"></div><div class="pixel-person research" aria-hidden="true"></div><p>Investigate, compare, summarize</p><span class="pixel-status">Research station</span></article>
+   <article class="pixel-desk"><h3>Creative Studio</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Design, content, concepts</p><span class="pixel-status">Creative station</span></article>
+   <article class="pixel-desk"><h3>Internal Creative Agent</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Plan · build · validate · repair</p><span class="pixel-status">Internal tools</span><p><a href="./creative-agent.html">Open creative agent ↗</a></p></article>\n   <article class="pixel-desk"><h3>3D Video Production</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>15–20s cinematic edits · reference-led</p><span class="pixel-status">Open video agent</span><p><a href="./video-agent.html">Inspect pipeline &amp; QA ↗</a></p></article>
+   <article class="pixel-desk"><h3>Sales &amp; Client Success</h3><div class="pixel-screen"></div><div class="pixel-person walking" aria-hidden="true"></div><p>Qualify leads, prepare drafts</p><span class="pixel-status">Human approval required</span></article>
+   <article class="pixel-desk"><h3>Delivery &amp; Project Ops</h3><div class="pixel-screen"></div><div class="pixel-person typing" aria-hidden="true"></div><p>Plan tasks, package deliverables</p><span class="pixel-status">Delivery station</span></article>
+   <article class="pixel-desk"><h3>Security &amp; Quality</h3><div class="pixel-screen"></div><div class="pixel-person research" aria-hidden="true"></div><p>Check safety, scope, acceptance</p><span class="pixel-status">Review station</span></article>
+  </div>
+  <div class="pixel-feed" aria-label="Available workstreams">
+   <div class="pixel-feed-item"><b>Opportunity scout</b>Scheduled workflow · inspect the latest run in GitHub Actions</div>
+   <div class="pixel-feed-item"><b>Client delivery agents</b>On-demand workflow · run only with an approved brief</div>
+   <div class="pixel-feed-item"><b>Quality gate</b>On-demand checks · review the actual workflow result</div>
+   <div class="pixel-feed-item"><b>Marketing drafts</b>Draft workflows · publishing and outreach are not automatic</div>
+   <div class="pixel-feed-item"><b>Cinematic video agent</b>Client brief → shot plan → render → visual/audio QA → approval. Render provider is not yet connected.</div>
+  </div>
+ </div>
+ <p class="pixel-note" id="pixelTelemetryNote">Connecting to GitHub workflow activity… Status is based on recent workflow runs, not fabricated agent actions.</p>
+ <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem"><a class="button" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml">Open opportunity scout ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/autonomous-client-execution.yml">Open delivery agents ↗</a><a class="button secondary" href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml">Open quality gate ↗</a></div>
+</section>
+
+<div class="grid">
+<div class="card"><div class="muted">Specialist roles</div><div class="metric">30+</div><div class="muted">Role definitions across departments</div></div>
+<div class="card"><div class="muted">Saved briefs (this browser)</div><div class="metric" id="projectCount">0</div><div class="muted">Browser-local drafts; not synced to a server</div></div>
+<div class="card"><div class="muted">Verified revenue</div><div class="metric">₹0</div><div class="muted">No payment integration connected</div></div>
+<div class="card"><div class="muted">Work discovery</div><div class="metric">HOURLY</div><div class="muted">Public feed scout; report artifact</div></div>
+</div>
+<div class="layout">
+<section class="card"><h2>Departments & hiring standards</h2>
+<div class="row"><div><strong>Engineering & QA</strong><div class="muted">Websites, automation, testing, security</div></div><span class="status">EVALUATION GATE</span></div>
+<div class="row"><div><strong>Creative Studio</strong><div class="muted">Brand, video, voice, copywriting</div></div><span class="status">EVALUATION GATE</span></div>
+<div class="row"><div><strong>Sales & Client Success</strong><div class="muted">Lead qualification, proposal drafts, support</div></div><span class="status">HUMAN APPROVAL</span></div><div class="row"><div><strong>Business Intelligence & Revenue Scout</strong><div class="muted">Analyze business needs and rank potential service offers</div></div><span class="status">NEW AGENT</span></div>
+<div class="row"><div><strong>Finance & Operations</strong><div class="muted">Verified receipts, project health, release gates</div></div><span class="status">MANUAL · NO PAYMENT INTEGRATION</span></div>
+<p class="muted">Candidates need at least five role-specific tasks, quality and reliability scores, and a passing safety review. Promotions and bonuses are recommendations—not automatic payouts.</p></section>
+<section class="card"><h2>Client discovery & project brief</h2>
+<p class="muted">Capture the client's exact requirements before building. Required and optional items are stored locally in this browser; export the brief and confirm it with the client before estimating or coding.</p>
+<form id="projectForm">
+<label for="client">Client or business name *</label><input id="client" required maxlength="160" placeholder="Business name">
+<label for="tagline">Approved tagline / headline</label><input id="tagline" maxlength="240" placeholder="Use client-approved wording; leave blank if undecided">
+<label for="services">Services to show on website</label><textarea id="services" rows="2" maxlength="1600" placeholder="One service per line; use only client-confirmed services"></textarea>
+<label for="contactEmail">Approved public contact email</label><input id="contactEmail" type="email" maxlength="240" placeholder="Leave blank if the client hasn't approved it">
+<label for="type">Project type *</label><select id="type"><option>Business website</option><option>Landing page</option><option>E-commerce website</option><option>Website redesign</option><option>Web app / dashboard</option><option>Mobile app concept</option><option>SEO & content</option><option>Video editing</option><option>Workflow automation</option><option>Other — clarify in brief</option></select>
+<label for="goal">Main goal / problem to solve *</label><textarea id="goal" required rows="3" maxlength="3000" placeholder="What should the project help the business achieve? What is the problem today?"></textarea>
+<label for="audience">Target audience</label><textarea id="audience" rows="2" maxlength="1500" placeholder="Who will use it? Locations, languages, customer types, accessibility needs"></textarea>
+<label for="pages">Pages, screens, or deliverables</label><textarea id="pages" rows="2" maxlength="2000" placeholder="List every page/screen/video/deliverable expected in version 1"></textarea>
+<label for="features">Must-have features (version 1)</label><textarea id="features" rows="3" maxlength="3000" placeholder="Forms, search, login, booking, payments, filters, dashboard, WhatsApp, etc. Say what each feature should do."></textarea>
+<label for="futureFeatures">Future features / version 2 wishlist</label><textarea id="futureFeatures" rows="2" maxlength="2500" placeholder="Nice-to-have ideas to plan for later. Do not silently include them in version 1 scope."></textarea>
+<label for="style">Design direction and references</label><textarea id="style" rows="2" maxlength="2000" placeholder="Preferred colors, mood, examples/URLs, what they like or dislike"></textarea>
+<label for="contentAssets">Content and assets available</label><textarea id="contentAssets" rows="2" maxlength="2000" placeholder="Logo, copy, photos, videos, product data, brand guide, domain, hosting"></textarea>
+<label for="integrations">Integrations and data</label><textarea id="integrations" rows="2" maxlength="2000" placeholder="Email, CRM, calendar, payment provider, analytics, inventory. Never paste passwords/API keys here."></textarea>
+<label for="success">Acceptance criteria / how we'll know it is right *</label><textarea id="success" required rows="3" maxlength="2500" placeholder="Concrete checks: mobile layout, required flows, expected results, browsers, sample data, links, speed/accessibility needs"></textarea>
+<label for="budget">Budget range (optional)</label><input id="budget" maxlength="120" placeholder="Currency and range, or leave undecided">
+<label for="deadline">Target deadline and key dates</label><input id="deadline" maxlength="160" placeholder="Date, launch window, milestones">
+<label for="support">Post-launch support desired</label><select id="support"><option>Discuss after launch</option><option>No ongoing support</option><option>Bug-fix window</option><option>Monthly maintenance</option><option>Ongoing feature roadmap</option></select>
+<label for="constraints">Constraints, dependencies, and exclusions</label><textarea id="constraints" rows="2" maxlength="2000" placeholder="Legal/accessibility requirements, third-party fees, what must not change, client dependencies"></textarea>
+<button class="button" type="submit">Create detailed project brief</button>
+<button class="button secondary" type="button" id="exportBrief" disabled>Download latest brief JSON</button>
+</form><div id="feedback" class="muted" aria-live="polite"></div></section>
+</div>
+
+<section class="card" style="margin-top:1rem">
+<h2>Company department directory</h2>
+<p class="muted">A full operating structure. Role names are defined in the repository; staffing is not automatic and each agent must pass capability and safety evaluation.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+<div class="card"><strong>Marketing & Brand</strong><div class="muted">SEO · content · social · campaigns · brand analytics</div></div>
+<div class="card"><strong>Sales & Partnerships</strong><div class="muted">Lead research · qualification · proposals · referrals</div></div>
+<div class="card"><strong>Customer Success & CA</strong><div class="muted">Client accounts · onboarding · support · retention</div></div>
+<div class="card"><strong>Product & Service Design</strong><div class="muted">Discovery · roadmaps · service packages · pricing research</div></div>
+<div class="card"><strong>Research & Analysis</strong><div class="muted">Market · competitor · business intelligence · data analysis</div></div>
+<div class="card"><strong>Builders & Engineering</strong><div class="muted">Website builders · developers · AI · automation · integrations</div></div>
+<div class="card"><strong>Creative & Presenting</strong><div class="muted">Design · video · copy · presentations · demos</div></div>
+<div class="card"><strong>Quality, Audit & Testing</strong><div class="muted">QA · code review · accessibility · security · release acceptance</div></div>
+<div class="card"><strong>Delivery & Project Management</strong><div class="muted">Scheduling · resource planning · delivery · documentation</div></div>
+<div class="card"><strong>Finance, Legal & Procurement</strong><div class="muted">Cash flow · invoices · budgets · vendors · contract review</div></div>
+<div class="card"><strong>People & Agent Operations</strong><div class="muted">Recruitment · capability tests · training · performance reviews</div></div>
+<div class="card"><strong>IT, Security & Data</strong><div class="muted">Access · secrets · monitoring · incident response · backups</div></div>
+<div class="card"><strong>Partnerships & Ecosystem</strong><div class="muted">Referrals · subcontractors · vendors · platform relationships</div></div>
+<div class="card"><strong>Continuous Improvement</strong><div class="muted">KPI reviews · retrospectives · automation · process improvement</div></div>
+</div>
+</section>
+<section class="card" style="margin-top:1rem">
+<h2>Operator shortcuts</h2>
+<p class="muted">These actions run on GitHub Actions and produce downloadable artifacts. They do not publish client work or contact customers.</p>
+<div class="row"><div><strong>Hourly opportunity reports</strong><div class="muted">Inspect run health and download lead reports.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/hourly-opportunity-scout.yml" target="_blank" rel="noopener">Open scout</a></div>
+<div class="row"><div><strong>Company quality gate</strong><div class="muted">Run unit tests and build a sample website with static QA checks.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/company-quality.yml" target="_blank" rel="noopener">Run quality checks</a></div>
+<div class="row"><div><strong>Persistent lead tracker</strong><div class="muted">Add prospects, update stages, record next actions, and track verified revenue. Suitable hourly listings are imported automatically.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/lead-tracker.yml" target="_blank" rel="noopener">Open tracker</a></div>
+<div class="row"><div><strong>Client proposal pack</strong><div class="muted">Generate proposal and outreach drafts without paid APIs. Demo defaults let you test it safely; replace them with real, verified details before using a draft.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/client-proposal-pack.yml" target="_blank" rel="noopener">Create pack</a></div>
+<section class="card" style="margin:.5rem 0 1rem" id="proposalLaunchpad">
+<h3>Proposal launchpad</h3>
+<p class="muted">Quick guide for creating a proposal from the HQ. This opens GitHub Actions; the dashboard does not submit a workflow run or send messages itself.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem">
+<div><strong>1. Review a lead</strong><p class="muted">Confirm buyer intent, source URL, service fit, and evidence before drafting.</p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">Open saved leads</a></div>
+<div><strong>Potential lead: PDF → Excel</strong><p class="muted">Research record and unsent feasibility proposal for the MCQ PDF automation request.</p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/proposals/TL-20261016034000-078.md" target="_blank" rel="noopener">Open proposal draft</a></div>
+<div><strong>2. Create the draft</strong><p class="muted">Choose a service. Use a saved lead ID only if the lead is classified as a client project; otherwise enter business name and observed need.</p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/client-proposal-pack.yml" target="_blank" rel="noopener">Open proposal workflow</a></div>
+<div><strong>3. Download and review</strong><p class="muted">Open the completed run, download the artifact, and review the Markdown/JSON before any outreach.</p><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/runs/38594458643" target="_blank" rel="noopener">View last successful demo</a></div>
+</div>
+<p class="muted">Safety: demo output is not a real prospect, price, contract, or revenue. No automatic outreach or paid services are enabled here.</p>
+</section>
+<div class="card" style="margin-top:1rem" id="quickProposal">
+<h3>Quick proposal draft (runs in this browser)</h3>
+<p class="muted">Create a local Markdown draft instantly without waiting for GitHub Actions or using a paid API. This does not send anything. Review every claim and term before use.</p>
+<form id="quickProposalForm">
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem">
+<label>Business / client name<input id="qpBusiness" maxlength="120" required placeholder="e.g. Example Cafe"></label>
+<label>Service<select id="qpService"><option value="Business website">Business website</option><option value="Landing page">Landing page</option><option value="Website audit">Website audit</option><option value="SEO and content starter">SEO and content starter</option><option value="Short-form video package">Short-form video package</option><option value="Business workflow automation">Business workflow automation</option></select></label>
+<label>Public website (optional)<input id="qpWebsite" type="url" placeholder="https://example.com"></label>
+<label>Indicative quote (optional)<input id="qpPrice" maxlength="120" placeholder="Leave blank to set no price"></label>
+</div>
+<label>Observed need / brief<textarea id="qpNeed" required maxlength="700" rows="3" placeholder="Only include details you have verified."></textarea></label>
+<label>Evidence to verify (optional)<textarea id="qpEvidence" maxlength="1000" rows="2" placeholder="Public listing, user-provided brief, or verified observation"></textarea></label>
+<div class="row" style="justify-content:flex-start;gap:.75rem;flex-wrap:wrap"><button class="button" type="submit">Generate draft</button><button class="button secondary" type="button" id="qpDownload" disabled>Download Markdown</button><button class="button secondary" type="button" id="qpCopy" disabled>Copy draft</button><button class="button secondary" type="button" id="qpQuality" disabled>Review draft quality</button></div>
+<div id="qpQualityReport" class="muted" aria-live="polite">Generate a draft, then run the local quality review.</div>
+<p id="qpStatus" class="muted" aria-live="polite">Nothing generated yet.</p>
+<label for="qpOutput">Draft preview</label><textarea id="qpOutput" rows="14" readonly placeholder="Your draft appears here after you generate it."></textarea>
+</form>
+</div>
+<div class="row"><div><strong>AI draft worker</strong><div class="muted">Requires repository secret OPENAI_API_KEY.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/agent-worker.yml" target="_blank" rel="noopener">Run draft worker</a></div>
+<div class="row"><div><strong>Website draft builder</strong><div class="muted">Build a client website starter and QA report.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/actions/workflows/website-draft.yml" target="_blank" rel="noopener">Build website draft</a></div>
+<div class="row"><div><strong>Department registry</strong><div class="muted">Full team missions and functions.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/departments.json" target="_blank" rel="noopener">View registry</a></div>
+<div class="row"><div><strong>KPI scorecards</strong><div class="muted">Revenue, delivery, quality, customer outcomes, risk.</div></div><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/company/scorecards.json" target="_blank" rel="noopener">View scorecards</a></div>
+</section>
+<section class="card" style="margin-top:1rem" id="leadReview">
+<h2>Lead review desk</h2>
+<p class="muted">Import a downloaded <code>leads.json</code> from this repository to review it in this browser. The file is not uploaded anywhere. The default filter shows potential client projects first; freelance roles and older unclassified listings stay separate. Every lead is unverified until a human checks that the listing is still open, the buyer intent is genuine, and the scope/payment terms are suitable.</p>
+<div class="row"><div><strong>Current lead register</strong><div class="muted">Open or download the latest public lead data, then choose the JSON file below. The dashboard stays standalone and does not make background network requests.</div></div><div style="display:flex;gap:.5rem;flex-wrap:wrap"><a href="https://raw.githubusercontent.com/maazxhasan-hue/Tradinglab03-/main/data/leads.json" target="_blank" rel="noopener">Open/download latest leads.json ↗</a><a href="https://github.com/maazxhasan-hue/Tradinglab03-/blob/main/data/leads.json" target="_blank" rel="noopener">View on GitHub</a></div></div>
+<label for="leadFile">Choose downloaded leads.json</label><input id="leadFile" type="file" accept=".json,application/json">
+<label for="leadFilter">Filter lead review</label><select id="leadFilter"><option value="all">All imported leads</option><option value="client" selected>Potential client projects only (recommended)</option><option value="freelance">Freelance work opportunities</option><option value="review">Needs human review / unverified</option></select>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+<div><div class="muted">Loaded leads</div><div class="metric" id="leadTotal">0</div></div>
+<div><div class="muted">Potential projects</div><div class="metric" id="leadClients">0</div></div>
+<div><div class="muted">Freelance work</div><div class="metric" id="leadFreelance">0</div></div>
+</div>
+<div class="row"><div><strong>Review tools</strong><div class="muted">Review marks stay in this browser. Export the filtered rows for offline follow-up.</div></div><button class="button secondary" type="button" id="exportLeads">Export filtered CSV</button></div><div id="leadFeedback" class="muted" aria-live="polite">No lead file loaded in this browser session. Open/download the latest leads.json above, then select it here.</div><div id="leadRows"></div>
+</section>
+<section class="card" style="margin-top:1rem"><h2>Local project queue</h2><div id="queue" class="muted">No project briefs yet.</div></section>
+<div class="foot">TradingLab03 AI Services · Demo dashboard · Connect APIs only after reviewing permissions, privacy, platform rules, and approval gates.</div></main>
+<script>
+const form=document.querySelector('#projectForm'),queue=document.querySelector('#queue'),count=document.querySelector('#projectCount'),feedback=document.querySelector('#feedback');
+const STORAGE_KEY='tradinglab03_hq_project_briefs_v1';
+let projects=[];
+try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');if(Array.isArray(saved))projects=saved.filter(p=>p&&typeof p.client==='string'&&typeof p.type==='string'&&typeof p.goal==='string')}catch(_){projects=[]}
+function renderProjects(){count.textContent=String(projects.length);queue.replaceChildren();if(!projects.length){queue.textContent='No project briefs yet.';return}projects.forEach(function(x){const row=document.createElement('div');row.className='row';const left=document.createElement('div');const strong=document.createElement('strong');strong.textContent=x.client+' · '+x.type;const small=document.createElement('div');small.className='muted';small.textContent=x.goal;left.append(strong,small);const status=document.createElement('span');status.className='status';status.textContent=x.state||'Needs human scoping';row.append(left,status);queue.append(row)})}
+renderProjects();
+const leadFile=document.querySelector('#leadFile'),leadFilter=document.querySelector('#leadFilter'),leadRows=document.querySelector('#leadRows'),leadFeedback=document.querySelector('#leadFeedback');
+const REVIEW_KEY='tradinglab03_hq_reviewed_leads_v1';
+const QUAL_KEY='tradinglab03_hq_lead_qualification_v1';
+const QUAL_ITEMS=[['listing_open','Listing is still open'],['buyer_intent','Buyer need and intent checked'],['scope','Scope and deadline understood'],['payment','Budget and payment terms checked'],['legitimacy','Source, legitimacy, and platform rules checked']];
+let reviewedIds={};try{reviewedIds=JSON.parse(localStorage.getItem(REVIEW_KEY)||'{}')||{}}catch(_){reviewedIds={}}
+let qualification={};try{qualification=JSON.parse(localStorage.getItem(QUAL_KEY)||'{}')||{}}catch(_){qualification={}}
+let importedLeads=[];
+function qualificationCount(x){const marks=qualification[leadKey(x)]||{};return QUAL_ITEMS.filter(item=>marks[item[0]]===true).length}
+function qualificationSummary(x){return qualificationCount(x)+'/'+QUAL_ITEMS.length+' qualification checks marked complete (not independently verified)'}
+function leadKey(x){return String(x.id||x.source_url||x.url||x.title||x.business_name||'').slice(0,500)}
+function leadKind(x){if(x.opportunity_type==='client_project'||x.client_fit===true)return 'client_project';if(x.opportunity_type==='freelance_work'||x.freelance_work_fit===true)return 'freelance_work';return 'legacy_or_unclassified'}
+function visibleLeadRows(){return importedLeads.filter(x=>{const kind=leadKind(x);if(leadFilter.value==='client')return kind==='client_project';if(leadFilter.value==='freelance')return kind==='freelance_work';if(leadFilter.value==='review')return !reviewedIds[leadKey(x)]||x.paid_contract_verified!==true||x.status==='needs_review';return true}).slice().sort((a,b)=>{const kindRank=x=>leadKind(x)==='client_project'?0:leadKind(x)==='freelance_work'?1:2;const reviewRank=x=>reviewedIds[leadKey(x)]?1:0;return kindRank(a)-kindRank(b)||reviewRank(a)-reviewRank(b)||Number(b.opportunity_score||0)-Number(a.opportunity_score||0)||String(b.updated_at||b.created_at||b.discovered_at||'').localeCompare(String(a.updated_at||a.created_at||a.discovered_at||''))})}
+function renderLeadReview(){
+ const visible=visibleLeadRows();
+ document.querySelector('#leadTotal').textContent=String(importedLeads.length);
+ document.querySelector('#leadClients').textContent=String(importedLeads.filter(x=>leadKind(x)==='client_project').length);
+ document.querySelector('#leadFreelance').textContent=String(importedLeads.filter(x=>leadKind(x)==='freelance_work').length);
+ leadRows.replaceChildren();
+ if(!visible.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='No leads match this filter.';leadRows.append(empty);return}
+ visible.slice(0,100).forEach(x=>{const key=leadKey(x);const card=document.createElement('div');card.className='row';card.style.alignItems='flex-start';const left=document.createElement('div');left.style.minWidth='0';const title=document.createElement('strong');title.textContent=x.business_name||x.title||'Untitled listing';const kind=leadKind(x);const typeLabel=kind==='client_project'?'Potential client project':kind==='freelance_work'?'Freelance role / gig':'Unclassified listing';const reviewLabel=reviewedIds[leadKey(x)]?'Reviewed in this browser':'Not reviewed in this browser';const verificationLabel=x.paid_contract_verified===true?'Payment marked verified — confirm evidence':'Human verification pending';const scoreLabel=Number.isFinite(Number(x.opportunity_score))&&x.opportunity_score!==undefined?'Scout score '+Number(x.opportunity_score):'No scout score';const signalCount=(Array.isArray(x.contract_signals)?x.contract_signals.length:0)+(Array.isArray(x.project_signals)?x.project_signals.length:0);const signalLabel=signalCount+' recorded signal'+(signalCount===1?'':'s');const riskLabel=Array.isArray(x.disqualifiers)&&x.disqualifiers.length?' · Review flags: '+x.disqualifiers.slice(0,3).join(', '):'';const detail=document.createElement('div');detail.className='muted';detail.textContent=[x.source_name||'Source not recorded',typeLabel,x.status||'status unknown',scoreLabel,signalLabel,reviewLabel,verificationLabel].join(' · ')+riskLabel;const action=document.createElement('div');action.className='muted';action.textContent=x.next_action||'Check original source, buyer intent, scope, and payment before acting.';left.append(title,detail,action);const checklist=document.createElement('details');checklist.style.marginTop='.65rem';const checklistSummary=document.createElement('summary');checklistSummary.textContent='Qualification checklist · '+qualificationSummary(x);checklistSummary.style.cursor='pointer';checklist.append(checklistSummary);const checklistHint=document.createElement('div');checklistHint.className='muted';checklistHint.textContent='Tick only after checking the source yourself. Completion is a note, not proof of legitimacy or payment.';checklist.append(checklistHint);QUAL_ITEMS.forEach(function(item){const label=document.createElement('label');label.style.display='flex';label.style.alignItems='center';label.style.gap='.5rem';label.style.margin='.35rem 0';const input=document.createElement('input');input.type='checkbox';input.checked=Boolean((qualification[key]||{})[item[0]]);input.style.width='auto';input.style.margin='0';input.addEventListener('change',function(){if(!qualification[key])qualification[key]={};if(input.checked)qualification[key][item[0]]=true;else delete qualification[key][item[0]];try{localStorage.setItem(QUAL_KEY,JSON.stringify(qualification));leadFeedback.textContent='Qualification checklist saved in this browser only. It does not verify the lead.'}catch(_){leadFeedback.textContent='Browser storage unavailable; checklist may not persist.'}checklistSummary.textContent='Qualification checklist · '+qualificationSummary(x)});const textNode=document.createElement('span');textNode.textContent=item[1];label.append(input,textNode);checklist.append(label)});left.append(checklist);const right=document.createElement('div');right.style.flexShrink='0';const link=document.createElement('a');link.textContent='Original listing';link.href=typeof x.source_url==='string'&&x.source_url.startsWith('https://')?x.source_url:(typeof x.url==='string'&&x.url.startsWith('https://')?x.url:'#');link.target='_blank';link.rel='noopener';if(link.href.endsWith('#'))link.textContent='No safe URL';const mark=document.createElement('button');mark.type='button';mark.className='button secondary';mark.style.display='block';mark.style.marginTop='.5rem';mark.textContent=reviewedIds[key]?'Undo review mark':'Mark reviewed';mark.addEventListener('click',function(){if(reviewedIds[key])delete reviewedIds[key];else reviewedIds[key]=new Date().toISOString();try{localStorage.setItem(REVIEW_KEY,JSON.stringify(reviewedIds));leadFeedback.textContent='Review mark saved in this browser only. It does not verify the lead or payment.'}catch(_){leadFeedback.textContent='Browser storage unavailable; mark may not persist.'}renderLeadReview()});const prepare=document.createElement('button');prepare.type='button';prepare.className='button';prepare.style.display='block';prepare.style.marginTop='.5rem';prepare.textContent='Prepare proposal draft';prepare.disabled=kind!=='client_project';if(kind!=='client_project')prepare.title='Only potential client-project listings can prefill a proposal draft.';prepare.addEventListener('click',function(){const businessField=document.querySelector('#qpBusiness'),serviceField=document.querySelector('#qpService'),needField=document.querySelector('#qpNeed'),evidenceField=document.querySelector('#qpEvidence'),websiteField=document.querySelector('#qpWebsite');businessField.value=String(x.business_name||x.title||'').slice(0,120);const serviceText=String(x.service||'').toLowerCase();const titleText=String(x.title||x.business_name||'').toLowerCase();let mapped='Business website';if(/video|reel|youtube|montage/.test(serviceText+' '+titleText))mapped='Short-form video package';else if(/seo|content|social media|réseaux sociaux/.test(serviceText+' '+titleText))mapped='SEO and content starter';else if(/automation|workflow|zapier|make.com/.test(serviceText+' '+titleText))mapped='Business workflow automation';else if(/audit|performance|accessibility/.test(serviceText+' '+titleText))mapped='Website audit';else if(/landing page|conversion page/.test(serviceText+' '+titleText))mapped='Landing page';serviceField.value=mapped;needField.value=String(x.need||x.description||x.title||'').slice(0,700);evidenceField.value=('Public listing: '+String(x.source_url||x.url||'URL not recorded')+'; Source: '+String(x.source_name||'not recorded')+'. Listing and payment remain unverified.').slice(0,1000);websiteField.value='';document.querySelector('#qpPrice').value='';document.querySelector('#qpStatus').textContent='Lead details copied locally into the proposal form. Review and correct them before generating; nothing was sent.';document.querySelector('#quickProposal').scrollIntoView({behavior:'smooth',block:'start'});businessField.focus()});right.append(link,mark,prepare);card.append(left,right);leadRows.append(card)});
+ if(visible.length>100){const note=document.createElement('p');note.className='muted';note.textContent='Showing first 100 matching leads. Narrow the filter to review more precisely.';leadRows.append(note)}
+}
+leadFile.addEventListener('change',async function(){const file=leadFile.files&&leadFile.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text());const rows=Array.isArray(parsed)?parsed:parsed.leads;if(!Array.isArray(rows))throw new Error('Expected a leads array.');importedLeads=rows.filter(x=>x&&typeof x==='object');leadFeedback.textContent='Loaded '+importedLeads.length+' records locally. Nothing was uploaded, contacted, or marked as paid.';renderLeadReview()}catch(err){importedLeads=[];leadFeedback.textContent='Could not read this JSON: '+err.message;renderLeadReview()}});
+document.querySelector('#exportLeads').addEventListener('click',function(){const rows=visibleLeadRows();if(!rows.length){leadFeedback.textContent='No rows to export for this filter.';return}const cols=['title','business_name','service','source_name','source_url','url','opportunity_type','status','opportunity_score','next_action','paid_contract_verified','qualification_checks'];const quote=v=>'"'+String(v==null?'':v).replace(/"/g,'""').replace(/[\r\n]+/g,' ')+'"';const csv=[cols.join(','),...rows.map(x=>cols.map(k=>quote(k==='qualification_checks'?qualificationSummary(x):x[k])).join(','))].join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tradinglab03-leads-review.csv';a.click();URL.revokeObjectURL(url);leadFeedback.textContent='Exported '+rows.length+' filtered rows. Export does not verify leads or send messages.'});
+leadFilter.addEventListener('change',renderLeadReview);
+let quickProposalText='';
+const qpForm=document.querySelector('#quickProposalForm'),qpOutput=document.querySelector('#qpOutput'),qpStatus=document.querySelector('#qpStatus'),qpDownload=document.querySelector('#qpDownload'),qpCopy=document.querySelector('#qpCopy');
+const qpQuality=document.querySelector('#qpQuality'),qpQualityReport=document.querySelector('#qpQualityReport');
+function reviewProposalQuality(text){
+ const checks=[
+  {label:'Scope and deliverables',ok:/## Proposed deliverables[\\s\\S]*?\\n- /.test(text),fix:'Confirm the deliverables are specific and measurable.'},
+  {label:'Price or quote decision',ok:/Indicative quote supplied by operator:/.test(text)||/Price not set\\./.test(text),fix:'Choose a quote or consciously leave pricing unset before sending.'},
+  {label:'Timeline and milestones',ok:/timeline|delivery date|working days|weeks?/i.test(text),fix:'Agree a realistic timeline and milestones with the client.'},
+  {label:'Buyer evidence',ok:/Evidence to verify:/.test(text)&&!/Evidence not supplied; verify the need before contacting\\./.test(text),fix:'Verify the listing or brief and retain a real evidence URL/source.'},
+  {label:'Human review and approval',ok:/Draft for human review — not sent or accepted/.test(text)&&/not sent/i.test(text),fix:'Keep this as a draft until a human approves every detail.'}
+ ];
+ const claimLines=text.split('\\n').filter(line=>!/^\\s*-/.test(line)&&!/^\\s*## Exclusions/i.test(line));
+ const risky=/(guarantee(?:d|s)?\\s+(?:results?|rankings?|revenue|sales|leads?)|#1\\s+(?:on|ranking)|100%\\s+(?:guaranteed|success)|I have\\s+(?:already\\s+)?(?:delivered|built|helped|worked with)|(?:accepted|signed)\\s+(?:the )?(?:contract|proposal|deal)|(?:guaranteed|promise)\\s+(?:to )?(?:increase|double|triple))/i.test(claimLines.join('\\n'));
+ if(risky) checks.push({label:'Potential unsupported claim',ok:false,fix:'Remove or substantiate claims about guaranteed outcomes, prior experience, or an accepted deal.'});
+ return checks;
+}
+qpQuality.addEventListener('click',function(){
+ if(!quickProposalText){qpQualityReport.textContent='Generate a proposal draft first.';return}
+ const checks=reviewProposalQuality(quickProposalText),passed=checks.filter(c=>c.ok).length;
+ qpQualityReport.replaceChildren();
+ const heading=document.createElement('strong');heading.textContent='Local quality review: '+passed+'/'+checks.length+' checks passed';qpQualityReport.appendChild(heading);
+ const list=document.createElement('ul');
+ checks.forEach(function(c){const li=document.createElement('li');li.textContent=(c.ok?'PASS — ':'REVIEW — ')+c.label+(c.ok?'':' — '+c.fix);list.appendChild(li)});
+ qpQualityReport.appendChild(list);
+ const note=document.createElement('p');note.textContent='Heuristic checks only; this does not verify facts, legal terms, pricing, or buyer legitimacy. Review manually before use.';qpQualityReport.appendChild(note);
+});
+qpForm.addEventListener('submit',function(e){e.preventDefault();const business=document.querySelector('#qpBusiness').value.trim();const service=document.querySelector('#qpService').value;const website=document.querySelector('#qpWebsite').value.trim();const need=document.querySelector('#qpNeed').value.trim();const evidence=document.querySelector('#qpEvidence').value.trim();const price=document.querySelector('#qpPrice').value.trim();if(!business||!need){qpStatus.textContent='Enter a business name and observed need first.';return}if(website&&!/^https:\/\//i.test(website)){qpStatus.textContent='Website must use HTTPS, or leave it blank.';return}const packs={
+'Business website':{deliver:['Responsive homepage and up to four agreed pages','Contact call-to-action and supplied business details','Basic metadata and semantic headings','Mobile and link QA checklist'],exclude:['Domain/hosting fees','Paid plugins or stock assets','Custom backend, payments, or booking integrations unless separately agreed'],questions:['Who provides the logo, copy, and images?','Which pages and contact methods are required?','Who owns the domain and hosting?']},
+'Landing page':{deliver:['One responsive landing page','Clear value proposition and call to action','Basic metadata and contact-path placeholder','Mobile and link QA checklist'],exclude:['Paid ad spend','CRM or live form processing unless agreed','Domain/hosting fees'],questions:['What action should visitors take?','Who is the target customer?','Are brand assets and approved copy available?']},
+'Website audit':{deliver:['Review of agreed public pages','Prioritized technical and content observations','Evidence and reproducible checks where possible','Action list grouped by impact and effort'],exclude:['Penetration testing','Guaranteed ranking or conversion improvements','Changes to the live website'],questions:['Which pages matter most?','Any performance, SEO, or accessibility concerns?','What access is necessary after approval?']},
+'SEO and content starter':{deliver:['Keyword/topic hypotheses for review','Page-title and meta-description drafts','Content outline for agreed pages','On-page review checklist'],exclude:['Guaranteed search rankings','Paid tools or link purchases','Publishing without client approval'],questions:['Which locations or audiences matter?','Which services/products are priorities?','Are analytics reports available?']},
+'Short-form video package':{deliver:['Agreed short-video concepts','Hooks, scripts, captions, and edit notes','Platform-specific format checklist','One consolidated revision round if agreed'],exclude:['Filming, licensed music, paid stock, or posting unless agreed','Guaranteed views or follower growth'],questions:['Which platform and audience?','Will footage and brand assets be supplied?','How many videos and what duration?']},
+'Business workflow automation':{deliver:['Current-process discovery checklist','Proposed workflow map','Small scoped automation plan','Test and handover checklist'],exclude:['Production access before approval','Paid third-party services','Sensitive customer data without a reviewed plan'],questions:['Which repetitive task should improve?','Which apps are involved?','What permissions are strictly necessary?']}
+};const p=packs[service];const evidenceLine=evidence?'Evidence to verify: '+evidence:'Evidence not supplied; verify the need before contacting.';const priceLine=price?'Indicative quote supplied by operator: '+price+' (confirm scope, currency, taxes, and terms before sharing).':'Price not set. Confirm scope and effort before issuing a quote.';quickProposalText='# Draft proposal — '+service+'\n\n**Client:** '+business+'\n**Website:** '+(website||'Not provided')+'\n**Status:** Draft for human review — not sent or accepted\n\n## Context to verify\n'+need+'\n\n'+evidenceLine+'\n\n## Proposed deliverables\n'+p.deliver.map(x=>'- '+x).join('\n')+'\n\n## Exclusions / dependencies\n'+p.exclude.map(x=>'- '+x).join('\n')+'\n\n## Questions before final scope\n'+p.questions.map(x=>'- '+x).join('\n')+'\n\n## Commercial terms\n'+priceLine+'\nTimeline, revisions, payment milestones, ownership, taxes, cancellation, and acceptance criteria must be agreed in writing before work begins.\n\n## Outreach draft (not sent)\nSubject: A possible '+service.toLowerCase()+' improvement for '+business+'\n\nHello '+business+' team,\n\nI am preparing a tailored service proposal. The potential area to explore is: '+need+'. '+evidenceLine+' This is an initial observation, not a claim that your current setup is failing.\n\nIf relevant, would you be open to a brief conversation about your priorities?\n\nRegards,\nTradingLab03\n\n**Safety:** verify the prospect, evidence, scope, price, and contact channel. This draft is not sent or accepted.';
+qpOutput.value=quickProposalText;qpDownload.disabled=false;qpCopy.disabled=false;qpQuality.disabled=false;qpQualityReport.textContent='Draft generated. Run the local quality review before use.';qpStatus.textContent='Draft generated locally. Nothing was uploaded, sent, or marked as revenue.'});
+qpDownload.addEventListener('click',function(){if(!quickProposalText)return;const blob=new Blob([quickProposalText],{type:'text/markdown;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tradinglab03-proposal-draft.md';a.click();URL.revokeObjectURL(url);qpStatus.textContent='Markdown draft downloaded.'});
+qpCopy.addEventListener('click',async function(){if(!quickProposalText)return;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(quickProposalText);qpStatus.textContent='Draft copied. Review before sending.';return}}catch(_){}qpOutput.focus();qpOutput.select();try{const ok=document.execCommand('copy');qpStatus.textContent=ok?'Draft copied. Review before sending.':'Select the preview text and copy it manually.'}catch(_){qpStatus.textContent='Select the preview text and copy it manually.'}});
+let latestBrief=null;const exportBrief=document.querySelector('#exportBrief');
+function makeBrief(){return {brief_id:Date.now().toString(36),client:document.querySelector('#client').value.trim(),tagline:document.querySelector('#tagline').value.trim(),services:document.querySelector('#services').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),contact_email:document.querySelector('#contactEmail').value.trim(),project_type:document.querySelector('#type').value,goal:document.querySelector('#goal').value.trim(),target_audience:document.querySelector('#audience').value.trim(),pages_screens_deliverables:document.querySelector('#pages').value.trim(),version_1_must_have_features:document.querySelector('#features').value.trim(),future_features_backlog:document.querySelector('#futureFeatures').value.trim(),design_direction_and_references:document.querySelector('#style').value.trim(),content_and_assets:document.querySelector('#contentAssets').value.trim(),integrations_and_data:document.querySelector('#integrations').value.trim(),acceptance_criteria:document.querySelector('#success').value.trim(),budget_range:document.querySelector('#budget').value.trim(),target_deadline:document.querySelector('#deadline').value.trim(),post_launch_support:document.querySelector('#support').value,constraints_dependencies_exclusions:document.querySelector('#constraints').value.trim(),state:'Needs client confirmation',createdAt:new Date().toISOString(),scope_version:1,approval_status:'not_approved',outreach_sent:false,production_deployment_approved:false};}
+exportBrief.addEventListener('click',function(){if(!latestBrief)return;const blob=new Blob([JSON.stringify(latestBrief,null,2)+'\\n'],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tradinglab03-client-brief-'+latestBrief.brief_id+'.json';a.click();URL.revokeObjectURL(url);feedback.textContent='Brief exported. Send it to the client for written confirmation before estimating or building.'});
+form.addEventListener('submit',function(e){e.preventDefault();const p=makeBrief();if(!p.client||!p.goal||!p.acceptance_criteria){feedback.textContent='Complete the business name, main goal, and acceptance criteria.';return}latestBrief=p;exportBrief.disabled=false;projects.unshift({...p,client:p.client,type:p.project_type,goal:p.goal,state:p.state});projects=projects.slice(0,100);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(projects));feedback.textContent='Detailed brief saved in this browser. Download the JSON, confirm version 1 and future features with the client, and record written approval. Nothing was sent, quoted, deployed, or marked as revenue.'}catch(_){feedback.textContent='Brief created for this session only; browser storage is unavailable. Download it now.'}renderProjects();});
+
+</script>
+<script>
+(function(){
+ 'use strict';
+ const API='https://api.github.com/repos/maazxhasan-hue/Tradinglab03-/actions/runs?per_page=30';
+ const note=document.getElementById('pixelTelemetryNote');
+ const feed=document.querySelector('#pixelAgentHQ .pixel-feed');
+ const desks=Array.from(document.querySelectorAll('#pixelAgentHQ .pixel-desk'));
+ const map=[
+  {match:/client-delivery|autonomous-client-execution|end-to-end-delivery/i,desk:4,label:'Delivery agents'},
+  {match:/company-quality|tests|acceptance|nexora-synthetic-e2e|delivery-smoke/i,desk:5,label:'Quality & QA'},
+  {match:/hourly-opportunity-scout|daily-client-opportunity-review/i,desk:1,label:'Opportunity research'},
+  {match:/instagram|website-draft|nexora-instagram-draft/i,desk:2,label:'Creative & marketing'},
+  {match:/agent-worker|ai-worker-smoke-test|autonomy-validation/i,desk:0,label:'Engineering agents'},
+  {match:/company-operations|company-health|lead-tracker|client-proposal-pack/i,desk:3,label:'Operations & client success'}
+ ];
+ const nice=s=>String(s||'').replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase());
+ function status(run){
+  if(run.status==='in_progress'||run.status==='queued'||run.status==='waiting'||run.status==='requested')return {label:run.status==='in_progress'?'RUNNING':run.status.toUpperCase(),color:'#8af0d8'};
+  if(run.conclusion==='success')return {label:'PASSED',color:'#8af0d8'};
+  if(run.conclusion==='failure'||run.conclusion==='timed_out'||run.conclusion==='action_required')return {label:'NEEDS ATTENTION',color:'#ffb4a8'};
+  if(run.conclusion==='cancelled'||run.conclusion==='skipped')return {label:nice(run.conclusion).toUpperCase(),color:'#a9b8ca'};
+  return {label:nice(run.status||'unknown').toUpperCase(),color:'#a9b8ca'};
+ }
+ function setDesk(idx,run){
+  const d=desks[idx];if(!d||!run)return;
+  const p=d.querySelector('p');const badge=d.querySelector('.pixel-status');const s=status(run);
+  if(p)p.textContent=nice(run.name)+' · '+(run.status==='completed'?'finished '+new Date(run.updated_at).toLocaleString():nice(run.status));
+  if(badge){badge.textContent=s.label+' · '+new Date(run.updated_at).toLocaleTimeString();badge.style.color=s.color;badge.style.borderColor=s.color}
+  const person=d.querySelector('.pixel-person');
+  if(person){person.classList.remove('typing','walking','research');if(run.status==='in_progress'||run.status==='queued')person.classList.add(idx===1?'research':idx===3?'walking':'typing');else person.style.opacity='.72'}
+  d.title='Latest matching workflow: '+run.name+'; '+s.label+'; '+run.html_url;
+ }
+ function render(runs){
+  const matched=new Set();
+  map.forEach(m=>{
+   const r=runs.find(x=>m.match.test(x.path||'')||m.match.test(x.name||''));
+   if(r){matched.add(r.id);setDesk(m.desk,r)}
+  });
+  if(feed){
+   const selected=runs.slice(0,6);
+   feed.replaceChildren();
+   selected.forEach(run=>{
+    const item=document.createElement('a');item.className='pixel-feed-item';item.href=run.html_url;item.target='_blank';item.rel='noopener';item.style.textDecoration='none';
+    const title=document.createElement('b');title.textContent=nice(run.name);
+    const line=document.createElement('span');const s=status(run);line.textContent=s.label+' · '+new Date(run.updated_at).toLocaleString();line.style.color=s.color;
+    item.append(title,line);feed.append(item);
+   });
+   if(!selected.length){const item=document.createElement('div');item.className='pixel-feed-item';item.textContent='No recent workflow runs returned.';feed.append(item)}
+  }
+  const active=runs.filter(r=>r.status==='in_progress').length;
+  const passed=runs.filter(r=>r.status==='completed'&&r.conclusion==='success').length;
+  note.textContent='Live GitHub Actions data · '+active+' running now · '+passed+' successful runs in latest '+runs.length+' records. Updated '+new Date().toLocaleTimeString()+'. Open any activity item to inspect its real workflow run. This tracks workflows, not every internal agent action.';
+ }
+ async function refresh(){
+  try{
+   const response=await fetch(API,{headers:{Accept:'application/vnd.github+json'}});
+   if(!response.ok)throw new Error('GitHub API returned '+response.status);
+   const data=await response.json();
+   if(!Array.isArray(data.workflow_runs))throw new Error('Workflow run data unavailable');
+   render(data.workflow_runs);
+  }catch(e){
+   note.textContent='Live workflow telemetry unavailable ('+e.message+'). Pixel office remains visual; use the workflow links to inspect real run status.';
+  }
+ }
+ refresh();
+ window.setInterval(refresh,60000);
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  const endpoint='https://tradinglab03.onrender.com/health';
+  const status=document.getElementById('harveyHealthStatus');
+  const details=document.getElementById('harveyHealthDetails');
+  const brainStatus=document.getElementById('sharedBrainStatus');
+  const button=document.getElementById('checkHarveyHealth');
+  if(!status||!details||!brainStatus||!button)return;
+  async function checkHealth(){
+    button.disabled=true;
+    status.textContent='Checking live Harvey service…';
+    try{
+      const response=await fetch(endpoint,{headers:{Accept:'application/json'},cache:'no-store'});
+      if(!response.ok)throw new Error('Health endpoint returned HTTP '+response.status);
+      const data=await response.json();
+      if(data.status!=='ready')throw new Error('Service is not reporting ready');
+      status.textContent='CONNECTED · '+String(data.service||'Harvey')+' · checked '+new Date().toLocaleTimeString();
+      details.textContent='Database: '+String(data.database||'unknown')+' · Prospects: '+String(data.prospects??'—')+' · Pending approvals: '+String(data.pending_approvals??'—')+' · Tasks recorded: '+String(data.tasks_recorded??'—')+' · Email sending: '+String(data.email_sending||'unknown');
+      const brain=String(data.shared_brain||'unknown');
+      brainStatus.textContent='Shared Brain: '+(brain==='configured'?'CONFIGURED · agent memory client enabled':brain.toUpperCase().replaceAll('_',' '))+' · checked '+new Date().toLocaleTimeString();
+      brainStatus.style.color=brain==='configured'?'#54e7d2':'#ffda7b';
+      status.style.color='#54e7d2';
+    }catch(error){
+      status.textContent='LIVE HEALTH CHECK FAILED';
+      details.textContent='Harvey could not be verified from this page: '+String(error&&error.message||'network error')+'. Open the health endpoint directly to inspect it.';
+      status.style.color='#ffb4a8';
+    }finally{
+      button.disabled=false;
+    }
+  }
+  button.addEventListener('click',checkHealth);
+  checkHealth();
+  window.setInterval(checkHealth,60000);
+})();
+</script>
+<script src="./visitor-analytics-ui.js" defer></script>
+<script>
+/* Interactive 3D-style network renderer: perspective projection, depth, clusters, links, and pointer-controlled rotation. */
+(function(){
+'use strict';
+const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stages=[...document.querySelectorAll('[data-neural]')];
+const shared={fps:0,nodes:0,brain:'Checking'};
+function setup(stage,index){
+ const canvas=stage.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+ const kind=stage.dataset.neural,small=kind==='brain',count=small?280:520,clusterCount=small?5:6;
+ const nodes=[],clusters=[];
+ let w=1,h=1,dpr=1,rx=0,ry=0,targetX=0,targetY=0,dragging=false,lastX=0,lastY=0,frame=0,lastTime=performance.now(),fps=0,fpsCount=0,fpsTime=lastTime;
+ let seed=(small?98731:27183);
+ function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+ for(let k=0;k<clusterCount;k++){clusters.push({x:(rand()-.5)*2.0,y:(rand()-.5)*1.15,z:(rand()-.5)*.9,r:.18+rand()*.17,color:rand()})}
+ for(let i=0;i<count;i++){const ci=i%clusterCount,cl=clusters[ci],a=rand()*Math.PI*2,u=Math.pow(rand(),.6),b=Math.acos(2*rand()-1),rr=cl.r*u;nodes.push({x:cl.x+Math.cos(a)*Math.sin(b)*rr,y:cl.y+Math.sin(a)*Math.sin(b)*rr,z:cl.z+Math.cos(b)*rr,ci,phase:rand()*Math.PI*2,size:.4+rand()*1.2})}
+ const colors=small?['#62f5ef','#ff6db4','#9ba7ff','#f2e7ff']:['#ff6db4','#69f4f0','#e3e8f6','#ff4d67'];
+ function resize(){const rect=stage.getBoundingClientRect();w=Math.max(1,rect.width);h=Math.max(1,rect.height);dpr=Math.min(window.devicePixelRatio||1,1.65);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+ function project(n,t){let x=n.x,y=n.y,z=n.z;const drift=reduced?0:Math.sin(t*.00023+n.phase)*.012;x+=drift;const cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx);const xx=x*cy-z*sy,zz=x*sy+z*cy,yy=y*cx-zz*sx,zzz=y*sx+zz*cx;const depth=3.4+zzz;const scale=Math.min(w,h)*.43/depth;return {x:w/2+xx*scale,y:h*.52+yy*scale,z:zzz,scale}}
+ function draw(now){
+  frame++;const dt=Math.max(1,now-lastTime);lastTime=now;fpsCount++;if(now-fpsTime>=800){fps=Math.round(fpsCount*1000/(now-fpsTime));fpsCount=0;fpsTime=now;if(index===0){shared.fps=fps;const el=document.querySelector('[data-readout="fps"]');if(el)el.textContent=fps}}
+  if(!dragging&&!reduced){targetY+=0.00035;targetX*=.995}ry+=(targetY-ry)*.045;rx+=(targetX-rx)*.045;
+  ctx.fillStyle='#04050a';ctx.fillRect(0,0,w,h);
+  const glow=ctx.createRadialGradient(w*.5,h*.5,2,w*.5,h*.5,Math.max(w,h)*.6);glow.addColorStop(0,small?'#15101b':'#10101a');glow.addColorStop(1,'#04050a');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+  const projected=nodes.map(n=>({...project(n,now),node:n}));projected.sort((a,b)=>a.z-b.z);
+  const linkDist=(small?Math.min(w,h)*.105:Math.min(w,h)*.082),limit=small?8:9;
+  ctx.lineWidth=.55;
+  for(let i=0;i<projected.length;i++){const a=projected[i],neighbors=[];for(let j=i+1;j<projected.length;j++){const b=projected[j];const dx=a.x-b.x,dy=a.y-b.y,dist=Math.hypot(dx,dy);if(dist<linkDist&&(a.node.ci===b.node.ci||dist<linkDist*.52)){neighbors.push({b,dist});if(neighbors.length>=limit)break}}
+   for(const {b,dist} of neighbors){const alpha=Math.max(0,1-dist/linkDist)*(.16+(a.node.ci===b.node.ci ? .25 : 0));const col=colors[(a.node.ci+(a.node.ci===b.node.ci?0:1))%colors.length];ctx.strokeStyle=col;ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
+  ctx.globalAlpha=1;
+  for(const p of projected){const alpha=Math.min(.95,Math.max(.18,.5+p.z*.25));const radius=Math.max(.45,p.node.size*(p.scale/Math.min(w,h)*3.4));ctx.globalAlpha=alpha;ctx.fillStyle=colors[p.node.ci%colors.length];ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();if(radius>1.15){ctx.globalAlpha=alpha*.15;ctx.beginPath();ctx.arc(p.x,p.y,radius*3.1,0,Math.PI*2);ctx.fill()}}
+  ctx.globalAlpha=1;
+  clusters.forEach((cl,i)=>{const p=project(cl,now);ctx.globalAlpha=.45;ctx.strokeStyle=colors[i%colors.length];ctx.lineWidth=.6;ctx.beginPath();ctx.ellipse(p.x,p.y,Math.min(w,h)*(.09+cl.r*.15),Math.min(w,h)*(.05+cl.r*.1),now*.00005*(i%2?1:-1),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1});
+  const nodeEl=stage.querySelector('[data-nodes]');if(nodeEl)nodeEl.textContent=count;const linkEl=stage.querySelector('[data-links]');if(linkEl)linkEl.textContent=Math.round(count*(small?3.4:4.1));const clusterEl=stage.querySelector('[data-clusters]');if(clusterEl)clusterEl.textContent=clusterCount;
+  if(index===0){shared.nodes=count;const n=document.querySelector('[data-readout="nodes"]');if(n)n.textContent=count;const m=document.querySelector('[data-readout="motion"]');if(m)m.textContent=dragging?'Dragging':'Parallax'}
+  if(!reduced||frame<3)requestAnimationFrame(draw)
+ }
+ stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();if(dragging){targetY+=(e.clientX-lastX)*.006;targetX+=(e.clientY-lastY)*.006;lastX=e.clientX;lastY=e.clientY}else{targetY=((e.clientX-r.left)/r.width-.5)*.8;targetX=((e.clientY-r.top)/r.height-.5)*-.45}},{passive:true});
+ stage.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+ stage.addEventListener('pointerup',()=>dragging=false);stage.addEventListener('pointercancel',()=>dragging=false);stage.addEventListener('pointerleave',()=>{if(!dragging){targetX=0;targetY=0}});
+ if('ResizeObserver'in window)new ResizeObserver(resize).observe(stage);else window.addEventListener('resize',resize);
+ resize();requestAnimationFrame(draw);
+}
+stages.forEach(setup);
+const brain=document.getElementById('neuralBrainStatus');
+fetch('https://tradinglab03.onrender.com/health',{headers:{Accept:'application/json'},cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(d=>{const ok=d.shared_brain==='configured';const txt=ok?'Configured':'Not configured';const e=document.querySelector('[data-readout="brain"]');if(e)e.textContent=txt;shared.brain=txt;if(brain)brain.textContent='Harvey health checked. Shared Brain configuration: '+String(d.shared_brain||'unknown')+'. This does not prove a successful memory write/read.'}).catch(()=>{const e=document.querySelector('[data-readout="brain"]');if(e)e.textContent='Unknown';if(brain)brain.textContent='Brain status unavailable. Visualization remains active; backend memory is not inferred from the animation.'});
+})();
+</script></body></html>

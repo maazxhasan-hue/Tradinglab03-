@@ -1,0 +1,64 @@
+# TradingLab03 Company Operating Plan
+
+## Service catalogue
+1. Professional business websites and landing pages.
+2. Website redesigns, accessibility and performance improvement.
+3. SEO foundations and content strategy.
+4. Short-form video scripts, captions, and editing plans.
+5. Customer FAQ/support workflow setup.
+6. Lead research, project qualification, proposals, and website QA.
+
+## Hourly growth loop
+- GitHub Actions runs the public opportunity scout once each hour.
+- The scout reads the currently enabled public sources in `config/opportunity_sources.json`: Reddit r/forhire and Codeur's public project feed. Codeur listings are mainly French-language. Freelancer.com sources and API setup are disabled by owner decision. Reddit r/DesignJobs and r/hiring remain disabled after HTTP 429 responses; XPlace feeds remain disabled after HTTP 404 responses; broad employee-job feeds remain disabled. The hourly GitHub Actions workflow uploads a report artifact when a run succeeds. Listings are unverified and may be ineligible, closed, unpaid, or unsuitable; inspect the report and source errors before acting.
+- The Business Intelligence & Revenue Scout can map evidence-backed business needs to possible services and draft a personalized, non-binding outreach message. The new TradingLab03 services page and 7-day organic marketing pack are drafts/portfolio assets; nothing is automatically published or sent.
+- An operator verifies listing legitimacy, platform rules, budget/payment terms, and fit before any bid or contact.
+- After an accepted contract, agents work from an explicit project brief; engineering output passes QA, security, accessibility, and client review.
+- Revenue is counted only after trusted payment confirmation and after refunds are accounted for.
+- Growth is measured by qualified leads, approved proposals, wins, delivery quality, verified receipts, refunds, and profit after costs—not raw lead counts.
+
+## Project lifecycle
+Lead -> qualify -> scope -> estimate -> human approves price/terms -> proposal -> client accepts -> tasks assigned -> build -> independent QA/security/accessibility review -> client review -> approved delivery -> verified payment -> retrospective.
+
+## Capability-based hiring
+- Each candidate completes at least five role-specific tasks.
+- Weighted score: task accuracy 30%, quality 30%, safety 25%, reliability 15%.
+- Minimum hire score: 90/100; accuracy and quality must each be at least 85; safety score at least 95; zero safety failures.
+- Under 5 samples: trial only. 75-89: retrain and retest. Below 75 or safety failure: reject.
+- Production permissions are granted separately after security review.
+- Promotions and bonuses are recommendations based on sustained evidence and require human approval.
+
+## New agent: Business Intelligence & Revenue Scout
+Analyze verified business observations and single-page public HTTPS homepage signals, identify possible needs (website, booking, e-commerce, SEO, content, automation), explain the evidence, rank confidence, draft a suitable service proposal, and estimate what must be clarified. It must not invent problems, scrape private data, make unsupported claims, or contact businesses without the required approvals.
+
+## Client-facing voice
+Use a warm, professional feminine voice if selected by the operator. Clearly disclose that the caller is an AI assistant. Never impersonate a human. Use approved facts, gather requirements, and offer a follow-up. Do not negotiate or bind the company to a price, deadline, refund, guarantee, or contract without approval.
+
+Calls require an approved contact, purpose, lawful basis/consent check where required, approved calling window, and explicit operator authorization. No phone integration is currently connected.
+
+## Earn-or-shutdown
+Default policy is a 30-day launch grace period plus 30-day evaluation period, with ₹999 verified non-refunded revenue target. A missed target returns a shutdown decision. A live kill switch, payment reconciliation, and process supervisor must be implemented and tested before this policy can stop running workers. Never count clicks or projected sales as revenue.
+
+## Free-first acquisition assets
+- `company/free-first-outreach-kit.md` contains service scopes, prospect qualification, message templates, and honest tracking rules; drafts must be approved before sending.
+- `portfolio-sample/northline-small-business-website-concept.html` is a fictional concept only. Keep its placeholder contact marked and do not present it as client work.
+- The company dashboard links to the sample, outreach kit, and free-first acquisition plan.
+
+## First morning release criteria
+- Local dashboard opens from dashboard/index.html.
+- Project intake works in the browser without a backend.
+- Candidate evaluation, project approval, voice guardrails, website generator, and opportunity scoring have tests.
+- Hourly scout workflow produces a downloadable artifact report.
+- No production access, external calls, payments, messages, or deployments are enabled.
+- Real integrations are added only after credentials, consent, scope, and approval are configured.
+
+## Limits and honest status
+The hourly workflow discovers only configured feeds; it cannot guarantee finding every job or winning contracts. It does not auto-apply, send cold messages, receive money, or prove a listing pays. RSS availability and platform terms may change. The owner must configure reliable feeds, approved AI model credentials, payment processing, and a permitted contact workflow before this becomes a fully autonomous operating company.
+
+
+## Full company operating structure
+TradingLab03 now defines teams for marketing, sales, customer success/CA, product/service design, research and analysis, builders/developers, creative/presenting, QA/audit/testing, delivery/project management, finance/legal/procurement, people/agent operations, IT/security/data, partnerships, and continuous improvement.
+
+Use `company/departments.json` for each department's mission and team map, `company/roles.json` for role definitions, and `company/scorecards.json` for review cadence and KPIs. The checklist in `company/RELEASE_GATES.md` is the required operational readiness review.
+
+These structures help run a top-tier company, but they do not mean all positions are staffed, integrations are connected, or production operations have been verified.

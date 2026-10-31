@@ -1,0 +1,32 @@
+name: Instagram Draft Pack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "company/instagram_content_pack.py"
+      - ".github/workflows/instagram-draft.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate review-only pack
+        run: |
+          python company/instagram_content_pack.py --account tradinglab03 --topic "AI trading education for beginners" --offer "Build Your Own AI Trading Bot course: 12 modules, practical project and workbook; educational only, no profit guarantees" --audience "beginners and small-business owners" --cta "Save this for later and ask a question in the comments."
+      - name: Upload draft for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-content-pack-${{ github.run_id }}
+          path: data/instagram_content_packs/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,109 @@
+name: Semgrep Security Scan
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semgrep-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Backend static analysis (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository and history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Full repository security scan
+        id: scan
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/semgrep
+          docker run --rm \
+            --volume "${{ github.workspace }}:/src" \
+            --workdir /src \
+            semgrep/semgrep:latest \
+            semgrep scan --config p/default --config p/security-audit --config p/secrets --config .semgrep.yml \
+              --metrics=off --json \
+              --output data/semgrep/full-repository-findings.json \
+              .
+
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            baseline="origin/$GITHUB_BASE_REF"
+          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            baseline="HEAD^"
+          else
+            baseline="origin/main"
+          fi
+          echo "Using baseline for new-finding gate: $baseline"
+          docker run --rm \
+            --volume "${{ github.workspace }}:/src" \
+            --workdir /src \
+            semgrep/semgrep:latest \
+            semgrep scan --config p/default --config p/security-audit --config p/secrets --config .semgrep.yml \
+              --baseline-commit "$baseline" \
+              --metrics=off --error --json \
+              --output data/semgrep/new-findings.json \
+              .
+
+      - name: Report safe finding metadata
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = Path("data/semgrep/new-findings.json")
+          if not report.exists():
+              print("No new-finding report was produced.")
+              raise SystemExit(0)
+          try:
+              data = json.loads(report.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError):
+              print("New-finding report could not be parsed.")
+              raise SystemExit(0)
+          results = data.get("results", [])
+          print(f"New Semgrep finding count: {len(results)}")
+          for item in results:
+              extra = item.get("extra", {})
+              print(json.dumps({
+                  "rule": item.get("check_id"),
+                  "path": item.get("path"),
+                  "line": (item.get("start") or {}).get("line"),
+                  "severity": extra.get("severity"),
+                  "message": extra.get("message"),
+              }, ensure_ascii=True))
+          PY
+
+      - name: Upload scan findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-backend-findings-${{ github.run_id }}
+          path: data/semgrep/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce new-finding gate
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          if [ "$SCAN_OUTCOME" != "success" ]; then
+            echo "::error::Semgrep found new security issues or the scan failed. Download both full and new-finding reports, fix confirmed defects, and rerun the workflow."
+            exit 1
+          fi
+          echo "No new Semgrep backend findings."

@@ -1,0 +1,149 @@
+[
+  {
+    "name": "We Work Remotely - Programming",
+    "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss",
+    "enabled": false,
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms. Many listings are employment roles rather than freelance contracts. Disabled for direct-client-only discovery: primarily employee job postings."
+  },
+  {
+    "name": "We Work Remotely - Design",
+    "url": "https://weworkremotely.com/categories/remote-design-jobs.rss",
+    "enabled": false,
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms. Many listings are employment roles rather than freelance contracts. Disabled for direct-client-only discovery: primarily employee job postings."
+  },
+  {
+    "name": "We Work Remotely - Sales and Marketing",
+    "url": "https://weworkremotely.com/categories/remote-sales-and-marketing-jobs.rss",
+    "enabled": false,
+    "notes": "Public feed. Attribute listings to We Work Remotely and follow its terms. Disabled for direct-client-only discovery: primarily employee job postings."
+  },
+  {
+    "name": "Remotive - All remote jobs",
+    "url": "https://remotive.com/feed",
+    "enabled": false,
+    "notes": "Public feed. Preserve attribution and link users to the original Remotive listing. Many listings are employment roles rather than freelance contracts. Disabled for direct-client-only discovery: primarily employee job postings."
+  },
+  {
+    "name": "Reddit r/forhire - public service requests",
+    "url": "https://www.reddit.com/r/forhire/new/.rss?limit=25",
+    "enabled": true,
+    "notes": "Public community feed to discover posts offering or requesting freelance services. Review subreddit rules, poster intent, eligibility, legitimacy, and payment before acting; not a verified client source. Human review is required before any contact or application.",
+    "action_policy": "review_allowed"
+  },
+  {
+    "name": "Reddit r/DesignJobs - public design requests",
+    "url": "https://www.reddit.com/r/DesignJobs/new/.rss?limit=25",
+    "enabled": false,
+    "notes": "Disabled after live scout returned HTTP 429 Too Many Requests; do not poll until stable access is available."
+  },
+  {
+    "name": "Reddit r/hiring - public hiring requests",
+    "url": "https://www.reddit.com/r/hiring/new/.rss?limit=25",
+    "enabled": false,
+    "notes": "Disabled after repeated HTTP 429 responses; do not poll until a stable access method is available."
+  },
+  {
+    "name": "Jobicy - freelance marketing listings",
+    "url": "https://jobicy.com/jobs/feed?type=freelance&industry=marketing",
+    "enabled": false,
+    "notes": "Disabled after the live GitHub Actions runner returned HTTP 403 Forbidden on 2026-10-15. Keep disabled until a permitted, stable public feed response is verified."
+  },
+  {
+    "name": "Himalayas - public remote jobs",
+    "url": "https://himalayas.app/jobs/rss",
+    "enabled": false,
+    "notes": "Public RSS feed for remote jobs. Use as a supplementary source for potential contract/freelance work only; most entries are roles rather than direct service buyers. Preserve source attribution and original links. Disabled in the direct-client-focused scan because this is primarily a job board, not a verified project-request feed."
+  },
+  {
+    "name": "Codeur - public freelance project requests",
+    "url": "https://www.codeur.com/projects?format=rss",
+    "enabled": true,
+    "notes": "Public RSS listing of client-posted freelance projects, mainly French-language web/design/marketing work. Preserve attribution and original listing links; assess language, location, budget, and eligibility manually. French buyer-intent classifier expanded to recognize direct paid-service requests such as Meta Ads/SEA campaign management; job-vacancy signals still disqualify employment roles. Research-only for the free-first operation: current offer submission requires a paid subscription and commission; do not treat as an actionable free-first lead or buy a plan without explicit approval.",
+    "action_policy": "research_only"
+  },
+  {
+    "name": "XPlace - website projects",
+    "url": "https://www.xplace.com/rss/ShowProjects.xpl?in=1",
+    "enabled": false,
+    "notes": "Public RSS feed documented by XPlace for website freelance projects. Listings are requests to bid, not verified contracts; preserve attribution and follow platform rules. Disabled after live scout returned HTTP 404; do not reactivate without verifying a valid public feed."
+  },
+  {
+    "name": "XPlace - sales and marketing projects",
+    "url": "https://www.xplace.com/rss/ShowProjects.xpl?in=7",
+    "enabled": false,
+    "notes": "Public RSS feed documented by XPlace for freelance sales/marketing projects. Listings are requests to bid, not verified contracts; preserve attribution and follow platform rules. Disabled after live scout returned HTTP 404; do not reactivate without verifying a valid public feed."
+  },
+  {
+    "name": "Freelancer.com - website and ecommerce projects",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "website redesign landing page wordpress shopify ecommerce",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  },
+  {
+    "name": "Freelancer.com - SEO, content and video projects",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "SEO content writing video editing social media marketing automation",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  },
+  {
+    "name": "Upwork - public freelance project RSS",
+    "url": "https://www.upwork.com/freelance-jobs/rss/",
+    "enabled": false,
+    "notes": "Disabled after live scout returned HTTP 403 Forbidden; do not poll unless an authorized/public feed path is verified."
+  },
+  {
+    "name": "XPlace - all new projects",
+    "url": "https://www.xplace.com/il/en/rss/new-projects",
+    "enabled": false,
+    "notes": "Disabled after live scout returned HTTP 404 Not Found; do not reactivate until a valid public feed URL is verified."
+  },
+  {
+    "name": "Remote OK - public remote freelance and contract listings",
+    "url": "https://remoteok.com/remote-jobs.rss",
+    "enabled": false,
+    "notes": "Disabled after live GitHub Actions validation returned HTTP 410 Gone for https://remoteok.com/remote-jobs.rss. Do not re-enable unless a current feed endpoint is verified from the runner."
+  },
+  {
+    "name": "PeoplePerHour - public freelance client projects",
+    "url": "https://www.peopleperhour.com/freelance-jobs",
+    "type": "peopleperhour",
+    "enabled": false,
+    "notes": "Disabled after live GitHub Actions runner received HTTP 202 (likely challenge/interstitial) instead of the public listing HTML. Adapter retained for future testing but must remain disabled until a permitted, stable response is verified."
+  },
+  {
+    "name": "Freelancer.com - AI, mobile app and business automation projects",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "AI chatbot automation mobile app Android iOS data entry virtual assistant CRM integration",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  },
+  {
+    "name": "Freelancer.com - graphic design, logos and brand identity projects",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "logo design graphic design brand identity Figma social media posts banner packaging",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  },
+  {
+    "name": "Freelancer.com - small-business website and landing-page briefs",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "small business website design landing page business website fixed price project",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  },
+  {
+    "name": "Freelancer.com - WordPress and Shopify fixes",
+    "type": "freelancer_api",
+    "enabled": false,
+    "limit": 50,
+    "query": "WordPress bug fix website speed repair Shopify store setup checkout fix ecommerce issue",
+    "notes": "Disabled by owner decision on 2026-10-15: TradingLab03 is no longer using Freelancer.com. Do not query this source."
+  }
+]

@@ -1,0 +1,209 @@
+{
+  "id": "urbanGrowthLeadIntake01",
+  "name": "Urban Growth HQ - Lead Intake",
+  "active": true,
+  "nodes": [
+    {
+      "id": "webhook-lead-intake",
+      "name": "Lead Intake Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "webhookId": "urbanGrowthLeadIntakeWebhook01",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "urban-growth-hq-lead-intake",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://urban-growth-hq.onrender.com"
+        }
+      }
+    },
+    {
+      "id": "normalize-validate-lead",
+      "name": "Validate and Normalize Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json ?? {};\nconst body = input.body && typeof input.body === 'object' ? input.body : input;\nconst clean = (v, max=200) => typeof v === 'string' ? v.trim().slice(0,max) : '';\nconst name = clean(body.name,120);\nconst email = clean(body.email,254).toLowerCase();\nconst phone = clean(body.phone,40);\nconst interest = clean(body.interest,160);\nconst source = clean(body.source,80) || 'website';\nconst consentRaw = body.contactConsent ?? body.consent;\nconst contactConsent = consentRaw === true || consentRaw === 'yes' || consentRaw === 'true';\nconst validEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\nconst digits = phone.replace(/\\D/g,'');\nconst validPhone = /^[+\\d() .-]{7,40}$/.test(phone) && digits.length >= 7 && digits.length <= 15;\nconst valid = !!name && (validEmail || validPhone);\nconst contactAllowed = valid && contactConsent;\nconst dedupeKey = validEmail ? 'email:' + email : validPhone ? 'phone:' + digits : '';\nconst errors = [];\nif (!name) errors.push('name_required');\nif (!validEmail && !validPhone) errors.push('valid_email_or_phone_required');\nreturn [{json:{ok:valid,status:valid?'accepted':'rejected',errors,lead:{name,email:validEmail?email:'',phone:validPhone?phone:'',interest,source,contact_consent:contactConsent,contact_allowed:contactAllowed},dedupe_key:dedupeKey,storage_status:valid?'pending_persistence':'not_attempted',follow_up_status:'not_sent',notice:valid?'Validated; persistence is handled by the following secure database step. No messages are sent.':'Invalid submission was not stored. No messages are sent.'}}];"
+      }
+    },
+    {
+      "id": "route-valid-lead",
+      "name": "Is Lead Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "valid-lead-condition",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "persist-lead",
+      "name": "Persist Lead to Urban Growth D1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://urban-growth-hq-api.maazxhasan.workers.dev/api/leads",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({name: $json.lead.name, email: $json.lead.email, phone: $json.lead.phone, interest: $json.lead.interest, source: $json.lead.source, contactConsent: $json.lead.contact_consent}) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "respond-persisted",
+      "name": "Return Persisted Lead Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1040,
+        -100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.ok ? 200 : 503 }}"
+        }
+      }
+    },
+    {
+      "id": "respond-invalid",
+      "name": "Return Validation Errors",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        760,
+        160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    },
+    {
+      "id": "respond-storage-error",
+      "name": "Return Storage Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1040,
+        100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {ok:false,status:'storage_failed',storage_status:'not_persisted',follow_up_status:'not_sent',notice:'Lead validation succeeded but permanent storage failed. Retry later; no outreach was sent.'} }}",
+        "options": {
+          "responseCode": 503
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Lead Intake Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate and Normalize Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and Normalize Lead": {
+      "main": [
+        [
+          {
+            "node": "Is Lead Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Lead Valid": {
+      "main": [
+        [
+          {
+            "node": "Persist Lead to Urban Growth D1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist Lead to Urban Growth D1": {
+      "main": [
+        [
+          {
+            "node": "Return Persisted Lead Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Storage Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": []
+}

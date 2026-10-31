@@ -1,0 +1,141 @@
+name: Daily Company Operations Report
+
+on:
+  schedule:
+    - cron: "45 3 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "company/OPERATING_PLAN.md"
+      - "company/automation-roadmap.md"
+      - "company/daily_company_review.py"
+      - "data/leads.json"
+      - "tests/test_daily_company_review.py"
+      - ".github/workflows/daily-company-operations.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-company-operations
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout company repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run company tests
+        id: tests
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee company-test-results.txt
+
+      - name: Generate daily operations report
+        if: always()
+        env:
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('.')
+          report = [
+              '# TradingLab03 Daily Operations Report',
+              '',
+              f"- Generated (UTC): {datetime.now(timezone.utc).isoformat()}",
+              f"- Revision: {os.environ.get('GITHUB_SHA', 'unknown')}",
+              f"- Workflow run: {os.environ.get('GITHUB_RUN_ID', 'unknown')}",
+              f"- Unit tests: {os.environ.get('TEST_OUTCOME', 'unknown').upper()}",
+              '',
+              '## Automation components',
+          ]
+          checks = {
+              'Hourly opportunity scout workflow': '.github/workflows/hourly-opportunity-scout.yml',
+              'Company health-check workflow': '.github/workflows/company-health-check.yml',
+              'Manual AI draft worker': '.github/workflows/agent-worker.yml',
+              'Operating controls': 'company/operating_controls.py',
+              'AI worker runtime': 'company/agent_runtime.py',
+              'Opportunity sources configuration': 'config/opportunity_sources.json',
+              'Operating plan': 'company/OPERATING_PLAN.md',
+              'Automation roadmap': 'company/automation-roadmap.md',
+          }
+          for label, path in checks.items():
+              report.append(f"- [{'x' if (root / path).is_file() else ' '}] {label} ({path})")
+          report += ['', '## Opportunity tracker']
+          leads_path = root / 'data' / 'leads.json'
+          if leads_path.is_file():
+              try:
+                  raw = json.loads(leads_path.read_text(encoding='utf-8'))
+                  if isinstance(raw, list):
+                      count = len(raw)
+                  elif isinstance(raw, dict):
+                      leads = raw.get('leads')
+                      count = len(leads) if isinstance(leads, list) else len(raw)
+                  else:
+                      count = 0
+                  report.append(f'- Lead records in tracked JSON: {count}')
+              except Exception as exc:
+                  report.append(f'- Lead tracker: ERROR reading JSON ({exc})')
+          else:
+              report.append('- Lead tracker file not present in this checkout.')
+          report += [
+              '',
+              '## Human actions / limitations',
+              '- This report verifies repository files and unit tests only; it does not prove the public site, external accounts, AI provider, notifications, payments, or client delivery are operational.',
+              '- Opportunity discovery is scheduled separately. Inspect its latest run and artifact to confirm fresh data.',
+              '- Proposals, external messages, bids, contracts, spending, deployments, and payment actions remain subject to required human approval.',
+              '- No trading bot, Angel One, or MCX configuration is accessed or changed by this workflow.',
+              '',
+              '## Suggested operator review',
+              '1. Check whether the latest hourly scout run succeeded and review source errors.',
+              '2. Review new leads and proposal drafts; verify each project is still open and legitimate.',
+              '3. Review failed tests or missing components before relying on automation.',
+              '4. Confirm client work and revenue only from actual project and payment evidence.',
+              '',
+          ]
+          Path('daily-company-operations-report.md').write_text('\n'.join(report), encoding='utf-8')
+          PY
+
+      - name: Generate prioritized lead review
+        if: always()
+        run: python -m company.daily_company_review
+
+      - name: Sync daily operations agent run to shared brain
+        if: always()
+        env:
+          SHARED_BRAIN_AGENT_KEY: ${{ secrets.SHARED_BRAIN_AGENT_KEY }}
+          SHARED_BRAIN_AGENT_ID: github-daily-company-operations
+          RUN_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$SHARED_BRAIN_AGENT_KEY" ]; then
+            python -m company.shared_brain_sync --status "${RUN_STATUS,,}"
+          else
+            echo "Shared brain sync skipped: SHARED_BRAIN_AGENT_KEY secret is not configured."
+          fi
+      - name: Upload daily report and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-company-operations-${{ github.run_id }}
+          path: |
+            daily-company-operations-report.md
+            data/opportunities/daily-company-review.md
+            company-test-results.txt
+          if-no-files-found: warn
+          retention-days: 30
