@@ -34,6 +34,8 @@ jobs:
         run: python tests/test_harvey_agent_live_smoke.py -v
 
   live-agent:
+    # A real production specialist run may consume provider quota; require manual dispatch.
+    if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       id-token: write

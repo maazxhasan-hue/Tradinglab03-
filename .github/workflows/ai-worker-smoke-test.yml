@@ -116,6 +116,8 @@ jobs:
           PY
 
       - name: Optional provider smoke test
+        # Live provider calls may incur usage; keep them manual-only.
+        if: github.event_name == 'workflow_dispatch'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
