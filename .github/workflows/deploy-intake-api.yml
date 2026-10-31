@@ -132,7 +132,7 @@ jobs:
           print("Generated deployment config for the configured site origin.")
           PY
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Validate Worker JavaScript syntax

@@ -62,7 +62,7 @@ jobs:
       - name: Compile Python modules
         run: python -m compileall -q company tests
       - name: Set up Node.js for browser and Worker syntax checks
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Syntax-check browser scripts and intake Worker
