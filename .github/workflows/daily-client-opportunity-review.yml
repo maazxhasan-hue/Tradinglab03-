@@ -40,7 +40,7 @@ jobs:
       - name: Prepare proposal drafts for policy-eligible client-project leads
         run: python -m company.client_opportunity_review
       - name: Upload review-only proposal drafts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-client-draft-queue-${{ github.run_id }}
           path: data/client_packs/daily_review/

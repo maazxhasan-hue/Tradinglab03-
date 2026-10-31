@@ -83,7 +83,7 @@ jobs:
           CLIENT_PRICE: ${{ inputs.price_quote }}
         run: python -m company.client_pipeline
       - name: Upload drafts for human review
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-client-pack-${{ github.run_id }}
           path: data/client_packs/

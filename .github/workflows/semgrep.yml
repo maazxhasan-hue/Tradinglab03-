@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload scan findings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-backend-findings-${{ github.run_id }}
           path: data/semgrep/

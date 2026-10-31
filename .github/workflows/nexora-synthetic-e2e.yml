@@ -93,7 +93,7 @@ jobs:
 
       - name: Upload synthetic review bundle
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nexora-synthetic-e2e-${{ github.run_id }}
           path: data/nexora_synthetic_execution/

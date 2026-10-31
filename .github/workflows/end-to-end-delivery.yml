@@ -97,7 +97,7 @@ jobs:
         run: python -m company.delivery_pipeline --brief data/delivery_brief.json --output data/delivery_bundles/review
       - name: Upload review bundle (no outreach or deployment)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tradinglab03-delivery-review-${{ github.run_id }}
           path: data/delivery_bundles/review/
