@@ -68,6 +68,40 @@ CONTENT_TYPES = {
 def content_type_for(name: str) -> str:
     """Return the MIME type for a specifically allowlisted HQ file."""
     return CONTENT_TYPES.get(Path(name).suffix.lower(), "application/octet-stream")
+
+
+def storage_readiness() -> dict:
+    """Describe whether both production stores use durable PostgreSQL, without exposing URLs."""
+    growth_target = database_target(GROWTH_DB)
+    pricing_target = database_target(PRICING_DB)
+    growth_backend = "postgres" if is_postgres_target(growth_target) else "sqlite"
+    pricing_backend = "postgres" if is_postgres_target(pricing_target) else "sqlite"
+    persistent = growth_backend == "postgres" and pricing_backend == "postgres"
+    backend = "postgres" if persistent else ("sqlite" if growth_backend == pricing_backend else "mixed")
+    return {
+        "backend": backend,
+        "persistent": persistent,
+        "growth_backend": growth_backend,
+        "pricing_backend": pricing_backend,
+    }
+
+
+def check_persistent_storage() -> tuple[bool, dict]:
+    """Require reachable PostgreSQL before production writes or agent execution."""
+    status = storage_readiness()
+    if not status["persistent"]:
+        status["connection"] = "not_checked"
+        return False, status
+    try:
+        for target in (database_target(GROWTH_DB), database_target(PRICING_DB)):
+            with connect_database(target, timeout=5) as db:
+                db.execute("SELECT 1").fetchone()
+        status["connection"] = "ok"
+        return True, status
+    except Exception as exc:
+        status["connection"] = "failed"
+        status["error_type"] = type(exc).__name__
+        return False, status
 LOGIN_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Nexora HQ · Sign in</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080d16;color:#edf4ff;font:16px/1.5 system-ui,sans-serif;padding:20px}.card{width:min(420px,100%);padding:30px;background:#101a29;border:1px solid #24344a;box-shadow:8px 8px #030811}.brand{color:#54e7d2;font-weight:900;letter-spacing:.14em;font-size:.75rem}h1{font-size:1.7rem}p{color:#9aabc1}label{display:block;margin:18px 0 7px}input{width:100%;padding:13px;background:#080d16;border:1px solid #31465e;color:#edf4ff;border-radius:4px}button{width:100%;margin-top:16px;padding:13px;background:#54e7d2;border:0;color:#06121a;font-weight:900;cursor:pointer}small{display:block;margin-top:16px;color:#9aabc1}</style></head><body><main class="card"><div class="brand">NEXORA AI / PRIVATE WORKSPACE</div><h1>Company HQ</h1><p>Sign in to access the internal workspace.</p><form method="post" action="/login"><label for="password">Access password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">SIGN IN</button></form><small>Protected session · Sign-in expires after 8 hours.</small></main></body></html>"""
 
 def b64(data: bytes) -> str:
@@ -139,6 +173,17 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             return False
 
+    def require_persistent_storage(self) -> bool:
+        ready, status = check_persistent_storage()
+        if ready:
+            return True
+        self.body(503, json.dumps({
+            "error": "persistent_storage_not_ready",
+            "message": "Writes and agent execution are locked until both HQ stores use reachable PostgreSQL. SQLite on a free Render instance can be lost on restart.",
+            "storage": status,
+        }), "application/json; charset=utf-8")
+        return False
+
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path.startswith("/api/pricing/"):
@@ -172,6 +217,7 @@ class Handler(BaseHTTPRequestHandler):
                     "roles": roster,
                     "ai_provider": provider_status(),
                     "brain": brain_status(),
+                    "storage": storage_readiness(),
                     "batch": batch_status(),
                 }), "application/json; charset=utf-8"); return
             if parsed.path == "/api/company/batch":
@@ -208,10 +254,12 @@ class Handler(BaseHTTPRequestHandler):
                     db.execute("SELECT 1").fetchone()
                 with connect_database(pricing_target, timeout=5) as db:
                     db.execute("SELECT 1").fetchone()
+                storage = storage_readiness()
                 payload = {
                     "status": "ok",
-                    "database": "postgres" if is_postgres_target(growth_target) and is_postgres_target(pricing_target) else "sqlite",
+                    "database": storage["backend"],
                     "database_connection": "ok",
+                    "persistent_storage": storage["persistent"],
                 }
                 self.body(200, json.dumps(payload), "application/json; charset=utf-8")
             except Exception as exc:
@@ -246,6 +294,7 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path.startswith("/api/pricing/"):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if parsed.path == "/api/pricing/services/update" and not self.require_persistent_storage(): return
             if parsed.path != "/api/pricing/services/update":
                 self.body(404, json.dumps({"error":"not_found"}), "application/json; charset=utf-8"); return
             try:
@@ -268,6 +317,7 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/company/agents/start-all":
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
+            if not self.require_persistent_storage(): return
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 8192:
@@ -293,6 +343,7 @@ class Handler(BaseHTTPRequestHandler):
             if not self.authenticated():
                 self.body(401, json.dumps({"error":"authentication_required"}), "application/json; charset=utf-8"); return
             if parsed.path == "/api/growth/agents/start-all":
+                if not self.require_persistent_storage(): return
                 try:
                     result = start_all_agents(GrowthStore(GROWTH_DB))
                     status = 202 if result.get("started") else 409
@@ -306,6 +357,7 @@ class Handler(BaseHTTPRequestHandler):
                 task_id = parsed.path[len("/api/growth/tasks/"):-len("/run")].strip("/")
                 if not task_id or "/" in task_id:
                     self.body(400, json.dumps({"error":"invalid_task_id"}), "application/json; charset=utf-8"); return
+                if not self.require_persistent_storage(): return
                 try:
                     task = execute_agent_draft(GrowthStore(GROWTH_DB), task_id)
                     self.body(200, json.dumps({"task_id":task["task_id"],"status":task["status"],
@@ -321,6 +373,7 @@ class Handler(BaseHTTPRequestHandler):
                         "application/json; charset=utf-8"); return
             if parsed.path != "/api/growth/tasks":
                 self.body(403, json.dumps({"error":"action_not_available"}), "application/json; charset=utf-8"); return
+            if not self.require_persistent_storage(): return
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 8192: raise ValueError("invalid_body_size")
@@ -370,7 +423,8 @@ if __name__ == "__main__":
         print(json.dumps({
             "event": "database_readiness",
             "status": "ok",
-            "backend": "postgres" if is_postgres_target(growth_target) and is_postgres_target(pricing_target) else "sqlite",
+            "backend": storage_readiness()["backend"],
+            "persistent_storage": storage_readiness()["persistent"],
             "task_records_readable": len(growth_store.list_tasks(limit=1)),
             "pricing_services_readable": len(pricing_store.list_services()),
             "ai_provider": provider_status(),
